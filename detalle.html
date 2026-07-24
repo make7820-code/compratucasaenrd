@@ -239,7 +239,7 @@
         color: #f59e0b;
       }
 
-      /* Cuadrícula de Especificaciones Ampliada */
+      /* Cuadrícula de Especificaciones */
       .property-specs-grid {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
@@ -354,7 +354,7 @@
         background: #059669;
       }
 
-      /* Footer */
+      /* Footer Estilo 4 Columnas con Redes SVG */
       .site-footer {
         background: #0b0b0e;
         border-top: 1px solid rgba(255, 255, 255, 0.08);
@@ -615,7 +615,7 @@
       </div>
     </footer>
 
-    <!-- SCRIPT CONECTADO A FIREBASE Y LÓGICA DE GALERÍA, ZOOM E INFORMACIÓN COMPLETA -->
+    <!-- SCRIPT CONECTADO A FIREBASE Y LÓGICA DE GALERÍA, ZOOM Y ESPECIFICACIONES -->
     <script type="module">
       import { db, doc, getDoc } from './firebase-config.js';
 
@@ -629,7 +629,7 @@
           return;
         }
 
-        // Respaldo estático adaptado con nuevos campos
+        // Respaldo estático de prueba
         const staticProperties = {
           "1": {
             titulo: "Apartamento Vista al Mar",
@@ -674,20 +674,27 @@
           const banos = selectedProperty.banos || '2';
           const metros = selectedProperty.metros || 'N/D';
           
-          // Nuevos campos solicitados con valores por defecto seguros
+          // Campos nuevos y sincronizados
           const nivel = selectedProperty.nivel || selectedProperty.altura || 'N/D';
           const parqueos = selectedProperty.parqueos || selectedProperty.parking || '1';
-          const extranjero = selectedProperty.extranjero !== undefined ? selectedProperty.extranjero : (selectedProperty.aceptanExtranjeros || true);
           const depositos = selectedProperty.depositos || selectedProperty.deposits || '1 depósito';
+
+          // Validación condicional de Extranjero (Si no está marcado, no se genera el HTML)
+          const aceptaExtranjero = selectedProperty.extranjero !== undefined ? selectedProperty.extranjero : selectedProperty.aceptanExtranjeros;
+          const extranjeroHtml = aceptaExtranjero 
+            ? `<div class="spec-card">
+                 <span>Extranjeros</span>
+                 <strong>🌐 Acepta Extranjeros</strong>
+               </div>` 
+            : '';
 
           const imgs = (selectedProperty.imagenes && selectedProperty.imagenes.length > 0) ? selectedProperty.imagenes : [selectedProperty.image || 'assets/puerto-marina.png'];
           const description = selectedProperty.descripcion || selectedProperty.description || 'Sin descripción detallada.';
           const agente = "Daniel Decena";
 
-          // Estructura HTML de la vista de detalle
           container.innerHTML = `
             <div class="property-main-content">
-              <!-- Galería con controles de avance y zoom -->
+              <!-- Galería interactiva con controles y zoom -->
               <div class="property-gallery" id="propertyGalleryBox">
                 <span class="property-tag-badge" style="background: ${badgeBg}; position: absolute; top: 16px; left: 16px; z-index: 3;">${offer}</span>
                 
@@ -708,7 +715,7 @@
                 <div class="property-price-main">${price}</div>
               </div>
 
-              <!-- Cuadrícula de Especificaciones (Incluye Nivel, Parqueos, Extranjero y Depósitos) -->
+              <!-- Cuadrícula de Especificaciones -->
               <div class="property-specs-grid">
                 <div class="spec-card">
                   <span>Habitaciones</span>
@@ -730,10 +737,10 @@
                   <span>Parqueos</span>
                   <strong>🚗 ${parqueos} Parqueos</strong>
                 </div>
-                <div class="spec-card">
-                  <span>Extranjeros</span>
-                  <strong>🌐 ${extranjero ? 'Acepta Extranjeros' : 'No especificado'}</strong>
-                </div>
+                
+                <!-- Solo se muestra si la casilla de extranjero fue marcada -->
+                ${extranjeroHtml}
+
                 <div class="spec-card" style="grid-column: 1 / -1;">
                   <span>Depósitos Requeridos</span>
                   <strong>💰 ${depositos}</strong>
@@ -767,7 +774,7 @@
             </div>
           `;
 
-          // Lógica interactiva para la galería (pasar fotos de una en una)
+          // Lógica para pasar imágenes de una en una
           let currentIndex = 0;
           const activeImgElement = document.getElementById('activeGalleryImg');
           const prevBtn = document.getElementById('prevImgBtn');
@@ -790,7 +797,7 @@
             });
           }
 
-          // Lógica del Modal (Zoom al hacer click en la foto y botón X para salir)
+          // Lógica del modal con Zoom y botón X para cerrar
           const modal = document.getElementById('imageModal');
           const modalImg = document.getElementById('modalImage');
           const galleryBox = document.getElementById('propertyGalleryBox');
