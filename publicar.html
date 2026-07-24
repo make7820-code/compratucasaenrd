@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestión de Publicaciones | Compra tu casa en RD</title>
     <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="assets/mi-logo.ico">
+    <link rel="icon" type="image/png" href="assets/mi-logo.png">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
     <!-- Hoja de Estilos Principal -->
@@ -633,7 +633,7 @@
           <a href="#" class="nav-link"><span class="nav-emoji">👥</span> Comunidad</a>
           <a href="#" class="nav-link"><span class="nav-emoji">📰</span> Blog</a>
           <a href="#" class="nav-link"><span class="nav-emoji">ℹ️</span> Nosotros</a>
-          <a href="publicar.html" class="nav-link" style="color: #f59e0b;"><span class="nav-emoji">🤝</span> Publicar</a>
+          <a href="mensajes.html" class="nav-link" style="color: #f59e0b;"><span class="nav-emoji">💬</span> Mensajes</a>
         </nav>
         <div id="authContainer"></div>
       </div>
@@ -861,7 +861,7 @@
     <!-- SCRIPTS CON CONTROL DE ERRORES ROBUSTO Y SEGURIDAD FIRESTORE -->
     <script type="module">
       import { auth, db, storage, collection, addDoc, getDocs, doc, getDoc, updateDoc, deleteDoc, ref, uploadBytes, getDownloadURL } from './firebase-config.js';
-      import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+      import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
       let mostrandoArchivadas = false;
       let imagenesEditandoActuales = []; // Array temporal para controlar las imágenes al editar
@@ -906,11 +906,61 @@
             
             if (authContainer) {
               authContainer.innerHTML = `
-                <a href="perfil.html" style="display: flex; align-items: center; gap: 10px; text-decoration: none;">
-                  <img src="${fotoGuardada}" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 2px solid #f59e0b;" onerror="this.src='https://picsum.photos/36'">
-                  <span style="color: var(--text-main); font-weight: 600; font-size: 14px;">${nombreCompleto}</span>
-                </a>
+                <div class="user-profile-menu-container" style="position: relative; display: inline-block;">
+                  <div id="userMenuBtn" style="display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 4px 8px; border-radius: 999px; transition: background 0.2s;">
+                    <img src="${fotoGuardada}" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 2px solid #f59e0b;" onerror="this.src='https://picsum.photos/36'">
+                    <span style="color: var(--text-main); font-weight: 600; font-size: 14px;">${nombreCompleto}</span>
+                  </div>
+                  <div id="userDropdownCard" style="display: none; position: absolute; right: 0; top: 50px; background: #0d0d0d; border: 1px solid rgba(255,255,255,0.12); border-radius: 16px; width: 240px; box-shadow: 0 15px 35px rgba(0,0,0,0.8); z-index: 1100; padding: 12px; color: #fff;">
+                    <a href="perfil.html" style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; color: #fff; text-decoration: none; border-radius: 8px; font-size: 14px; font-weight: 500; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'">
+                      <span style="font-size: 16px;">👤</span> Ir al Perfil
+                    </a>
+                    <div style="border-top: 1px solid rgba(255,255,255,0.08); margin: 8px 0; padding-top: 8px;">
+                      <span style="font-size: 11px; text-transform: uppercase; color: #9ca3af; font-weight: 700; display: block; margin-bottom: 8px; padding-left: 12px;">Aspecto Físico</span>
+                      <div style="display: flex; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 4px; justify-content: space-around;">
+                        <button type="button" onclick="cambiarTemaApp('light')" title="Modo Claro" style="background: ${savedTheme === 'light' ? '#f59e0b' : 'transparent'}; border: none; border-radius: 8px; width: 36px; height: 32px; cursor: pointer; font-size: 14px;">☀️</button>
+                        <button type="button" onclick="cambiarTemaApp('system')" title="Sistema" style="background: transparent; border: none; border-radius: 8px; width: 36px; height: 32px; cursor: pointer; font-size: 14px;">💻</button>
+                        <button type="button" onclick="cambiarTemaApp('dark')" title="Modo Oscuro" style="background: ${savedTheme === 'dark' ? '#374151' : 'transparent'}; border: none; border-radius: 8px; width: 36px; height: 32px; cursor: pointer; font-size: 14px;">🌙</button>
+                      </div>
+                    </div>
+                    <div style="border-top: 1px solid rgba(255,255,255,0.08); margin-top: 8px; padding-top: 8px;">
+                      <button type="button" id="btnLogoutBtn" style="width: 100%; text-align: left; background: transparent; border: none; color: #ef4444; padding: 10px 12px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px;" onmouseover="this.style.background='rgba(239,68,68,0.1)'" onmouseout="this.style.background='transparent'">
+                        <span>🛑</span> Cerrar Sesión
+                      </button>
+                    </div>
+                  </div>
+                </div>
               `;
+
+              const userMenuBtn = document.getElementById('userMenuBtn');
+              const userDropdownCard = document.getElementById('userDropdownCard');
+
+              if (userMenuBtn && userDropdownCard) {
+                userMenuBtn.addEventListener('click', (e) => {
+                  e.stopPropagation();
+                  userDropdownCard.style.display = userDropdownCard.style.display === 'block' ? 'none' : 'block';
+                });
+
+                document.addEventListener('click', () => {
+                  userDropdownCard.style.display = 'none';
+                });
+
+                userDropdownCard.addEventListener('click', (e) => {
+                  e.stopPropagation();
+                });
+              }
+
+              const logoutBtn = document.getElementById('btnLogoutBtn');
+              if (logoutBtn) {
+                logoutBtn.addEventListener('click', async () => {
+                  try {
+                    await signOut(auth);
+                    window.location.href = 'index.html';
+                  } catch (err) {
+                    console.error("Error al cerrar sesión:", err);
+                  }
+                });
+              }
             }
 
             actualizarContadorArchivadas();
@@ -924,6 +974,16 @@
         });
         // ==============================================================================
       });
+
+      window.cambiarTemaApp = function(modo) {
+        if (modo === 'light') {
+          document.body.classList.add('light-mode');
+          localStorage.setItem('site_theme', 'light');
+        } else {
+          document.body.classList.remove('light-mode');
+          localStorage.setItem('site_theme', 'dark');
+        }
+      }
 
       function actualizarContadorArchivadas() {
         try {
@@ -1279,7 +1339,7 @@
         }
       }
 
-      window.eliminarPublicacionActiva = async function(id) {
+      window.eliminarPublicacionActiva = async function(id, e) {
         if (!confirm("¿Estás seguro de eliminar permanentemente esta propiedad de la base de datos?")) return;
         try {
           await deleteDoc(doc(db, "propiedades", id));
