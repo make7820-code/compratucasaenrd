@@ -14,6 +14,19 @@
         background-color: #0b0b0e;
       }
 
+      /* Corrección para alinear perfectamente los elementos del header (avatar, campana y enlaces) */
+      .header-inner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      #authContainer {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+      }
+
       .main-page-wrapper {
         position: relative;
         background-image: url('assets/hero-plaza-bandera.jpg');
@@ -315,7 +328,7 @@
         border-color: rgba(59, 130, 246, 0.6);
       }
 
-      /* Estilos para notificaciones (igual que blog.html) */
+      /* Estilos para notificaciones */
       @keyframes ringBell {
         0% { transform: rotate(0deg); }
         20% { transform: rotate(15deg); }
@@ -330,17 +343,10 @@
         display: inline-block;
       }
 
-      /* Animación para la luz verde parpadeante en la foto de perfil */
       @keyframes greenPulse {
-        0% {
-          box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
-        }
-        70% {
-          box-shadow: 0 0 0 10px rgba(34, 197, 94, 0);
-        }
-        100% {
-          box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
-        }
+        0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
+        70% { box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
       }
 
       .profile-avatar-active {
@@ -713,9 +719,6 @@
         renderAgents(currentUser);
       }
 
-      // La campanita de notificaciones y el menú de perfil ahora los maneja
-      // notifications.js (compartido con el resto de páginas del sitio).
-      // Este script solo se encarga de la lista de "Agentes Recomendados".
       window.addEventListener('DOMContentLoaded', () => {
         onAuthStateChanged(auth, async (user) => {
           try {
@@ -746,7 +749,7 @@
       });
     </script>
 
-    <!-- Campanita de notificaciones y menú de perfil, compartidos con el resto del sitio -->
+    <!-- Campanita de notificaciones y menú de perfil -->
     <script type="module" src="notifications.js"></script>
 
 </body>
