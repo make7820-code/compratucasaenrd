@@ -6,6 +6,16 @@ document.addEventListener('DOMContentLoaded', () => {
   const authContainer = document.getElementById('authContainer');
   if (!authContainer) return;
 
+  // Aplicar el tema (claro/oscuro/sistema) guardado, igual que hacía cada página por separado
+  const savedTheme = localStorage.getItem('site_theme') || 'dark';
+  if (savedTheme === 'light') {
+    document.body.classList.add('light-mode');
+  } else if (savedTheme === 'system') {
+    if (window.matchMedia('(prefers-color-scheme: light)').matches) {
+      document.body.classList.add('light-mode');
+    }
+  }
+
   onAuthStateChanged(auth, async (user) => {
     if (!user) return; // Si no hay sesión, se queda el botón de "Iniciar sesión" por defecto
 
@@ -61,12 +71,12 @@ document.addEventListener('DOMContentLoaded', () => {
       // Consideramos no leídos aquellos donde el último mensaje NO sea del usuario ('user') Y que no se haya marcado como leído en mensajes.html
       const unreadConvs = convs.filter(c => c.sender && c.sender !== 'user' && !c.leido);
       
-      renderGlobalNavbar(authContainer, user.uid, displayName, avatarSrc, unreadConvs);
+      renderGlobalNavbar(authContainer, user.uid, displayName, avatarSrc, unreadConvs, savedTheme);
     });
   });
 });
 
-function renderGlobalNavbar(container, userId, displayName, avatarSrc, unreadConvs) {
+function renderGlobalNavbar(container, userId, displayName, avatarSrc, unreadConvs, savedTheme) {
   // Solo ocultamos los mensajes que ya existían cuando se marcó "leído" la última vez;
   // los que lleguen después de esa marca de tiempo sí vuelven a sonar.
   const clearedAt = parseInt(sessionStorage.getItem(`notifications_cleared_at_${userId}`) || '0', 10);
@@ -106,8 +116,21 @@ function renderGlobalNavbar(container, userId, displayName, avatarSrc, unreadCon
         <img src="${avatarSrc}" alt="Avatar" style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 2px solid #ef4444;" onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=${userId}'">
         <span style="color: #fff; font-weight: 600; font-size: 15px;">${displayName}</span>
       </button>
-      <div id="profileMenu" class="profile-menu" style="display:none; position: absolute; right: 0; top: 50px; background: #18181b; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 10px; width: 180px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 1000;">
-        <button class="profile-menu-item" onclick="window.location.href='perfil.html'" style="width:100%; background:none; border:none; color:#fff; text-align:left; padding:8px; cursor:pointer; border-radius:6px;">Ir al Perfil</button>
+      <div id="profileMenu" class="profile-menu" style="display:none; position: absolute; right: 0; top: 50px; background: #18181b; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 10px; width: 200px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 1000;">
+        <button class="profile-menu-item" onclick="window.location.href='perfil.html'" style="width:100%; background:none; border:none; color:#fff; text-align:left; padding:8px; cursor:pointer; border-radius:6px; display:flex; align-items:center; gap:8px;">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+          Ir al Perfil
+        </button>
+
+        <div style="height:1px; background:rgba(255,255,255,0.1); margin:6px 0;"></div>
+        <div style="font-size:11px; color:#a1a1aa; font-weight:700; text-transform:uppercase; padding:4px 8px; letter-spacing:0.5px;">Aspecto físico</div>
+
+        <div style="display:flex; gap:6px; padding:6px 8px;">
+          <button class="theme-btn ${savedTheme === 'light' ? 'active' : ''}" data-theme="light" title="Claro" style="flex:1;">☀️</button>
+          <button class="theme-btn ${savedTheme === 'system' ? 'active' : ''}" data-theme="system" title="Sistema" style="flex:1;">💻</button>
+          <button class="theme-btn ${savedTheme === 'dark' ? 'active' : ''}" data-theme="dark" title="Oscuro" style="flex:1;">🌙</button>
+        </div>
+
         <div style="height:1px; background:rgba(255,255,255,0.1); margin:6px 0;"></div>
         <button id="cerrarSesionBtn" style="width:100%; background:none; border:none; color:#ef4444; text-align:left; padding:8px; cursor:pointer; border-radius:6px;">Cerrar Sesión</button>
       </div>
@@ -171,6 +194,31 @@ function renderGlobalNavbar(container, userId, displayName, avatarSrc, unreadCon
     });
     document.addEventListener('click', () => { profileMenu.style.display = 'none'; });
   }
+
+  const themeBtns = container.querySelectorAll('.theme-btn');
+  themeBtns.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const theme = btn.getAttribute('data-theme');
+      themeBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      if (theme === 'light') {
+        document.body.classList.add('light-mode');
+        localStorage.setItem('site_theme', 'light');
+      } else if (theme === 'dark') {
+        document.body.classList.remove('light-mode');
+        localStorage.setItem('site_theme', 'dark');
+      } else if (theme === 'system') {
+        localStorage.setItem('site_theme', 'system');
+        if (window.matchMedia('(prefers-color-scheme: light)').matches) {
+          document.body.classList.add('light-mode');
+        } else {
+          document.body.classList.remove('light-mode');
+        }
+      }
+    });
+  });
 
   const cerrarBtn = document.getElementById('cerrarSesionBtn');
   if (cerrarBtn) {
