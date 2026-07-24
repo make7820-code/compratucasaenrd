@@ -10,7 +10,7 @@
     <!-- Hoja de Estilos Principal -->
     <link rel="stylesheet" href="styles.css">
     <style>
-      /* Estilos específicos para la interfaz de mensajería estilo panel */
+      /* Estilos específicos para la interfaz de mensajería estilo panel con margen superior corregido */
       body {
         background-color: #0b0b0e;
         color: #fff;
@@ -24,7 +24,7 @@
 
       .messaging-wrapper {
         max-width: 1300px;
-        margin: 30px auto;
+        margin: 120px auto 40px auto; /* Margen superior aumentado para que el header fijo no lo cubra */
         padding: 0 20px;
         width: 100%;
         box-sizing: border-box;
@@ -475,12 +475,10 @@
 
         onAuthStateChanged(auth, async (user) => {
           if (!user) {
-            // Si no está logueado, redirigir al login
             window.location.href = 'login.html';
             return;
           }
 
-          // Cargar datos de usuario para el header
           let displayName = user.email.split('@')[0];
           let avatarSrc = 'assets/onlybladi-avatar.png';
 
@@ -529,7 +527,6 @@
               </div>
             `;
 
-            // Dropdown profile logic
             const profileBtn = document.getElementById('profileBtn');
             const profileMenu = document.getElementById('profileMenu');
             if (profileBtn && profileMenu) {
@@ -559,13 +556,11 @@
             }
           }
 
-          // CARGAR CONVERSACIONES / MENSAJES DEL USUARIO ACTUAL
           loadUserConversations(user.uid);
         });
 
         async function loadUserConversations(userId) {
           try {
-            // Consultar mensajes donde el usuario sea el remitente (userId) o tenga chats asociados
             const q = query(collection(db, "mensajes"), where("userId", "==", userId));
             
             onSnapshot(q, async (snapshot) => {
@@ -579,7 +574,6 @@
                 return;
               }
 
-              // Agrupar por propiedad o chat único
               const conversationsMap = new Map();
               
               snapshot.forEach(docSnap => {
@@ -598,10 +592,8 @@
               });
 
               const convs = Array.from(conversationsMap.values());
-              
               renderConversations(convs, userId);
 
-              // Filtrado en tiempo real con el buscador
               searchInput.addEventListener('input', (e) => {
                 const term = e.target.value.toLowerCase();
                 const filtered = convs.filter(c => c.propertyTitle.toLowerCase().includes(term));
@@ -669,7 +661,6 @@
           const messageInput = document.getElementById('chatMessageInput');
           const sendBtn = document.getElementById('chatSendBtn');
 
-          // Escuchar mensajes en tiempo real para esta propiedad y usuario
           const qMsgs = query(
             collection(db, "mensajes"), 
             where("userId", "==", userId),
@@ -680,7 +671,7 @@
           onSnapshot(qMsgs, (snapshot) => {
             messagesBox.innerHTML = '';
             if (snapshot.empty) {
-              messagesBox.innerHTML = `<div style="text-align: center; color: #a1a1aa; font-size: 13px; margin: auto;">Inicia la conversación con tu asesor inmobiliario.</div>`;
+              messagesBox.innerHTML = `<div style="text-align: center; color: #71717a; font-size: 13px; margin: auto;">Inicia la conversación con tu asesor inmobiliario.</div>`;
               return;
             }
 
