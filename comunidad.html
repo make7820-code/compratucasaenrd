@@ -315,26 +315,22 @@
         border-color: rgba(59, 130, 246, 0.6);
       }
 
-      /* Estilos para notificaciones y menús desplegables */
+      /* Estilos para notificaciones (igual que blog.html) */
+      @keyframes ringBell {
+        0% { transform: rotate(0deg); }
+        20% { transform: rotate(15deg); }
+        40% { transform: rotate(-15deg); }
+        60% { transform: rotate(10deg); }
+        80% { transform: rotate(-10deg); }
+        100% { transform: rotate(0deg); }
+      }
+
       .bell-ringing {
+        animation: ringBell 1s infinite ease-in-out;
         display: inline-block;
-        animation: ring 1.5s ease infinite;
-        transform-origin: top center;
       }
 
-      @keyframes ring {
-        0% { transform: rotate(0); }
-        10% { transform: rotate(14deg); }
-        20% { transform: rotate(-14deg); }
-        30% { transform: rotate(10deg); }
-        40% { transform: rotate(-10deg); }
-        50% { transform: rotate(6deg); }
-        60% { transform: rotate(-6deg); }
-        70% { transform: rotate(2deg); }
-        80% { transform: rotate(-2deg); }
-        100% { transform: rotate(0); }
-      }
-
+      /* Animación para la luz verde parpadeante en la foto de perfil */
       @keyframes greenPulse {
         0% {
           box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
@@ -355,88 +351,29 @@
       .notification-dropdown {
         display: none;
         position: absolute;
-        right: -10px;
-        top: 45px;
-        background: #18181b;
-        border: 1px solid rgba(255,255,255,0.1);
-        border-radius: 12px;
-        width: 300px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        z-index: 1000;
-        overflow: hidden;
-      }
-
-      .profile-menu {
-        display: none;
-        position: absolute;
         right: 0;
         top: 50px;
         background: #18181b;
         border: 1px solid rgba(255,255,255,0.1);
         border-radius: 12px;
-        padding: 10px;
-        width: 200px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        width: 300px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.6);
         z-index: 1000;
+        overflow: hidden;
       }
 
-      .profile-menu.show {
-        display: block !important;
-      }
-
-      .profile-menu-item {
-        width: 100%;
-        background: none;
-        border: none;
-        color: #fff;
-        text-align: left;
-        padding: 8px;
+      .notification-item {
+        padding: 12px 16px;
+        border-bottom: 1px solid rgba(255,255,255,0.06);
         cursor: pointer;
-        border-radius: 6px;
+        transition: background 0.2s;
         display: flex;
-        align-items: center;
         gap: 10px;
-        font-size: 14px;
+        align-items: center;
       }
 
-      .profile-menu-item:hover {
-        background: rgba(255,255,255,0.08);
-      }
-
-      .profile-menu-divider {
-        height: 1px;
-        background: rgba(255,255,255,0.1);
-        margin: 6px 0;
-      }
-
-      .profile-menu-section-title {
-        font-size: 11px;
-        color: #a1a1aa;
-        padding: 4px 8px;
-        font-weight: 600;
-      }
-
-      .profile-theme-selector {
-        display: flex;
-        gap: 6px;
-        padding: 4px 8px;
-      }
-
-      .theme-btn {
-        flex: 1;
+      .notification-item:hover {
         background: rgba(255,255,255,0.05);
-        border: 1px solid rgba(255,255,255,0.1);
-        border-radius: 999px;
-        padding: 6px;
-        cursor: pointer;
-        color: #fff;
-        font-size: 14px;
-        text-align: center;
-      }
-
-      .theme-btn.active {
-        background: #3b82f6;
-        border-color: #3b82f6;
       }
 
       @keyframes fadeInUp {
@@ -633,15 +570,15 @@
           <ul class="footer-contact-list">
             <li>
               <span class="contact-icon">📍</span>
-              <span>Ubicación: República Dominicana, Santo Domingo Este, La ureña, C. El Sol[cite: 2, 3]</span>
+              <span>Ubicación:[cite: 2, 3] República Dominicana, Santo Domingo Este, La ureña, C. El Sol</span>
             </li>
             <li>
               <span class="contact-icon">📞</span>
-              <span>Teléfono: +1 (849) 857-2321[cite: 2, 3]</span>
+              <span>Teléfono:[cite: 2, 3] +1 (849) 857-2321</span>
             </li>
             <li>
               <span class="contact-icon">✉️</span>
-              <span>Correo electrónico:<br><a href="mailto:Danieldecena63@gmail.com" class="footer-email">Danieldecena63@gmail.com[cite: 2, 3]</a></span>
+              <span>Correo electrónico:<br><a href="mailto:Danieldecena63@gmail.com" class="footer-email">[cite: 2, 3] Danieldecena63@gmail.com</a></span>
             </li>
           </ul>
         </div>
@@ -776,6 +713,9 @@
         renderAgents(currentUser);
       }
 
+      // La campanita de notificaciones y el menú de perfil ahora los maneja
+      // notifications.js (compartido con el resto de páginas del sitio).
+      // Este script solo se encarga de la lista de "Agentes Recomendados".
       window.addEventListener('DOMContentLoaded', () => {
         onAuthStateChanged(auth, async (user) => {
           try {
