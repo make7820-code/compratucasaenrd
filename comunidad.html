@@ -315,6 +315,113 @@
         border-color: rgba(59, 130, 246, 0.6);
       }
 
+      /* Estilos para notificaciones y menús desplegables */
+      .bell-ringing {
+        display: inline-block;
+        animation: ring 1.5s ease infinite;
+        transform-origin: top center;
+      }
+
+      @keyframes ring {
+        0% { transform: rotate(0); }
+        10% { transform: rotate(14deg); }
+        20% { transform: rotate(-14deg); }
+        30% { transform: rotate(10deg); }
+        40% { transform: rotate(-10deg); }
+        50% { transform: rotate(6deg); }
+        60% { transform: rotate(-6deg); }
+        70% { transform: rotate(2deg); }
+        80% { transform: rotate(-2deg); }
+        100% { transform: rotate(0); }
+      }
+
+      .notification-dropdown {
+        display: none;
+        position: absolute;
+        right: -10px;
+        top: 45px;
+        background: #18181b;
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 12px;
+        width: 300px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        z-index: 1000;
+        overflow: hidden;
+      }
+
+      .profile-menu {
+        display: none;
+        position: absolute;
+        right: 0;
+        top: 50px;
+        background: #18181b;
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 12px;
+        padding: 10px;
+        width: 200px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        z-index: 1000;
+      }
+
+      .profile-menu.show {
+        display: block !important;
+      }
+
+      .profile-menu-item {
+        width: 100%;
+        background: none;
+        border: none;
+        color: #fff;
+        text-align: left;
+        padding: 8px;
+        cursor: pointer;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 14px;
+      }
+
+      .profile-menu-item:hover {
+        background: rgba(255,255,255,0.08);
+      }
+
+      .profile-menu-divider {
+        height: 1px;
+        background: rgba(255,255,255,0.1);
+        margin: 6px 0;
+      }
+
+      .profile-menu-section-title {
+        font-size: 11px;
+        color: #a1a1aa;
+        padding: 4px 8px;
+        font-weight: 600;
+      }
+
+      .profile-theme-selector {
+        display: flex;
+        gap: 6px;
+        padding: 4px 8px;
+      }
+
+      .theme-btn {
+        flex: 1;
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 6px;
+        padding: 6px;
+        cursor: pointer;
+        color: #fff;
+        font-size: 14px;
+        text-align: center;
+      }
+
+      .theme-btn.active {
+        background: #3b82f6;
+        border-color: #3b82f6;
+      }
+
       @keyframes fadeInUp {
         from {
           opacity: 0;
@@ -362,7 +469,6 @@
           <a href="propiedades.html" class="nav-link"><span class="nav-emoji">🏢</span> Propiedades</a>
           <a href="comunidad.html" class="nav-link active"><span class="nav-emoji">👥</span> Comunidad</a>
           <a href="blog.html" class="nav-link"><span class="nav-emoji">📰</span> Blog</a>
-          <a href="mensajes.html" class="nav-link" id="navMensajes" style="display: none;"><span class="nav-emoji">💬</span> Mensajes</a>
           <a href="nosotros.html" class="nav-link"><span class="nav-emoji">ℹ️</span> Nosotros</a>
           <a href="vender.html" class="nav-link"><span class="nav-emoji">🤝</span> Vender</a>
         </nav>
@@ -510,15 +616,15 @@
           <ul class="footer-contact-list">
             <li>
               <span class="contact-icon">📍</span>
-              <span>Ubicación: República Dominicana, Santo Domingo Este, La ureña, C. El Sol[cite: 2, 3]</span>
+              <span>Ubicación:[cite: 2, 3] República Dominicana, Santo Domingo Este, La ureña, C. El Sol</span>
             </li>
             <li>
               <span class="contact-icon">📞</span>
-              <span>Teléfono: +1 (849) 857-2321[cite: 2, 3]</span>
+              <span>Teléfono:[cite: 2, 3] +1 (849) 857-2321</span>
             </li>
             <li>
               <span class="contact-icon">✉️</span>
-              <span>Correo electrónico:<br><a href="mailto:Danieldecena63@gmail.com" class="footer-email">Danieldecena63@gmail.com</a>[cite: 2, 3]</span>
+              <span>Correo electrónico:<br><a href="mailto:Danieldecena63@gmail.com" class="footer-email">[cite: 2, 3] Danieldecena63@gmail.com</a></span>
             </li>
           </ul>
         </div>
@@ -540,7 +646,7 @@
     <script type="module">
       import { auth, db } from './firebase-config.js';
       import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-      import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+      import { doc, getDoc, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
       window.cambiarPestana = function(pestana) {
         const btnPub = document.getElementById('btnPublicaciones');
@@ -576,7 +682,6 @@
         const container = document.getElementById('recommendedAgentsContainer');
         if (!container) return;
 
-        // Leer seguidores actuales de localStorage para cada agente y ordenarlos de mayor a menor
         agentsList.forEach(agent => {
           const countKey = `agent_${agent.id}_followers_count`;
           agent.followers = parseInt(localStorage.getItem(countKey)) || 0;
@@ -589,16 +694,14 @@
           }
         });
 
-        // Ordenar de mayor a menor número de seguidores
         agentsList.sort((a, b) => b.followers - a.followers);
 
         let htmlContent = '';
         agentsList.forEach((agent, index) => {
-          // Asignar medallas/estrellas según la posición en el ranking (0: Oro, 1: Plata, 2: Bronce, 3 y 4: sin medalla o estándar)
           let medalEmoji = '';
-          if (index === 0) medalEmoji = '⭐';      // Estrella de Oro
-          else if (index === 1) medalEmoji = '🥈'; // Estrella/Medalla de Plata
-          else if (index === 2) medalEmoji = '🥉'; // Estrella/Medalla de Bronce
+          if (index === 0) medalEmoji = '⭐';
+          else if (index === 1) medalEmoji = '🥈';
+          else if (index === 2) medalEmoji = '🥉';
 
           const followerText = `${agent.followers} ${agent.followers === 1 ? 'seguidor' : 'seguidores'}`;
           
@@ -654,8 +757,6 @@
         }
 
         localStorage.setItem(countKey, currentCount);
-        
-        // Volver a renderizar la lista completa ordenada dinámicamente
         renderAgents(currentUser);
       }
 
@@ -670,10 +771,8 @@
         }
 
         const authContainer = document.getElementById('authContainer');
-        const navMensajes = document.getElementById('navMensajes');
 
         onAuthStateChanged(auth, async (user) => {
-          // CARGAR SIEMPRE AL AGENTE FIJO DESDE FIRESTORE
           try {
             const docRef = doc(db, "usuarios", AGENT_FIXED_UID);
             const docSnap = await getDoc(docRef);
@@ -688,7 +787,6 @@
               }
               let agentAvatarSrc = data.fotoPerfil || 'assets/onlybladi-avatar.png';
 
-              // Actualizar en el array de agentes
               const fixedAgent = agentsList.find(a => a.isFixed);
               if (fixedAgent) {
                 fixedAgent.name = agentDisplayName;
@@ -699,12 +797,10 @@
             console.error("Error al obtener datos del agente en Firestore:", error);
           }
 
-          // Renderizar inicial con el usuario actual
           renderAgents(user);
 
-          // GESTIÓN DE SESIÓN DEL USUARIO QUE NAVEGA ACTUALMENTE
           if (user) {
-            let displayName = user.email.split('@')[0];
+            let fullName = user.email.split('@')[0];
             let avatarSrc = 'assets/onlybladi-avatar.png';
 
             try {
@@ -712,12 +808,17 @@
               const userDocSnap = await getDoc(userDocRef);
               if (userDocSnap.exists()) {
                 const userData = userDocSnap.data();
-                if (userData.nombres) {
-                  displayName = userData.nombres;
+                let nombres = userData.nombres ? userData.nombres.trim() : '';
+                let apellidos = userData.apellidos ? userData.apellidos.trim() : '';
+                
+                if (nombres && apellidos) {
+                  fullName = `${nombres} ${apellidos}`;
+                } else if (nombres) {
+                  fullName = nombres;
+                } else if (apellidos) {
+                  fullName = apellidos;
                 }
-                if (userData.apellidos) {
-                  displayName += " " + userData.apellidos;
-                }
+
                 if (userData.fotoPerfil) {
                   avatarSrc = userData.fotoPerfil;
                 }
@@ -726,106 +827,222 @@
               console.error("Error al obtener datos del usuario actual:", error);
             }
 
-            if (navMensajes) {
-              navMensajes.style.display = 'inline-flex';
-              navMensajes.href = 'mensajes.html';
-            }
+            // Escuchar mensajes en tiempo real para las notificaciones globales y campana
+            const q = query(collection(db, "mensajes"), where("userId", "==", user.uid));
+            
+            onSnapshot(q, (snapshot) => {
+              const conversationsMap = new Map();
+              
+              snapshot.forEach(docSnap => {
+                const data = docSnap.data();
+                const propId = data.propertyId || 'general';
+                const timeA = data.timestamp?.toMillis ? data.timestamp.toMillis() : 0;
+                
+                if (!conversationsMap.has(propId)) {
+                  conversationsMap.set(propId, {
+                    propertyId: propId,
+                    propertyTitle: data.propertyTitle || 'Consulta Inmobiliaria',
+                    propertyImage: data.propertyImage || 'assets/puerto-marina.png',
+                    lastMessage: data.mensaje || data.text || '',
+                    sender: data.sender || 'user',
+                    timestamp: timeA
+                  });
+                } else {
+                  const existing = conversationsMap.get(propId);
+                  if (timeA >= existing.timestamp) {
+                    existing.lastMessage = data.mensaje || data.text || '';
+                    existing.sender = data.sender || 'user';
+                    existing.timestamp = timeA;
+                  }
+                }
+              });
 
+              const convs = Array.from(conversationsMap.values());
+              const unreadConvs = convs.filter(c => c.sender && c.sender !== 'user');
+              
+              updateNavbarUI(user, fullName, avatarSrc, unreadConvs, savedTheme);
+            });
+          } else {
             if (authContainer) {
               authContainer.innerHTML = `
-                <div class="profile-dropdown-container" style="position: relative; display: inline-block;">
-                  <button id="profileBtn" style="background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 12px; padding: 4px 8px 4px 4px; border-radius: 999px; transition: background 0.2s;">
-                    <img src="${avatarSrc}" alt="Avatar" style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 2px solid #ef4444;" onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=${user.uid}'">
-                    <span style="color: #fff; font-weight: 600; font-size: 15px; font-family: var(--font-display, sans-serif);">${displayName}</span>
-                  </button>
-
-                  <div id="profileMenu" class="profile-menu">
-                    <button class="profile-menu-item" onclick="window.location.href='perfil.html'">
-                      <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                      Ir al Perfil
-                    </button>
-
-                    <div class="profile-menu-divider"></div>
-                    <div class="profile-menu-section-title">Aspecto físico</div>
-                    
-                    <div class="profile-theme-selector">
-                      <button class="theme-btn ${savedTheme === 'light' ? 'active' : ''}" data-theme="light" title="Claro">☀️</button>
-                      <button class="theme-btn ${savedTheme === 'system' ? 'active' : ''}" data-theme="system" title="Sistema">💻</button>
-                      <button class="theme-btn ${savedTheme === 'dark' ? 'active' : ''}" data-theme="dark" title="Oscuro">🌙</button>
-                    </div>
-
-                    <div class="profile-menu-divider"></div>
-                    <button class="profile-menu-item" id="cerrarSesionBtn" style="color: #ef4444;">
-                      <span style="font-size: 16px;">⎋</span> Cerrar Sesión
-                    </button>
-                  </div>
-                </div>
+                <a href="login.html" class="login-btn">
+                  <span>🔐</span> Iniciar sesión
+                </a>
               `;
-
-              const profileBtn = document.getElementById('profileBtn');
-              const profileMenu = document.getElementById('profileMenu');
-
-              if (profileBtn && profileMenu) {
-                profileBtn.addEventListener('click', (e) => {
-                  e.stopPropagation();
-                  profileMenu.classList.toggle('show');
-                });
-
-                document.addEventListener('click', (e) => {
-                  if (!profileMenu.contains(e.target) && !profileBtn.contains(e.target)) {
-                    profileMenu.classList.remove('show');
-                  }
-                });
-              }
-
-              const cerrarBtn = document.getElementById('cerrarSesionBtn');
-              if (cerrarBtn) {
-                cerrarBtn.addEventListener('click', async (event) => {
-                  event.stopPropagation();
-                  try {
-                    await signOut(auth);
-                    localStorage.removeItem('sesion_activa');
-                    localStorage.removeItem('usuario_activo');
-                    alert("Has cerrado sesión correctamente.");
-                    window.location.href = 'index.html';
-                  } catch (error) {
-                    console.error("Error al cerrar sesión:", error);
-                  }
-                });
-              }
-
-              const themeBtns = document.querySelectorAll('.theme-btn');
-              themeBtns.forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                  e.stopPropagation();
-                  const theme = btn.getAttribute('data-theme');
-                  themeBtns.forEach(b => b.classList.remove('active'));
-                  btn.classList.add('active');
-
-                  if (theme === 'light') {
-                    document.body.classList.add('light-mode');
-                    localStorage.setItem('site_theme', 'light');
-                  } else if (theme === 'dark') {
-                    document.body.classList.remove('light-mode');
-                    localStorage.setItem('site_theme', 'dark');
-                  } else if (theme === 'system') {
-                    localStorage.setItem('site_theme', 'system');
-                    if (window.matchMedia('(prefers-color-scheme: light)').matches) {
-                      document.body.classList.add('light-mode');
-                    } else {
-                      document.body.classList.remove('light-mode');
-                    }
-                  }
-                });
-              });
-            }
-          } else {
-            if (navMensajes) {
-              navMensajes.style.display = 'none';
             }
           }
         });
       });
+
+      function updateNavbarUI(user, displayName, avatarSrc, unreadConvs, savedTheme) {
+        const authContainer = document.getElementById('authContainer');
+        if (!authContainer) return;
+
+        const sessionCleared = sessionStorage.getItem(`notifications_cleared_${user.uid}`) === 'true';
+        const hasUnread = !sessionCleared && unreadConvs.length > 0;
+
+        const existingProfileMenu = document.getElementById('profileMenu');
+        const wasProfileMenuOpen = existingProfileMenu ? existingProfileMenu.classList.contains('show') : false;
+
+        authContainer.innerHTML = `
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <!-- Campana de Notificaciones -->
+            <div style="position: relative; display: inline-block;">
+              <button id="notificationBellBtn" style="background: none; border: none; cursor: pointer; font-size: 20px; padding: 6px; position: relative;">
+                <span id="bellIconSpan" class="${hasUnread ? 'bell-ringing' : ''}">🔔</span>
+              </button>
+              <div id="notificationDropdown" class="notification-dropdown">
+                <div style="padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.08); font-weight: 700; font-size: 13px; color: #fff; display: flex; justify-content: space-between; align-items: center;">
+                  <span>Notificaciones de Mensajes</span>
+                  ${unreadConvs.length > 0 ? '<button id="markAllReadBtn" style="background:none; border:none; color:#3b82f6; font-size:11px; cursor:pointer; font-weight:600;">Marcar leídos</button>' : ''}
+                </div>
+                <div id="notificationListContent" style="max-height: 250px; overflow-y: auto;">
+                  ${
+                    unreadConvs.length === 0 || sessionCleared
+                    ? '<div style="padding: 20px; text-align: center; color: #71717a; font-size: 12px;">No hay mensajes nuevos</div>'
+                    : unreadConvs.map(c => `
+                        <div class="notification-item" data-prop="${c.propertyId}" style="display: flex; align-items: center; gap: 10px; padding: 10px 16px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.04);">
+                          <img src="${c.propertyImage}" style="width: 32px; height: 32px; border-radius: 6px; object-fit: cover;" onerror="this.src='assets/puerto-marina.png'">
+                          <div style="overflow: hidden;">
+                            <div style="font-size: 13px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${c.propertyTitle}</div>
+                            <div style="font-size: 11px; color: #a1a1aa; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${c.lastMessage}</div>
+                          </div>
+                        </div>
+                      `).join('')
+                  }
+                </div>
+              </div>
+            </div>
+
+            <!-- Perfil Desplegable -->
+            <div class="profile-dropdown-container" style="position: relative; display: inline-block;">
+              <button id="profileBtn" style="background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 12px; padding: 4px 8px 4px 4px; border-radius: 999px; transition: background 0.2s;">
+                <img src="${avatarSrc}" alt="Avatar" style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 2px solid #ef4444;" onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=${user.uid}'">
+                <span style="color: #fff; font-weight: 600; font-size: 15px; font-family: var(--font-display, sans-serif);">${displayName}</span>
+              </button>
+
+              <div id="profileMenu" class="profile-menu ${wasProfileMenuOpen ? 'show' : ''}">
+                <button class="profile-menu-item" onclick="window.location.href='mensajes.html'">
+                  <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                  Mensajes
+                </button>
+                <button class="profile-menu-item" onclick="window.location.href='perfil.html'">
+                  <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                  Ir al Perfil
+                </button>
+
+                <div class="profile-menu-divider"></div>
+                <div class="profile-menu-section-title">Aspecto físico</div>
+                
+                <div class="profile-theme-selector">
+                  <button class="theme-btn ${savedTheme === 'light' ? 'active' : ''}" data-theme="light" title="Claro">☀️</button>
+                  <button class="theme-btn ${savedTheme === 'system' ? 'active' : ''}" data-theme="system" title="Sistema">💻</button>
+                  <button class="theme-btn ${savedTheme === 'dark' ? 'active' : ''}" data-theme="dark" title="Oscuro">🌙</button>
+                </div>
+
+                <div class="profile-menu-divider"></div>
+                <button class="profile-menu-item" id="cerrarSesionBtn" style="color: #ef4444;">
+                  <span style="font-size: 16px;">⎋</span> Cerrar Sesión
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+
+        const notificationBellBtn = document.getElementById('notificationBellBtn');
+        const notificationDropdown = document.getElementById('notificationDropdown');
+        
+        if (notificationBellBtn && notificationDropdown) {
+          notificationBellBtn.addEventListener('mouseenter', () => { 
+            notificationDropdown.style.display = 'block'; 
+          });
+          
+          notificationBellBtn.parentElement.addEventListener('mouseleave', () => { 
+            notificationDropdown.style.display = 'none'; 
+          });
+        }
+
+        const markAllReadBtn = document.getElementById('markAllReadBtn');
+        if (markAllReadBtn) {
+          markAllReadBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            sessionStorage.setItem(`notifications_cleared_${user.uid}`, 'true');
+            const bellIconSpan = document.getElementById('bellIconSpan');
+            if (bellIconSpan) bellIconSpan.classList.remove('bell-ringing');
+            notificationDropdown.style.display = 'none';
+            const listContent = document.getElementById('notificationListContent');
+            if(listContent) listContent.innerHTML = '<div style="padding: 20px; text-align: center; color: #71717a; font-size: 12px;">No hay mensajes nuevos</div>';
+            markAllReadBtn.style.display = 'none';
+          });
+        }
+
+        const notificationItems = authContainer.querySelectorAll('.notification-item');
+        notificationItems.forEach(item => {
+          item.addEventListener('click', () => {
+            sessionStorage.setItem(`notifications_cleared_${user.uid}`, 'true');
+            const propId = item.getAttribute('data-prop');
+            window.location.href = `mensajes.html?propiedadId=${propId}`;
+          });
+        });
+
+        const profileBtn = document.getElementById('profileBtn');
+        const profileMenu = document.getElementById('profileMenu');
+
+        if (profileBtn && profileMenu) {
+          profileBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            profileMenu.classList.toggle('show');
+          });
+
+          document.addEventListener('click', (e) => {
+            if (!profileMenu.contains(e.target) && !profileBtn.contains(e.target)) {
+              profileMenu.classList.remove('show');
+            }
+          });
+        }
+
+        const cerrarBtn = document.getElementById('cerrarSesionBtn');
+        if (cerrarBtn) {
+          cerrarBtn.addEventListener('click', async (event) => {
+            event.stopPropagation();
+            try {
+              await signOut(auth);
+              localStorage.removeItem('sesion_activa');
+              localStorage.removeItem('usuario_activo');
+              sessionStorage.clear();
+              alert("Has cerrado sesión correctamente.");
+              window.location.href = 'index.html';
+            } catch (error) {
+              console.error("Error al cerrar sesión:", error);
+            }
+          });
+        }
+
+        const themeBtns = authContainer.querySelectorAll('.theme-btn');
+        themeBtns.forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const theme = btn.getAttribute('data-theme');
+            themeBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            if (theme === 'light') {
+              document.body.classList.add('light-mode');
+              localStorage.setItem('site_theme', 'light');
+            } else if (theme === 'dark') {
+              document.body.classList.remove('light-mode');
+              localStorage.setItem('site_theme', 'dark');
+            } else if (theme === 'system') {
+              localStorage.setItem('site_theme', 'system');
+              if (window.matchMedia('(prefers-color-scheme: light)').matches) {
+                document.body.classList.add('light-mode');
+              } else {
+                document.body.classList.remove('light-mode');
+              }
+            }
+          });
+        });
+      }
     </script>
 
 </body>
