@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestión de Publicaciones | Compra tu casa en RD</title>
-    <!-- Icono de la página (.ico) -->
-    <link rel="icon" href="assets/mi-logo.png" type="image/png">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
     <!-- Hoja de Estilos Principal -->
@@ -860,24 +858,39 @@
 
     <!-- SCRIPTS CON CONTROL DE ERRORES ROBUSTO -->
     <script type="module">
-      import { db, storage, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, ref, uploadBytes, getDownloadURL } from './firebase-config.js';
+      import { db, storage, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, ref, uploadBytes, getDownloadURL, query, where } from './firebase-config.js';
 
       let mostrandoArchivadas = false;
       let imagenesEditandoActuales = []; // Array temporal para controlar las imágenes al editar
 
-      window.addEventListener('DOMContentLoaded', () => {
+      window.addEventListener('DOMContentLoaded', async () => {
         try {
-          // ================= CONTROL DE ACCESO (CLIENTES Y NO LOGEADOS) =================
+          // ================= CONTROL DE ACCESO DESDE FIRESTORE =================
           const usuarioActivo = localStorage.getItem('usuario_activo');
-          const rolUsuario = localStorage.getItem('usuario_rol') || 'cliente'; // Por defecto se asume cliente si no existe
+          
+          if (!usuarioActivo) {
+            alert("Acceso denegado. No has iniciado sesión.");
+            window.location.href = 'index.html';
+            return;
+          }
 
-          // Si no hay sesión o el rol es 'cliente', se bloquea el acceso redirigiendo al inicio
-          if (!usuarioActivo || rolUsuario.toLowerCase() === 'cliente') {
+          // Consultamos directamente en Firestore el rol del usuario conectado
+          const q = query(collection(db, "usuarios"), where("email", "==", usuarioActivo));
+          const querySnapshot = await getDocs(q);
+          
+          let rolUsuario = 'cliente';
+          if (!querySnapshot.empty) {
+            const userData = querySnapshot.docs[0].data();
+            rolUsuario = userData.rol || 'cliente';
+          }
+
+          // Si en Firestore el rol es 'cliente', se bloquea el acceso
+          if (rolUsuario.toLowerCase() === 'cliente') {
             alert("Acceso denegado. No tienes permisos para ver la sección de publicaciones.");
             window.location.href = 'index.html';
-            return; // Detiene la ejecución posterior
+            return;
           }
-          // ==============================================================================
+          // =====================================================================
 
           const savedTheme = localStorage.getItem('site_theme') || 'dark';
           if (savedTheme === 'light') document.body.classList.add('light-mode');
