@@ -412,7 +412,7 @@
     <script type="module">
       import { auth, db } from './firebase-config.js';
       import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-      import { doc, getDoc, collection, query, where, getDocs, addDoc, onSnapshot, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+      import { doc, getDoc, collection, query, where, getDocs, addDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
       window.addEventListener('DOMContentLoaded', () => {
         const authContainer = document.getElementById('authContainer');
@@ -421,10 +421,8 @@
         const chatMainArea = document.getElementById('chatMainArea');
         const searchInput = document.getElementById('searchPropertyInput');
 
-        // Leer parámetros de la URL si vienen de una propiedad
         const urlParams = new URLSearchParams(window.location.search);
         const paramPropId = urlParams.get('propiedadId') || urlParams.get('id');
-        const paramDestinatario = urlParams.get('destinatario');
         const paramTitulo = urlParams.get('titulo');
         const paramUrlImg = urlParams.get('url') || urlParams.get('imagen');
         const paramPrecio = urlParams.get('precio') || '';
@@ -487,7 +485,6 @@
             }
           }
 
-          // Si hay una propiedad en la URL, verificamos si ya existe el chat o inicializamos la vista con ella
           if (paramPropId) {
             await verificarYCrearChatInicial(user.uid, paramPropId, paramTitulo, paramUrlImg, paramPrecio);
           }
@@ -504,7 +501,6 @@
             );
             const snapshot = await getDocs(q);
 
-            // Si no hay mensajes previos para esta propiedad, creamos un mensaje inicial de bienvenida/contacto
             if (snapshot.empty) {
               await addDoc(collection(db, "mensajes"), {
                 userId: userId,
@@ -604,13 +600,12 @@
             conversationsList.appendChild(item);
           });
 
-          // Si hay un chat objetivo por abrir desde la URL y no se ha abierto aún, lo abrimos de manera automática
           if (targetConvToOpen && chatMainArea.querySelector('.chat-empty-state')) {
             openChatWindow(targetConvToOpen.propertyId, targetConvToOpen.propertyTitle, targetConvToOpen.propertyImage, targetConvToOpen.propertyPrice, userId);
           }
         }
 
-        function openChatWindow(propertyId, propertyTitle, propertyImage, propertyPrice, userId) {
+        async function openChatWindow(propertyId, propertyTitle, propertyImage, propertyPrice, userId) {
           chatMainArea.innerHTML = `
             <div class="chat-header">
               <div class="chat-property-meta">
@@ -636,22 +631,33 @@
           const messageInput = document.getElementById('chatMessageInput');
           const sendBtn = document.getElementById('chatSendBtn');
 
-          const qMsgs = query(
-            collection(db, "mensajes"), 
-            where("userId", "==", userId),
-            where("propertyId", "==", propertyId),
-            orderBy("timestamp", "asc")
-          );
+          try {
+            const qMsgs = query(
+              collection(db, "mensajes"), 
+              where("userId", "==", userId),
+              where("propertyId", "==", propertyId)
+            );
+            const snapshot = await getDocs(qMsgs);
 
-          onSnapshot(qMsgs, (snapshot) => {
             messagesBox.innerHTML = '';
             if (snapshot.empty) {
               messagesBox.innerHTML = `<div style="text-align: center; color: #71717a; font-size: 13px; margin: auto;">Inicia la conversación con tu asesor inmobiliario.</div>`;
               return;
             }
 
+            // Ordenar los mensajes en memoria por fecha para evitar requerir índices compuestos en Firestore
+            const mensajesList = [];
             snapshot.forEach(docSnap => {
-              const msgData = docSnap.data();
+              mensajesList.push(docSnap.data());
+            });
+
+            mensajesList.sort((a, b) => {
+              const timeA = a.timestamp?.toMillis ? a.timestamp.toMillis() : 0;
+              const timeB = b.timestamp?.toMillis ? b.timestamp.toMillis() : 0;
+              return timeA - timeB;
+            });
+
+            mensajesList.forEach(msgData => {
               const isOutgoing = msgData.sender === 'user';
               
               const bubble = document.createElement('div');
@@ -664,14 +670,19 @@
             });
 
             messagesBox.scrollTop = messagesBox.scrollHeight;
-          });
+          } catch (error) {
+            console.error("Error cargando mensajes:", error);
+            messagesBox.innerHTML = `<div style="text-align: center; color: #ef4444; padding: 20px;">Error al cargar los mensajes.</div>`;
+          }
 
           const enviarMensajeHandler = async () => {
             const texto = messageInput.value.trim();
             if (!texto) return;
 
             try {
-              messageInput.value = '';
+              sendBtn.disabled = true;
+              sendBtn.textContent = 'Enviando...';
+
               await addDoc(collection(db, "mensajes"), {
                 userId: userId,
                 propertyId: propertyId,
@@ -682,9 +693,14 @@
                 sender: 'user',
                 timestamp: serverTimestamp()
               });
+
+              // Recargar la página inmediatamente después de enviar para actualizar y ver el mensaje reflejado
+              window.location.reload();
             } catch (error) {
               console.error("Error al enviar mensaje:", error);
               alert("No se pudo enviar el mensaje. Inténtalo de nuevo.");
+              sendBtn.disabled = false;
+              sendBtn.textContent = 'Enviar';
             }
           };
 
