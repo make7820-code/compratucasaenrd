@@ -379,7 +379,7 @@
         background: rgba(239, 68, 68, 0.1);
       }
 
-      /* Campanita y contenedor de notificaciones en el header */
+      /* Campanita y contenedor de acciones derechas en el header */
       .header-right-actions {
         display: flex;
         align-items: center;
@@ -391,8 +391,8 @@
       }
 
       .notification-bell-btn {
-        background: rgba(255, 255, 255, 0.08);
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: transparent;
+        border: none;
         color: #fff;
         width: 40px;
         height: 40px;
@@ -402,11 +402,7 @@
         justify-content: center;
         cursor: pointer;
         position: relative;
-        transition: background 0.2s;
-      }
-
-      .notification-bell-btn:hover {
-        background: rgba(255, 255, 255, 0.15);
+        font-size: 20px;
       }
 
       .notification-badge {
@@ -667,16 +663,15 @@
 
         <!-- CONTENEDOR DE SESIÓN / PERFIL + CAMPANITA (RENDERIZADO INICIAL RÁPIDO) -->
         <div id="authContainer">
-          <!-- Si hay datos guardados en localStorage para evitar parpadeo -->
           <script>
             if (localStorage.getItem('user_logged') === 'true') {
               document.write(`
                 <div class="header-right-actions">
                   <div class="notification-bell-wrapper">
-                    <button type="button" class="notification-bell-btn"><span>🔔</span></button>
+                    <button type="button" class="notification-bell-btn">🔔</button>
                   </div>
                   <div style="display: flex; align-items: center; gap: 12px; padding: 4px 8px 4px 4px;">
-                    <span style="color: #fff; font-weight: 600; font-size: 15px;">unai bladimir</span>
+                    <span style="color: #fff; font-weight: 600; font-size: 15px; white-space: nowrap;">unai bladimir</span>
                   </div>
                 </div>
               `);
@@ -823,7 +818,6 @@
         <!-- LISTADO DE PROPIEDADES -->
         <main class="properties-content-area">
           <div class="properties-grid" id="propertiesGrid">
-            <!-- Las propiedades de Firebase con sus carruseles automáticos se inyectarán aquí -->
             <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #a1a1aa;">
               Cargando propiedades desde la base de datos...
             </div>
@@ -832,13 +826,12 @@
 
       </div>
 
-    </div> <!-- FIN DEL CONTENEDOR GENERAL -->
+    </div>
 
-    <!-- ================= FOOTER / BANNER INFERIOR ================= -->
+    <!-- ================= FOOTER ================= -->
     <footer class="site-footer">
       <div class="footer-container">
         
-        <!-- Columna 1: Marca y descripción -->
         <div class="footer-col footer-brand-col">
           <h2 class="footer-brand-title">Compra tu casa en <span class="highlight-red">RD</span></h2>
           <p class="footer-brand-desc">
@@ -852,7 +845,6 @@
           </div>
         </div>
 
-        <!-- Columna 2: Navegación Rápida -->
         <div class="footer-col">
           <h3 class="footer-col-title">Navegación Rápida</h3>
           <ul class="footer-links">
@@ -862,7 +854,6 @@
           </ul>
         </div>
 
-        <!-- Columna 3: Nuestros Servicios -->
         <div class="footer-col">
           <h3 class="footer-col-title">Nuestros Servicios</h3>
           <ul class="footer-links">
@@ -870,7 +861,6 @@
           </ul>
         </div>
 
-        <!-- Columna 4: Contacto Directo -->
         <div class="footer-col">
           <h3 class="footer-col-title">Contacto Directo</h3>
           <ul class="footer-contact-list">
@@ -891,7 +881,6 @@
 
       </div>
 
-      <!-- Franja final con copyright y enlaces legales -->
       <div class="footer-bottom">
         <p>© 2026 Compra tu casa en RD. Todos los derechos reservados.</p>
         <div class="footer-bottom-links">
@@ -901,7 +890,7 @@
       </div>
     </footer>
 
-    <!-- SCRIPT MÓDULO CONECTADO A FIREBASE + CARRUSEL + FAVORITOS + NOTIFICACIONES + MENSAJES -->
+    <!-- SCRIPT -->
     <script type="module">
       import { auth, db, collection, getDocs, doc, getDoc, query, where, onSnapshot } from './firebase-config.js';
       import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
@@ -932,7 +921,7 @@
                 <!-- CAMPANITA DE NOTIFICACIONES -->
                 <div class="notification-bell-wrapper">
                   <button type="button" id="notificationBellBtn" class="notification-bell-btn" title="Notificaciones">
-                    <span>🔔</span>
+                    🔔
                     <span id="notificationBadge" class="notification-badge" style="display: none;">0</span>
                   </button>
                   <div id="notificationDropdown" class="notification-dropdown">
@@ -950,7 +939,7 @@
                 <div class="profile-dropdown-container" style="position: relative; display: inline-block;">
                   <button id="profileBtn" style="background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 12px; padding: 4px 8px 4px 4px; border-radius: 999px;">
                     <img src="${avatarSrc}" alt="Avatar" style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 2px solid #ef4444;" onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=${user.uid}'">
-                    <span style="color: #fff; font-weight: 600; font-size: 15px;">${displayName}</span>
+                    <span style="color: #fff; font-weight: 600; font-size: 15px; white-space: nowrap;">${displayName}</span>
                   </button>
                   
                   <div id="profileDropdownMenu" class="profile-dropdown-menu">
@@ -966,24 +955,23 @@
                     
                     <div class="profile-dropdown-divider"></div>
 
-                    <div style="padding: 4px 0 8px 0; font-size: 11px; font-weight: 700; color: #a1a1aa; text-transform: uppercase; letter-spacing: 0.5px;">Aspecto Físico</div>
+                    <div style="padding: 4px 0 8px 0; font-size: 11px; font-weight: 700; color: #a1a1aa; text-transform: uppercase; letter-spacing: 0.5px;">ASPECTO FÍSICO</div>
                     <div style="display: flex; background: rgba(24, 24, 27, 0.9); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 4px; gap: 4px; margin-bottom: 8px;">
-                      <button type="button" style="flex: 1; background: none; border: none; padding: 6px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; transition: background 0.2s;" title="Claro">🌞</button>
-                      <button type="button" style="flex: 1; background: none; border: none; padding: 6px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; transition: background 0.2s;" title="Sistema">💻</button>
-                      <button type="button" style="flex: 1; background: rgba(255, 255, 255, 0.1); border: none; padding: 6px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; transition: background 0.2s;" title="Oscuro">🌙</button>
+                      <button type="button" style="flex: 1; background: none; border: none; padding: 6px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px;" title="Claro">🌞</button>
+                      <button type="button" style="flex: 1; background: none; border: none; padding: 6px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px;" title="Sistema">💻</button>
+                      <button type="button" style="flex: 1; background: rgba(255, 255, 255, 0.1); border: none; padding: 6px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px;" title="Oscuro">🌙</button>
                     </div>
                     
                     <div class="profile-dropdown-divider"></div>
                     
                     <button type="button" id="btnLogout" class="profile-dropdown-item logout">
-                      <span style="font-size: 16px;">🚪</span> Cerrar Sesión
+                      <span>Cerrar Sesión</span>
                     </button>
                   </div>
                 </div>
               </div>
             `;
 
-            // Escuchar notificaciones y mensajes en tiempo real con Firestore de forma segura (con try/catch)
             try {
               const qNotif = query(collection(db, "mensajes"), where("destinatarioId", "==", user.uid), where("leido", "==", false));
               onSnapshot(qNotif, (snapshot) => {
@@ -1012,7 +1000,7 @@
                   list.innerHTML = '<div style="padding: 16px; text-align: center; color: #71717a; font-size: 13px;">No hay notificaciones nuevas</div>';
                 }
               }, (error) => {
-                console.warn("Aviso de permisos en mensajes (Snapshot):", error.message);
+                console.warn("Aviso de permisos en mensajes:", error.message);
               });
             } catch (e) {
               console.warn("No se pudo iniciar el listener de notificaciones:", e);
@@ -1067,7 +1055,7 @@
           }
         });
 
-        // ================= CARGA ROBUSTA DESDE FIREBASE =================
+        // ================= CARGA DE PROPIEDADES =================
         const propertiesGrid = document.getElementById('propertiesGrid');
         let querySnapshot = null;
         const posiblesColecciones = ["propiedades", "properties", "inmuebles"];
@@ -1170,7 +1158,6 @@
                   <button class="property-action-icon btn-favorito-card" data-id="${propId}" title="Guardar en Favoritos">
                     ${esFavorito ? '❤️' : '🤍'}
                   </button>
-                  <!-- Botón de mensaje integrado para cada apartado de propiedad -->
                   <button class="property-action-icon btn-mensaje-card" data-owner="${ownerId}" data-prop="${propId}" title="Enviar Mensaje">💬</button>
                 </div>
               </div>
@@ -1191,7 +1178,6 @@
           propertiesGrid.insertAdjacentHTML('beforeend', cardHtml);
         });
 
-        // ================= ACTIVAR EVENTOS DE MENSAJES Y FAVORITOS =================
         document.querySelectorAll('.btn-favorito-card').forEach(btn => {
           btn.addEventListener('click', (e) => {
             e.preventDefault();
@@ -1224,7 +1210,6 @@
           });
         });
 
-        // ================= ACTIVAR EVENTOS + CARRUSEL AUTOMÁTICO DE TARJETAS =================
         document.querySelectorAll('.property-img-container').forEach(container => {
           const track = container.querySelector('.property-carousel-track');
           const slides = container.querySelectorAll('.property-carousel-slide');
@@ -1299,7 +1284,6 @@
           });
         });
 
-        // ================= SELECTORES DINÁMICOS DE MUNICIPIOS =================
         const municipiosPorProvincia = {
           "Azua": ["Azua de Compostela", "Estebanía", "Guayabal", "Las Charcas", "Las Yayas de Viajama", "Padre Las Casas", "Peralta", "Pueblo Viejo", "Sabana Yegua", "Tábara Arriba"],
           "Bahoruco": ["Neiba", "Galván", "Los Ríos", "Tamayo", "Villa Jaragua"],
@@ -1351,7 +1335,6 @@
           });
         }
 
-        // ================= MOTOR DE FILTRADO Y FAVORITOS =================
         const btnAplicarFiltros = document.getElementById('btnAplicarFiltros');
         const btnVerFavoritos = document.getElementById('btnVerFavoritos');
         const filterSearch = document.getElementById('filterSearch');
