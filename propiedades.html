@@ -437,6 +437,26 @@
         position: relative;
       }
 
+      #authContainer {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+      }
+
+      @keyframes ringBell {
+        0% { transform: rotate(0deg); }
+        20% { transform: rotate(15deg); }
+        40% { transform: rotate(-15deg); }
+        60% { transform: rotate(10deg); }
+        80% { transform: rotate(-10deg); }
+        100% { transform: rotate(0deg); }
+      }
+
+      .bell-ringing {
+        animation: ringBell 1s infinite ease-in-out;
+        display: inline-block;
+      }
+
       .notification-bell-btn {
         background: transparent;
         border: none;
@@ -749,24 +769,11 @@
           <a href="vender.html" class="nav-link"><span class="nav-emoji">🤝</span> Vender</a>
         </nav>
 
-        <!-- CONTENEDOR DE SESIÓN / PERFIL + CAMPANITA (RENDERIZADO INICIAL RÁPIDO) -->
+        <!-- CONTENEDOR DE SESIÓN / PERFIL + CAMPANITA -->
         <div id="authContainer">
-          <script>
-            if (localStorage.getItem('user_logged') === 'true') {
-              document.write(`
-                <div class="header-right-actions">
-                  <div class="notification-bell-wrapper">
-                    <button type="button" class="notification-bell-btn">🔔</button>
-                  </div>
-                  <div style="display: flex; align-items: center; gap: 12px; padding: 4px 8px 4px 4px;">
-                    <span style="font-weight: 600; font-size: 15px; white-space: nowrap;">unai bladimir</span>
-                  </div>
-                </div>
-              `);
-            } else {
-              document.write(`<a href="login.html" class="login-btn"><span>🔐</span> Iniciar sesión</a>`);
-            }
-          </script>
+          <a href="login.html" class="login-btn">
+            <span>🔐</span> Iniciar sesión
+          </a>
         </div>
 
       </div>
@@ -980,217 +987,9 @@
 
     <!-- SCRIPT -->
     <script type="module">
-      import { auth, db, collection, getDocs, doc, getDoc, query, where, onSnapshot } from './firebase-config.js';
-      import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+      import { db, collection, getDocs } from './firebase-config.js';
 
       window.addEventListener('DOMContentLoaded', async () => {
-        const authContainer = document.getElementById('authContainer');
-
-        onAuthStateChanged(auth, async (user) => {
-          if (user) {
-            localStorage.setItem('user_logged', 'true');
-            let displayName = user.email ? user.email.split('@')[0] : 'unai bladimir';
-            let avatarSrc = 'assets/onlybladi-avatar.png';
-
-            try {
-              const docRef = doc(db, "usuarios", user.uid);
-              const docSnap = await getDoc(docRef);
-              if (docSnap.exists()) {
-                const data = docSnap.data();
-                if (data.nombres) displayName = data.nombres;
-                if (data.fotoPerfil) avatarSrc = data.fotoPerfil;
-              }
-            } catch (error) {
-              console.error("Error al obtener datos de Firestore:", error);
-            }
-
-            authContainer.innerHTML = `
-              <div class="header-right-actions">
-                <!-- CAMPANITA DE NOTIFICACIONES -->
-                <div class="notification-bell-wrapper">
-                  <button type="button" id="notificationBellBtn" class="notification-bell-btn" title="Notificaciones">
-                    🔔
-                    <span id="notificationBadge" class="notification-badge" style="display: none;">0</span>
-                  </button>
-                  <div id="notificationDropdown" class="notification-dropdown">
-                    <div class="notification-header">
-                      <h4>Notificaciones</h4>
-                      <span style="font-size: 11px; color: #71717a;">Tiempo real</span>
-                    </div>
-                    <div id="notificationList" class="notification-list">
-                      <div style="padding: 16px; text-align: center; color: #71717a; font-size: 13px;">No hay notificaciones nuevas</div>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- MENÚ FLOTANTE DE PERFIL -->
-                <div class="profile-dropdown-container" style="position: relative; display: inline-block;">
-                  <button id="profileBtn" style="background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 12px; padding: 4px 8px 4px 4px; border-radius: 999px;">
-                    <img src="${avatarSrc}" alt="Avatar" style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 2px solid #ef4444;" onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=${user.uid}'">
-                    <span style="font-weight: 600; font-size: 15px; white-space: nowrap;">${displayName}</span>
-                  </button>
-                  
-                  <div id="profileDropdownMenu" class="profile-dropdown-menu">
-                    <a href="perfil.html" class="profile-dropdown-item">
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                      <span>Ir al Perfil</span>
-                    </a>
-
-                    <a href="mensajes.html" class="profile-dropdown-item">
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-                      <span>Mensajes</span>
-                    </a>
-                    
-                    <div class="profile-dropdown-divider"></div>
-
-                    <div style="padding: 4px 0 8px 0; font-size: 11px; font-weight: 700; color: #a1a1aa; text-transform: uppercase; letter-spacing: 0.5px;">ASPECTO FÍSICO</div>
-                    <div style="display: flex; background: rgba(128, 128, 128, 0.15); border: 1px solid var(--border-color); border-radius: 12px; padding: 4px; gap: 4px; margin-bottom: 8px;">
-                      <button type="button" id="themeLightBtn" style="flex: 1; background: none; border: none; padding: 6px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px;" title="Claro">☀️</button>
-                      <button type="button" id="themeSystemBtn" style="flex: 1; background: none; border: none; padding: 6px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px;" title="Sistema">💻</button>
-                      <button type="button" id="themeDarkBtn" style="flex: 1; background: none; border: none; padding: 6px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px;" title="Oscuro">🌙</button>
-                    </div>
-                    
-                    <div class="profile-dropdown-divider"></div>
-                    
-                    <button type="button" id="btnLogout" class="profile-dropdown-item logout">
-                      <span>Cerrar Sesión</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            `;
-
-            // Lógica interactiva corregida para el cambio de Tema (Aspecto Físico)
-            const themeLightBtn = document.getElementById('themeLightBtn');
-            const themeSystemBtn = document.getElementById('themeSystemBtn');
-            const themeDarkBtn = document.getElementById('themeDarkBtn');
-
-            function updateThemeButtons(currentTheme) {
-              [themeLightBtn, themeSystemBtn, themeDarkBtn].forEach(btn => {
-                if (btn) btn.style.background = 'none';
-              });
-              if (currentTheme === 'light' && themeLightBtn) {
-                themeLightBtn.style.background = 'rgba(128, 128, 128, 0.2)';
-              } else if (currentTheme === 'system' && themeSystemBtn) {
-                themeSystemBtn.style.background = 'rgba(128, 128, 128, 0.2)';
-              } else if (currentTheme === 'dark' && themeDarkBtn) {
-                themeDarkBtn.style.background = 'rgba(128, 128, 128, 0.2)';
-              }
-            }
-
-            const savedTheme = localStorage.getItem('app_theme') || 'system';
-            updateThemeButtons(savedTheme);
-
-            if (themeLightBtn) {
-              themeLightBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                localStorage.setItem('app_theme', 'light');
-                document.documentElement.setAttribute('data-theme', 'light');
-                updateThemeButtons('light');
-              });
-            }
-
-            if (themeSystemBtn) {
-              themeSystemBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                localStorage.setItem('app_theme', 'system');
-                document.documentElement.removeAttribute('data-theme');
-                updateThemeButtons('system');
-              });
-            }
-
-            if (themeDarkBtn) {
-              themeDarkBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                localStorage.setItem('app_theme', 'dark');
-                document.documentElement.setAttribute('data-theme', 'dark');
-                updateThemeButtons('dark');
-              });
-            }
-
-            try {
-              const qNotif = query(collection(db, "mensajes"), where("destinatarioId", "==", user.uid), where("leido", "==", false));
-              onSnapshot(qNotif, (snapshot) => {
-                const badge = document.getElementById('notificationBadge');
-                const list = document.getElementById('notificationList');
-                if (!badge || !list) return;
-
-                const count = snapshot.size;
-                if (count > 0) {
-                  badge.textContent = count;
-                  badge.style.display = 'flex';
-                  
-                  let htmlNotifs = '';
-                  snapshot.forEach((docMsg) => {
-                    const mData = docMsg.data();
-                    htmlNotifs += `
-                      <a href="mensajes.html?chat=${mData.remitenteId || ''}" class="notification-item">
-                        <strong>Nuevo mensaje</strong>
-                        <p style="margin: 4px 0 0 0; font-size: 12px; color: #a1a1aa; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${mData.texto || 'Has recibido una interacción'}</p>
-                      </a>
-                    `;
-                  });
-                  list.innerHTML = htmlNotifs;
-                } else {
-                  badge.style.display = 'none';
-                  list.innerHTML = '<div style="padding: 16px; text-align: center; color: #71717a; font-size: 13px;">No hay notificaciones nuevas</div>';
-                }
-              }, (error) => {
-                console.warn("Aviso de permisos en mensajes:", error.message);
-              });
-            } catch (e) {
-              console.warn("No se pudo iniciar el listener de notificaciones:", e);
-            }
-
-            const profileBtn = document.getElementById('profileBtn');
-            const profileDropdownMenu = document.getElementById('profileDropdownMenu');
-            const notificationBellBtn = document.getElementById('notificationBellBtn');
-            const notificationDropdown = document.getElementById('notificationDropdown');
-            const btnLogout = document.getElementById('btnLogout');
-
-            if (profileBtn && profileDropdownMenu) {
-              profileBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                if (notificationDropdown) notificationDropdown.classList.remove('show');
-                profileDropdownMenu.classList.toggle('show');
-              });
-            }
-
-            if (notificationBellBtn && notificationDropdown) {
-              notificationBellBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                if (profileDropdownMenu) profileDropdownMenu.classList.remove('show');
-                notificationDropdown.classList.toggle('show');
-              });
-            }
-
-            document.addEventListener('click', () => {
-              if (profileDropdownMenu) profileDropdownMenu.classList.remove('show');
-              if (notificationDropdown) notificationDropdown.classList.remove('show');
-            });
-
-            if (profileDropdownMenu) profileDropdownMenu.addEventListener('click', (e) => e.stopPropagation());
-            if (notificationDropdown) notificationDropdown.addEventListener('click', (e) => e.stopPropagation());
-
-            if (btnLogout) {
-              btnLogout.addEventListener('click', async () => {
-                try {
-                  localStorage.removeItem('user_logged');
-                  await signOut(auth);
-                } catch (error) {
-                  console.error("Error al cerrar sesión:", error);
-                }
-                window.location.reload();
-              });
-            }
-          } else {
-            localStorage.removeItem('user_logged');
-            if (authContainer) {
-              authContainer.innerHTML = `<a href="login.html" class="login-btn"><span>🔐</span> Iniciar sesión</a>`;
-            }
-          }
-        });
-
         // ================= CARGA DE PROPIEDADES =================
         const propertiesGrid = document.getElementById('propertiesGrid');
         let querySnapshot = null;
@@ -1563,5 +1362,9 @@
       });
     </script>
 
+    <!-- Campanita de notificaciones y menú de perfil (compartido con comunidad.html e index.html) -->
+    <script type="module" src="notifications.js"></script>
+
 </body>
 </html>
+```[cite: 7]
