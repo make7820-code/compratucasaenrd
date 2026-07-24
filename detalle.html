@@ -752,6 +752,8 @@
           const description = selectedProperty.descripcion || selectedProperty.description || selectedProperty.detalles || 'Sin descripción detallada.';
           const agente = "Daniel Decena";
 
+          const whatsappMessage = `¡Hola! Vi esta propiedad en https://www.compratucasard.com/ y estoy interesado(a) en ella. Me gustaría recibir más información (${window.location.href}) y, si es posible, coordinar una visita para conocerla. Quedo atent@. ¡Muchas gracias!`;
+
           container.innerHTML = `
             <div class="property-main-content">
               <!-- Galería interactiva con etiqueta de operación -->
@@ -827,7 +829,7 @@
                 <a href="#" class="contact-btn" onclick="alert('Funcionalidad de chat directo próximamente.')">
                   <span>💬</span> Enviar Mensaje
                 </a>
-                <a href="https://wa.me/18498572321?text=Hola,%20estoy%20interesado%20en%20la%20propiedad:%20${encodeURIComponent(title)}" target="_blank" class="contact-btn whatsapp-btn">
+                <a href="https://wa.me/18498572321?text=${encodeURIComponent(whatsappMessage)}" target="_blank" class="contact-btn whatsapp-btn">
                   <span>📱</span> Contactar por WhatsApp
                 </a>
               </div>
