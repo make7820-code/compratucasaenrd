@@ -858,7 +858,22 @@
 
     <!-- SCRIPTS CON CONTROL DE ACCESO ESTRICTO DESDE FIRESTORE -->
     <script type="module">
-      import { db, storage, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, ref, uploadBytes, getDownloadURL, query, where } from './firebase-config.js';
+      import { db, storage } from './firebase-config.js';
+      import { 
+        collection, 
+        addDoc, 
+        getDocs, 
+        doc, 
+        updateDoc, 
+        deleteDoc, 
+        query, 
+        where 
+      } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+      import { 
+        ref, 
+        uploadBytes, 
+        getDownloadURL 
+      } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
       let mostrandoArchivadas = false;
       let imagenesEditandoActuales = []; 
@@ -1110,11 +1125,11 @@
           });
 
           if (filtro.trim() !== '') {
-            const query = filtro.toLowerCase();
+            const queryText = filtro.toLowerCase();
             listaPropiedades = listaPropiedades.filter(p => 
-              (p.titulo || '').toLowerCase().includes(query) || 
-              (p.ubicacion || '').toLowerCase().includes(query) || 
-              (p.agente || '').toLowerCase().includes(query)
+              (p.titulo || '').toLowerCase().includes(queryText) || 
+              (p.ubicacion || '').toLowerCase().includes(queryText) || 
+              (p.agente || '').toLowerCase().includes(queryText)
             );
           }
 
