@@ -856,10 +856,10 @@
       </div>
     </footer>
 
-    <!-- SCRIPTS CON CONTROL DE ACCESO ESTRICTO DESDE FIRESTORE -->
+    <!-- SCRIPTS CON CONTROL DE ACCESO ESTRICTO Y VERSIONES UNIFICADAS DE FIREBASE (10.12.0) -->
     <script type="module">
       import { auth, db, storage } from './firebase-config.js';
-      import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+      import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
       import { 
         collection, 
         addDoc, 
@@ -867,15 +867,13 @@
         doc, 
         getDoc,
         updateDoc, 
-        deleteDoc, 
-        query, 
-        where 
-      } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        deleteDoc 
+      } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
       import { 
-        ref, 
+        ref as storageRefFn, 
         uploadBytes, 
         getDownloadURL 
-      } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
+      } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
       let mostrandoArchivadas = false;
       let imagenesEditandoActuales = []; 
@@ -1130,8 +1128,8 @@
           if (archivosInput && archivosInput.files && archivosInput.files.length > 0) {
             for (let i = 0; i < archivosInput.files.length; i++) {
               const file = archivosInput.files[i];
-              const storageRef = ref(storage, `propiedades/${Date.now()}_${file.name}`);
-              const snapshot = await uploadBytes(storageRef, file);
+              const fileRef = storageRefFn(storage, `propiedades/${Date.now()}_${file.name}`);
+              const snapshot = await uploadBytes(fileRef, file);
               const downloadURL = await getDownloadURL(snapshot.ref);
               imagenesUrls.push(downloadURL);
             }
