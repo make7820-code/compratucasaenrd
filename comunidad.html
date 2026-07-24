@@ -847,7 +847,6 @@
                 const data = docSnap.data();
                 const propId = data.propertyId || 'general';
                 const timeA = data.timestamp?.toMillis ? data.timestamp.toMillis() : 0;
-                const isUnread = (data.sender && data.sender !== 'user') && !data.leidoPorUsuario;
                 
                 if (!conversationsMap.has(propId)) {
                   conversationsMap.set(propId, {
@@ -855,21 +854,23 @@
                     propertyTitle: data.propertyTitle || 'Consulta Inmobiliaria',
                     propertyImage: data.propertyImage || 'assets/puerto-marina.png',
                     lastMessage: data.mensaje || data.text || '',
-                    hasUnread: isUnread,
+                    sender: data.sender || 'user',
+                    leido: data.leidoPorUsuario || false,
                     timestamp: timeA
                   });
                 } else {
                   const existing = conversationsMap.get(propId);
-                  if (isUnread) existing.hasUnread = true;
                   if (timeA >= existing.timestamp) {
                     existing.lastMessage = data.mensaje || data.text || '';
+                    existing.sender = data.sender || 'user';
+                    existing.leido = data.leidoPorUsuario || false;
                     existing.timestamp = timeA;
                   }
                 }
               });
 
               const convs = Array.from(conversationsMap.values());
-              const unreadConvs = convs.filter(c => c.hasUnread);
+              const unreadConvs = convs.filter(c => c.sender && c.sender !== 'user' && !c.leido);
               
               updateNavbarUI(user, displayName, avatarSrc, unreadConvs, savedTheme);
             });
