@@ -614,7 +614,7 @@
       </div>
     </footer>
 
-    <!-- SCRIPT CONECTADO A FIREBASE Y LÓGICA DE GALERÍA, ZOOM Y ESPECIFICACIONES -->
+    <!-- SCRIPT CORREGIDO Y SINCRONIZADO CON FIREBASE -->
     <script type="module">
       import { db, doc, getDoc } from './firebase-config.js';
 
@@ -628,26 +628,6 @@
           return;
         }
 
-        // Respaldo estático de prueba
-        const staticProperties = {
-          "1": {
-            titulo: "Apartamento Vista al Mar",
-            ubicacion: "Santo Domingo, Malecón",
-            operacion: "Venta",
-            moneda: "USD",
-            precio: "120,000",
-            habitaciones: "2",
-            banos: "2",
-            metros: "120 m²",
-            nivel: "Piso 5",
-            parqueos: "2",
-            extranjero: true,
-            depositos: "",
-            imagenes: ["assets/puerto-marina.png", "assets/mi-camion.jpg"],
-            descripcion: "Espectacular apartamento totalmente amueblado con impresionante vista panorámica al mar Caribe."
-          }
-        };
-
         let selectedProperty = null;
 
         try {
@@ -657,11 +637,7 @@
             selectedProperty = docSnap.data();
           }
         } catch (error) {
-          console.warn("No se pudo cargar desde Firebase, verificando respaldo local...", error);
-        }
-
-        if (!selectedProperty && staticProperties[propertyId]) {
-          selectedProperty = staticProperties[propertyId];
+          console.warn("No se pudo cargar desde Firebase:", error);
         }
 
         if (selectedProperty) {
@@ -672,19 +648,19 @@
           const title = selectedProperty.titulo || selectedProperty.title || selectedProperty.nombre || 'Sin título';
           const location = selectedProperty.ubicacion || selectedProperty.location || selectedProperty.direccion || 'República Dominicana';
           
-          // Lógica estricta de moneda y precio sincronizada con publicar.html
+          // --- CORRECCIÓN DE MONEDA (Detecta USD, US$ o signo de dólar $) ---
           const rawPrice = selectedProperty.precio || selectedProperty.price || '0';
           const moneda = (selectedProperty.moneda || selectedProperty.currency || '').toUpperCase();
           
-          // Detectar si la moneda es Dólar (USD, US$ o símbolo de dólar)
-          const isDolar = moneda === 'USD' || moneda === 'US$' || rawPrice.toString().toUpperCase().includes('USD') || rawPrice.toString().includes('US$');
+          const isDolar = moneda === 'USD' || moneda === 'US$' || moneda === 'DÓLARES' || moneda === 'DOLARES' || 
+                          rawPrice.toString().toUpperCase().includes('USD') || 
+                          rawPrice.toString().includes('US$') || 
+                          rawPrice.toString().startsWith('$');
           
-          // Definir prefijo exacto según el tipo de moneda guardado en publicar.html
-          const currencyLabel = isDolar ? 'USD ' : 'RD$ ';
+          const currencyLabel = isDolar ? '$ ' : 'RD$ ';
           const cleanPriceNum = rawPrice.toString().replace(/USD|US\$|RD\$|\$/g, '').trim();
           const finalPriceFormatted = `${currencyLabel}${cleanPriceNum}`;
           
-          // Color verde si es venta, independientemente de que sea alquiler u otra cosa
           const priceColor = isVenta ? '#10b981' : '#f59e0b';
 
           const habs = selectedProperty.habitaciones || selectedProperty.habs || selectedProperty.habitacion || '1';
@@ -694,17 +670,16 @@
           const nivel = selectedProperty.nivel || selectedProperty.altura || selectedProperty.piso || 'N/D';
           const parqueos = selectedProperty.parqueos || selectedProperty.parking || selectedProperty.parqueo || '1';
           
-          // Búsqueda inteligente para Depósitos
           const depositos = selectedProperty.depositos || selectedProperty.deposits || selectedProperty.cantidadDepositos || selectedProperty.deposito || null;
 
-          // Búsqueda robusta y directa para Extranjeros exactamente como se envía desde publicar.html
+          // --- CORRECCIÓN ROBUSTA PARA EXTRANJEROS ---
           const rawExtranjero = selectedProperty.extranjero !== undefined ? selectedProperty.extranjero 
                               : selectedProperty.aceptanExtranjeros !== undefined ? selectedProperty.aceptanExtranjeros 
                               : selectedProperty.permiteExtranjeros;
           
           const aceptaExtranjero = rawExtranjero === true || rawExtranjero === "true" || rawExtranjero === "si" || rawExtranjero === "sí" || rawExtranjero === 1 || rawExtranjero === "on";
 
-          // Tarjeta de extranjero condicional (muestra si está marcado en publicar.html)
+          // Tarjeta de extranjero idéntica a la vista en tus tarjetas activas
           const extranjeroHtml = aceptaExtranjero 
             ? `<div class="spec-card">
                  <span>Extranjeros</span>
@@ -712,7 +687,6 @@
                </div>` 
             : '';
 
-          // Tarjeta de depósitos condicional
           const depositosHtml = depositos 
             ? `<div class="spec-card" style="grid-column: 1 / -1;">
                  <span>Depósitos Requeridos</span>
@@ -726,7 +700,7 @@
 
           container.innerHTML = `
             <div class="property-main-content">
-              <!-- Galería interactiva con controles y zoom -->
+              <!-- Galería interactiva -->
               <div class="property-gallery" id="propertyGalleryBox">
                 <span class="property-tag-badge" style="background: ${badgeBg}; position: absolute; top: 16px; left: 16px; z-index: 3;">${offer}</span>
                 
@@ -804,7 +778,7 @@
             </div>
           `;
 
-          // Lógica para pasar imágenes de una en una
+          // Control de galería
           let currentIndex = 0;
           const activeImgElement = document.getElementById('activeGalleryImg');
           const prevBtn = document.getElementById('prevImgBtn');
@@ -827,7 +801,7 @@
             });
           }
 
-          // Lógica del modal con Zoom y botón X para cerrar
+          // Modal de Zoom
           const modal = document.getElementById('imageModal');
           const modalImg = document.getElementById('modalImage');
           const galleryBox = document.getElementById('propertyGalleryBox');
