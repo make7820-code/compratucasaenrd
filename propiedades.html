@@ -11,10 +11,35 @@
     <!-- Hoja de Estilos -->
     <link rel="stylesheet" href="styles.css">
     <style>
+      /* ================= VARIABLES Y TEMAS (CLARO / OSCURO) ================= */
+      :root {
+        --bg-main: #0b0b0e;
+        --bg-card: #121214;
+        --bg-dropdown: #18181b;
+        --bg-input: rgba(24, 24, 27, 0.8);
+        --text-main: #fff;
+        --text-muted: #a1a1aa;
+        --border-color: rgba(255, 255, 255, 0.1);
+        --filter-sidebar-bg: rgba(18, 18, 20, 0.85);
+      }
+
+      [data-theme="light"] {
+        --bg-main: #f4f4f5;
+        --bg-card: #ffffff;
+        --bg-dropdown: #ffffff;
+        --bg-input: #f1f1f3;
+        --text-main: #18181b;
+        --text-muted: #52525b;
+        --border-color: rgba(0, 0, 0, 0.1);
+        --filter-sidebar-bg: rgba(255, 255, 255, 0.9);
+      }
+
       /* Fondo general de la página */
       body {
-        background-color: #0b0b0e;
+        background-color: var(--bg-main);
         margin: 0;
+        color: var(--text-main);
+        transition: background-color 0.3s, color 0.3s;
       }
 
       /* Contenedor principal con fondo fijo de la Plaza de la Bandera */
@@ -70,13 +95,13 @@
       .filters-sidebar {
         width: 320px;
         flex-shrink: 0;
-        background: rgba(18, 18, 20, 0.85);
+        background: var(--filter-sidebar-bg);
         backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        border: 1px solid var(--border-color);
         border-radius: 20px;
         padding: 24px;
         height: fit-content;
-        box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.2);
       }
 
       .properties-content-area {
@@ -91,7 +116,7 @@
         display: block;
         font-size: 13px;
         font-weight: 600;
-        color: #a1a1aa;
+        color: var(--text-muted);
         margin-bottom: 8px;
         text-transform: uppercase;
         letter-spacing: 0.5px;
@@ -99,9 +124,9 @@
 
       .filter-group input, .filter-group select {
         width: 100%;
-        background: rgba(24, 24, 27, 0.8);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        color: #fff;
+        background: var(--bg-input);
+        border: 1px solid var(--border-color);
+        color: var(--text-main);
         padding: 10px 14px;
         border-radius: 10px;
         font-size: 14px;
@@ -125,17 +150,17 @@
       }
 
       .property-card {
-        background: #121214;
-        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
         border-radius: 20px;
         overflow: hidden;
-        transition: transform 0.2s, box-shadow 0.2s;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+        transition: transform 0.2s, box-shadow 0.2s, background-color 0.3s;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
       }
 
       .property-card:hover {
         transform: translateY(-4px);
-        box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+        box-shadow: 0 15px 35px rgba(0,0,0,0.3);
       }
 
       /* ================= ESTILOS DEL CARRUSEL DE LA TARJETA ================= */
@@ -275,7 +300,7 @@
       .property-type {
         font-size: 12px;
         text-transform: uppercase;
-        color: #71717a;
+        color: var(--text-muted);
         font-weight: 700;
         letter-spacing: 0.5px;
         margin-bottom: 4px;
@@ -284,12 +309,12 @@
       .property-title {
         font-size: 18px;
         font-weight: 700;
-        color: #fff;
+        color: var(--text-main);
         margin-bottom: 8px;
       }
 
       .property-title a {
-        color: #fff;
+        color: var(--text-main);
         text-decoration: none;
         transition: color 0.2s;
       }
@@ -300,7 +325,7 @@
 
       .property-location {
         font-size: 13px;
-        color: #a1a1aa;
+        color: var(--text-muted);
         margin-bottom: 14px;
         display: flex;
         align-items: center;
@@ -317,10 +342,10 @@
       .property-footer-info {
         display: flex;
         gap: 16px;
-        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        border-top: 1px solid var(--border-color);
         padding-top: 14px;
         font-size: 13px;
-        color: #a1a1aa;
+        color: var(--text-muted);
       }
 
       /* Estilos para el menú flotante del perfil y notificaciones */
@@ -329,10 +354,10 @@
         position: absolute;
         right: 0;
         top: 50px;
-        background: #18181b;
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: var(--bg-dropdown);
+        border: 1px solid var(--border-color);
         border-radius: 16px;
-        box-shadow: 0 20px 40px rgba(0,0,0,0.7);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.3);
         width: 260px;
         z-index: 1000;
         padding: 12px;
@@ -349,7 +374,7 @@
         gap: 12px;
         width: 100%;
         padding: 12px 14px;
-        color: #fff;
+        color: var(--text-main);
         text-decoration: none;
         background: none;
         border: none;
@@ -362,12 +387,12 @@
       }
 
       .profile-dropdown-item:hover {
-        background: rgba(255, 255, 255, 0.06);
+        background: rgba(128, 128, 128, 0.1);
       }
 
       .profile-dropdown-divider {
         height: 1px;
-        background: rgba(255, 255, 255, 0.08);
+        background: var(--border-color);
         margin: 8px 0;
       }
 
@@ -393,7 +418,7 @@
       .notification-bell-btn {
         background: transparent;
         border: none;
-        color: #fff;
+        color: var(--text-main);
         width: 40px;
         height: 40px;
         border-radius: 50%;
@@ -419,7 +444,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        border: 2px solid #121214;
+        border: 2px solid var(--bg-card);
       }
 
       .notification-dropdown {
@@ -427,10 +452,10 @@
         position: absolute;
         right: 0;
         top: 50px;
-        background: #18181b;
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: var(--bg-dropdown);
+        border: 1px solid var(--border-color);
         border-radius: 16px;
-        box-shadow: 0 20px 40px rgba(0,0,0,0.7);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.3);
         width: 320px;
         z-index: 1000;
         overflow: hidden;
@@ -442,7 +467,7 @@
 
       .notification-header {
         padding: 14px 16px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        border-bottom: 1px solid var(--border-color);
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -450,7 +475,7 @@
 
       .notification-header h4 {
         margin: 0;
-        color: #fff;
+        color: var(--text-main);
         font-size: 14px;
         font-weight: 700;
       }
@@ -462,8 +487,8 @@
 
       .notification-item {
         padding: 12px 16px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        color: #a1a1aa;
+        border-bottom: 1px solid var(--border-color);
+        color: var(--text-muted);
         font-size: 13px;
         text-decoration: none;
         display: block;
@@ -471,8 +496,8 @@
       }
 
       .notification-item:hover {
-        background: rgba(255, 255, 255, 0.04);
-        color: #fff;
+        background: rgba(128, 128, 128, 0.1);
+        color: var(--text-main);
       }
 
       /* ================= FOOTER / BANNER INFERIOR ================= */
@@ -641,6 +666,17 @@
         }
       }
     </style>
+    <!-- SCRIPT DE CARGA INICIAL DE TEMA PARA EVITAR PARPADEOS -->
+    <script>
+      (function() {
+        const savedTheme = localStorage.getItem('app_theme');
+        if (savedTheme === 'light') {
+          document.documentElement.setAttribute('data-theme', 'light');
+        } else if (savedTheme === 'dark') {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        }
+      })();
+    </script>
 </head>
 <body>
 
@@ -711,7 +747,7 @@
         
         <!-- BARRA LATERAL DE FILTROS -->
         <aside class="filters-sidebar">
-          <h3 style="color: #fff; font-size: 18px; font-weight: 700; margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
+          <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
             <span>🔍</span> Filtros de Búsqueda
           </h3>
 
@@ -944,19 +980,19 @@
                   
                   <div id="profileDropdownMenu" class="profile-dropdown-menu">
                     <a href="perfil.html" class="profile-dropdown-item">
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #fff; flex-shrink: 0;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
                       <span>Ir al Perfil</span>
                     </a>
 
                     <a href="mensajes.html" class="profile-dropdown-item">
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #fff; flex-shrink: 0;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
                       <span>Mensajes</span>
                     </a>
                     
                     <div class="profile-dropdown-divider"></div>
 
                     <div style="padding: 4px 0 8px 0; font-size: 11px; font-weight: 700; color: #a1a1aa; text-transform: uppercase; letter-spacing: 0.5px;">ASPECTO FÍSICO</div>
-                    <div style="display: flex; background: rgba(24, 24, 27, 0.9); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 4px; gap: 4px; margin-bottom: 8px;">
+                    <div style="display: flex; background: rgba(128, 128, 128, 0.15); border: 1px solid var(--border-color); border-radius: 12px; padding: 4px; gap: 4px; margin-bottom: 8px;">
                       <button type="button" id="themeLightBtn" style="flex: 1; background: none; border: none; padding: 6px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px;" title="Claro">☀️</button>
                       <button type="button" id="themeSystemBtn" style="flex: 1; background: none; border: none; padding: 6px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px;" title="Sistema">💻</button>
                       <button type="button" id="themeDarkBtn" style="flex: 1; background: none; border: none; padding: 6px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px;" title="Oscuro">🌙</button>
@@ -982,11 +1018,11 @@
                 if (btn) btn.style.background = 'none';
               });
               if (currentTheme === 'light' && themeLightBtn) {
-                themeLightBtn.style.background = 'rgba(255, 255, 255, 0.1)';
+                themeLightBtn.style.background = 'rgba(128, 128, 128, 0.2)';
               } else if (currentTheme === 'system' && themeSystemBtn) {
-                themeSystemBtn.style.background = 'rgba(255, 255, 255, 0.1)';
+                themeSystemBtn.style.background = 'rgba(128, 128, 128, 0.2)';
               } else if (currentTheme === 'dark' && themeDarkBtn) {
-                themeDarkBtn.style.background = 'rgba(255, 255, 255, 0.1)';
+                themeDarkBtn.style.background = 'rgba(128, 128, 128, 0.2)';
               }
             }
 
