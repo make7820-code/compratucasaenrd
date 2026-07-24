@@ -784,12 +784,12 @@
     <!-- ================= SCRIPTS Y CONEXIÓN FIRESTORE / LOCAL ================= -->
     <script>
       const firebaseConfig = {
-        apiKey: "AIzaSyD...", // Mantén tu apiKey real de tu proyecto
+        apiKey: "AIzaSyDJjporsjk6QnY5HaHAU-8QfeCJvDsayyc",
         authDomain: "compratucasaenrd-11e1a.firebaseapp.com",
         projectId: "compratucasaenrd-11e1a",
-        storageBucket: "compratucasaenrd-11e1a.appspot.com", // <--- ¡Corregido aquí!
-        messagingSenderId: "tu-id",
-        appId: "tu-id"
+        storageBucket: "compratucasaenrd-11e1a.firebasestorage.app",
+        messagingSenderId: "991077320424",
+        appId: "1:991077320424:web:9acb43c5b31875332eab5d"
       };
 
       let db = null;
@@ -952,7 +952,7 @@
                 codigoPostal: usuarioActualData.codigoPostal,
                 idioma: usuarioActualData.idioma,
                 zonaHoraria: usuarioActualData.zonaHoraria,
-                rol: usuarioActualData.rol || 'cliente'
+                rol: usuarioActualData.rol || 'cliente' // <--- AQUÍ SE ASEGURA QUE EL ROL NO SE PIERDA
               };
               if (usuarioActualData.fotoPerfil) {
                 datosParaFirestore.fotoPerfil = usuarioActualData.fotoPerfil;
@@ -1011,6 +1011,7 @@
         document.getElementById('displayNombreCompleto').innerText = nombreMostrado;
         document.getElementById('displayUsernameSub').innerText = "@" + (usuarioActualData.nombreUsuario || username);
 
+        // --- RENDERIZAR ROL Y VISIBILIDAD DEL BOTÓN DE PUBLICAR ---
         const rolUsuario = (usuarioActualData.rol || 'cliente').toLowerCase();
         const badgeRol = document.getElementById('textRolBadge');
         if (badgeRol) {
