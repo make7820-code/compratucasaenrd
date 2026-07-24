@@ -865,10 +865,22 @@
 
       window.addEventListener('DOMContentLoaded', () => {
         try {
+          // ================= CONTROL DE ACCESO (CLIENTES Y NO LOGEADOS) =================
+          const usuarioActivo = localStorage.getItem('usuario_activo');
+          const rolUsuario = localStorage.getItem('usuario_rol') || 'cliente'; // Por defecto se asume cliente si no existe
+
+          // Si no hay sesión o el rol es 'cliente', se bloquea el acceso redirigiendo al inicio
+          if (!usuarioActivo || rolUsuario.toLowerCase() === 'cliente') {
+            alert("Acceso denegado. No tienes permisos para ver la sección de publicaciones.");
+            window.location.href = 'index.html';
+            return; // Detiene la ejecución posterior
+          }
+          // ==============================================================================
+
           const savedTheme = localStorage.getItem('site_theme') || 'dark';
           if (savedTheme === 'light') document.body.classList.add('light-mode');
 
-          const username = localStorage.getItem('usuario_activo') || 'onlybladi';
+          const username = usuarioActivo;
           const nombreCompleto = localStorage.getItem('perfil_nombre') || username;
           const fotoGuardada = localStorage.getItem('perfil_foto');
           const authContainer = document.getElementById('authContainer');
