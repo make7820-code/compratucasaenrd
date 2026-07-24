@@ -781,9 +781,8 @@
               let agentDisplayName = "Agente";
               if (data.nombres) {
                 agentDisplayName = data.nombres;
-              }
-              if (data.apellidos) {
-                agentDisplayName += " " + data.apellidos;
+              } else if (data.nombre) {
+                agentDisplayName = data.nombre;
               }
               let agentAvatarSrc = data.fotoPerfil || 'assets/onlybladi-avatar.png';
 
@@ -800,7 +799,7 @@
           renderAgents(user);
 
           if (user) {
-            let fullName = user.email.split('@')[0];
+            let displayName = user.email.split('@')[0];
             let avatarSrc = 'assets/onlybladi-avatar.png';
 
             try {
@@ -808,15 +807,11 @@
               const userDocSnap = await getDoc(userDocRef);
               if (userDocSnap.exists()) {
                 const userData = userDocSnap.data();
-                let nombres = userData.nombres ? userData.nombres.trim() : '';
-                let apellidos = userData.apellidos ? userData.apellidos.trim() : '';
-                
-                if (nombres && apellidos) {
-                  fullName = `${nombres} ${apellidos}`;
-                } else if (nombres) {
-                  fullName = nombres;
-                } else if (apellidos) {
-                  fullName = apellidos;
+                // Tomamos únicamente el nombre principal como en perfil.html
+                if (userData.nombres) {
+                  displayName = userData.nombres.trim();
+                } else if (userData.nombre) {
+                  displayName = userData.nombre.trim();
                 }
 
                 if (userData.fotoPerfil) {
@@ -860,7 +855,7 @@
               const convs = Array.from(conversationsMap.values());
               const unreadConvs = convs.filter(c => c.sender && c.sender !== 'user');
               
-              updateNavbarUI(user, fullName, avatarSrc, unreadConvs, savedTheme);
+              updateNavbarUI(user, displayName, avatarSrc, unreadConvs, savedTheme);
             });
           } else {
             if (authContainer) {
