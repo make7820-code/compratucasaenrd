@@ -1036,9 +1036,8 @@ body.light-mode .theme-btn.active {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
-/* ================= CORRECCIÓN DEL LOGO Y SELLO DEMO (TAMAÑO DESTACADO Y LEVEMENTE A LA DERECHA) ================= */
+/* ================= CORRECCIÓN DEL LOGO Y SELLO DEMO ================= */
 
-/* Contenedor principal de la marca en columna, desplazado ligeramente a la derecha */
 .site-header .header-inner .brand {
   display: flex !important;
   flex-direction: column !important;
@@ -1050,7 +1049,6 @@ body.light-mode .theme-btn.active {
   transform: translateX(18px) !important;
 }
 
-/* Imagen del logo principal */
 .site-header .header-inner .brand .brand-logo {
   height: 48px !important;
   max-height: 48px !important;
@@ -1060,7 +1058,6 @@ body.light-mode .theme-btn.active {
   display: block !important;
 }
 
-/* Sello DEMO con tamaño mucho más grande y prominente, y un ajuste extra sutil a la derecha */
 .site-header .header-inner .brand .brand-demo-badge {
   height: 38px !important;
   max-height: 38px !important;
