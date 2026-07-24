@@ -672,13 +672,14 @@
           const title = selectedProperty.titulo || selectedProperty.title || selectedProperty.nombre || 'Sin título';
           const location = selectedProperty.ubicacion || selectedProperty.location || selectedProperty.direccion || 'República Dominicana';
           
-          // Lógica estricta de moneda y precio: Verde si es Venta, y "USD " si la moneda es USD
+          // Lógica estricta de moneda y precio sincronizada con publicar.html
           const rawPrice = selectedProperty.precio || selectedProperty.price || '0';
           const moneda = (selectedProperty.moneda || selectedProperty.currency || '').toUpperCase();
+          
           const isDolar = moneda === 'USD' || moneda === 'US$' || rawPrice.toString().toUpperCase().includes('USD') || rawPrice.toString().includes('US$');
           
-          const currencyLabel = isDolar ? 'USD ' : '';
-          const cleanPriceNum = rawPrice.toString().replace(/USD|US\$|\$/g, '').trim();
+          const currencyLabel = isDolar ? 'USD ' : 'RD$ ';
+          const cleanPriceNum = rawPrice.toString().replace(/USD|US\$|RD\$|\$/g, '').trim();
           const finalPriceFormatted = `${currencyLabel}${cleanPriceNum}`;
           
           // Color verde si es venta, independientemente de que sea alquiler u otra cosa
@@ -694,14 +695,14 @@
           // Búsqueda inteligente para Depósitos
           const depositos = selectedProperty.depositos || selectedProperty.deposits || selectedProperty.cantidadDepositos || selectedProperty.deposito || null;
 
-          // Búsqueda robusta y directa para Extranjeros según publicar.html
+          // Búsqueda robusta y directa para Extranjeros exactamente como se envía desde publicar.html
           const rawExtranjero = selectedProperty.extranjero !== undefined ? selectedProperty.extranjero 
                               : selectedProperty.aceptanExtranjeros !== undefined ? selectedProperty.aceptanExtranjeros 
                               : selectedProperty.permiteExtranjeros;
           
           const aceptaExtranjero = rawExtranjero === true || rawExtranjero === "true" || rawExtranjero === "si" || rawExtranjero === "sí" || rawExtranjero === 1 || rawExtranjero === "on";
 
-          // Tarjeta de extranjero condicional obligatoria
+          // Tarjeta de extranjero condicional obligatoria según publicar.html
           const extranjeroHtml = aceptaExtranjero 
             ? `<div class="spec-card">
                  <span>Extranjeros</span>
