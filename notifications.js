@@ -121,6 +121,10 @@ function renderGlobalNavbar(container, userId, displayName, avatarSrc, unreadCon
           <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
           Ir al Perfil
         </button>
+        <button class="profile-menu-item" onclick="window.location.href='mensajes.html'" style="width:100%; background:none; border:none; color:#fff; text-align:left; padding:8px; cursor:pointer; border-radius:6px; display:flex; align-items:center; gap:8px;">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+          Mensajes
+        </button>
 
         <div style="height:1px; background:rgba(255,255,255,0.1); margin:6px 0;"></div>
         <div style="font-size:11px; color:#a1a1aa; font-weight:700; text-transform:uppercase; padding:4px 8px; letter-spacing:0.5px;">Aspecto físico</div>
