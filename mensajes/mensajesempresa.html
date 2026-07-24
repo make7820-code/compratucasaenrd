@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Mensajes Empresa | Compra tu casa en RD</title>
+    <link rel="icon" type="image/x-icon" href="assets/icono.ico">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+    <!-- Hoja de Estilos Principal -->
+    <link rel="stylesheet" href="styles.css">
+    <style>
+      /* Estilos específicos para la mensajería empresarial con fondo mi-zona.png */
+      body {
+        background-color: #0b0b0e;
+        background-image: linear-gradient(rgba(11, 11, 14, 0.85), rgba(11, 11, 14, 0.92)), url('assets/mi-zona.png');
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+        color: #fff;
+        font-family: 'Inter', sans-serif;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+      }
+
+      .messaging-wrapper {
+        max-width: 1300px;
+        margin: 120px auto 40px auto;
+        padding: 0 20px;
+        width: 100%;
+        box-sizing: border-box;
+        flex: 1;
+      }
+
+      .messaging-container {
+        display: grid;
+        grid-template-columns: 350px 1fr;
+        background: rgba(18, 18, 20, 0.90);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 20px;
+        overflow: hidden;
+        height: 650px;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+      }
+
+      /* Columna Izquierda: Lista de Clientes / Conversaciones */
+      .conversations-sidebar {
+        border-right: 1px solid rgba(255, 255, 255, 0.08);
+        display: flex;
+        flex-direction: column;
+        background: rgba(18, 18, 20, 0.95);
+      }
+
+      .sidebar-header {
+        padding: 20px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .sidebar-title {
+        font-size: 20px;
+        font-weight: 800;
+        color: #fff;
+        margin: 0 0 14px 0;
+        letter-spacing: 0.5px;
+      }
+
+      .search-box-wrap {
+        position: relative;
+      }
+
+      .search-box-wrap input {
+        width: 100%;
+        background: #18181b;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        padding: 10px 14px 10px 38px;
+        border-radius: 10px;
+        color: #fff;
+        font-size: 14px;
+        box-sizing: border-box;
+        outline: none;
+        transition: border-color 0.2s;
+      }
+
+      .search-box-wrap input:focus {
+        border-color: #ef4444;
+      }
+
+      .search-box-wrap span {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 14px;
+        color: #71717a;
+      }
+
+      .conversations-list {
+        overflow-y: auto;
+        flex: 1;
+        padding: 10px;
+      }
+
+      .conversation-item {
+        padding: 14px;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: background 0.2s;
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        margin-bottom: 6px;
+        border: 1px solid transparent;
+      }
+
+      .conversation-item:hover {
+        background: rgba(255, 255, 255, 0.03);
+      }
+
+      .conversation-item.active {
+        background: rgba(239, 68, 68, 0.1);
+        border-color: rgba(239, 68, 68, 0.3);
+      }
+
+      .conv-thumb {
+        width: 45px;
+        height: 45px;
+        border-radius: 10px;
+        object-fit: cover;
+        background: #27272a;
+        flex-shrink: 0;
+      }
+
+      .conv-info {
+        overflow: hidden;
+        flex: 1;
+      }
+
+      .conv-property-title {
+        font-size: 14px;
+        font-weight: 700;
+        color: #fff;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin-bottom: 4px;
+      }
+
+      .conv-last-msg {
+        font-size: 12px;
+        color: #a1a1aa;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      /* Columna Derecha: Ventana de Chat Activa para Empresa */
+      .chat-main-area {
+        display: flex;
+        flex-direction: column;
+        background: rgba(14, 14, 17, 0.90);
+        position: relative;
+      }
+
+      .chat-empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        text-align: center;
+        padding: 40px;
+        color: #71717a;
+      }
+
+      .chat-empty-icon {
+        font-size: 48px;
+        margin-bottom: 16px;
+        color: #ef4444;
+        opacity: 0.8;
+      }
+
+      .chat-empty-title {
+        font-size: 20px;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 8px;
+      }
+
+      .chat-header {
+        padding: 16px 24px;
+        background: rgba(18, 18, 20, 0.95);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .chat-property-meta {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .chat-prop-img {
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        object-fit: cover;
+      }
+
+      .chat-prop-name {
+        font-size: 15px;
+        font-weight: 700;
+        color: #fff;
+      }
+
+      .chat-prop-price {
+        font-size: 12px;
+        color: #10b981;
+        font-weight: 600;
+      }
+
+      .chat-messages-box {
+        flex: 1;
+        padding: 24px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .message-bubble {
+        max-width: 70%;
+        padding: 12px 16px;
+        border-radius: 14px;
+        font-size: 14px;
+        line-height: 1.5;
+        word-break: break-word;
+      }
+
+      .message-bubble.incoming {
+        background: #18181b;
+        color: #e4e4e7;
+        align-self: flex-start;
+        border-bottom-left-radius: 4px;
+      }
+
+      .message-bubble.outgoing {
+        background: #ef4444;
+        color: #fff;
+        align-self: flex-end;
+        border-bottom-right-radius: 4px;
+      }
+
+      .message-time {
+        font-size: 10px;
+        opacity: 0.7;
+        margin-top: 4px;
+        text-align: right;
+      }
+
+      .chat-input-area {
+        padding: 16px 24px;
+        background: rgba(18, 18, 20, 0.95);
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        display: flex;
+        gap: 12px;
+      }
+
+      .chat-input-area input {
+        flex: 1;
+        background: #18181b;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        padding: 12px 16px;
+        border-radius: 12px;
+        color: #fff;
+        font-size: 14px;
+        outline: none;
+        transition: border-color 0.2s;
+      }
+
+      .chat-input-area input:focus {
+        border-color: #ef4444;
+      }
+
+      .chat-send-btn {
+        background: #ef4444;
+        color: #fff;
+        border: none;
+        padding: 0 20px;
+        border-radius: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+
+      .chat-send-btn:hover {
+        background: #dc2626;
+      }
+
+      @media(max-width: 900px) {
+        .messaging-container {
+          grid-template-columns: 1fr;
+          height: auto;
+        }
+        .conversations-sidebar {
+          max-height: 250px;
+        }
+      }
+    </style>
+</head>
+<body>
+
+    <!-- ================= HEADER EXACTO AL RESTO ================= -->
+    <header class="site-header">
+      <div class="header-inner">
+        
+        <!-- LOGO PRINCIPAL + SELLO DEMO INTEGRADO -->
+        <a href="index.html" class="brand">
+          <img src="assets/mi-logo.png" alt="Compra tu casa en RD" class="brand-logo">
+          <img src="assets/demo.png" alt="DEMO" class="brand-demo-badge">
+        </a>
+
+        <!-- NAVEGACIÓN PRINCIPAL DINÁMICA -->
+        <nav class="main-nav">
+          <a href="index.html" class="nav-link"><span class="nav-emoji">🏠</span> Inicio</a>
+          <a href="propiedades.html" class="nav-link"><span class="nav-emoji">🏢</span> Propiedades</a>
+          <a href="comunidad.html" class="nav-link"><span class="nav-emoji">👥</span> Comunidad</a>
+          <a href="blog.html" class="nav-link"><span class="nav-emoji">📰</span> Blog</a>
+          <a href="mensajesempresa.html" class="nav-link active" id="navMensajesEmpresa"><span class="nav-emoji">🛡️</span> Panel Empresa</a>
+          <a href="nosotros.html" class="nav-link"><span class="nav-emoji">ℹ️</span> Nosotros</a>
+          <a href="vender.html" class="nav-link"><span class="nav-emoji">🤝</span> Vender</a>
+        </nav>
+
+        <!-- BOTÓN DE INICIO DE SESIÓN / PERFIL -->
+        <div id="authContainer">
+          <a href="login.html" class="login-btn">
+            <span>🔐</span> Iniciar sesión
+          </a>
+        </div>
+
+      </div>
+    </header>
+
+    <!-- ================= CONTENEDOR DE MENSAJERÍA EMPRESARIAL ================= -->
+    <div class="messaging-wrapper">
+      <div class="messaging-container">
+        
+        <!-- BARRA LATERAL DE CONVERSACIONES DE CLIENTES -->
+        <div class="conversations-sidebar">
+          <div class="sidebar-header">
+            <h2 class="sidebar-title">CLIENTES / CHATS</h2>
+            <div class="search-box-wrap">
+              <span>🔍</span>
+              <input type="text" id="searchClientInput" placeholder="Buscar por cliente o propiedad...">
+            </div>
+          </div>
+          <div class="conversations-list" id="conversationsList">
+            <div style="padding: 20px; text-align: center; color: #71717a; font-size: 13px;">
+              Cargando consultas de clientes...
+            </div>
+          </div>
+        </div>
+
+        <!-- ÁREA DE CHAT ACTIVA PARA AGENTE -->
+        <div class="chat-main-area" id="chatMainArea">
+          <div class="chat-empty-state">
+            <div class="chat-empty-icon">🛡️</div>
+            <div class="chat-empty-title">PANEL DE GESTIÓN INMOBILIARIA</div>
+            <p style="margin: 0; font-size: 14px; color: #a1a1aa;">Selecciona una conversación de la izquierda para responder al cliente.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ================= FOOTER / PIE DE PÁGINA EXACTO ================= -->
+    <footer class="site-footer">
+      <div class="footer-container">
+        
+        <!-- Columna 1: Marca y Redes -->
+        <div class="footer-col footer-brand-col">
+          <h2 class="footer-brand-title">Compra tu casa en <span class="highlight-red">RD</span></h2>
+          <p class="footer-brand-desc">
+            Tu aliado confiable en la búsqueda y adquisición de propiedades en República Dominicana. Hacemos tus sueños de hogar una realidad.
+          </p>
+          <div class="footer-socials">
+            <a href="#" class="social-icon" aria-label="Instagram">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+            </a>
+            <a href="#" class="social-icon" aria-label="Facebook">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M9 8H6v4h3v12h5V12h3.642L18 8h-4V6.333C14 5.378 14.5 5 15.5 5H18V0h-3.808C10.59 0 9 1.581 9 4.615V8z"/></svg>
+            </a>
+            <a href="#" class="social-icon" aria-label="WhatsApp">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.124-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+            </a>
+            <a href="#" class="social-icon" aria-label="TikTok">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 3 15.6a6.34 6.34 0 0 0 10.86 4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1.04-.06z"/></svg>
+            </a>
+          </div>
+        </div>
+
+        <!-- Columna 2: Navegación Rápida -->
+        <div class="footer-col">
+          <h3 class="footer-col-title">Navegación Rápida</h3>
+          <ul class="footer-links">
+            <li><a href="index.html">Inicio</a></li>
+            <li><a href="nosotros.html">Acerca de Nosotros</a></li>
+            <li><a href="propiedades.html">Propiedades</a></li>
+          </ul>
+        </div>
+
+        <!-- Columna 3: Nuestros Servicios -->
+        <div class="footer-col">
+          <h3 class="footer-col-title">Nuestros Servicios</h3>
+          <ul class="footer-links">
+            <li><a href="propiedades.html">Calculadora Hipotecaria</a></li>
+          </ul>
+        </div>
+
+        <!-- Columna 4: Contacto Directo -->
+        <div class="footer-col">
+          <h3 class="footer-col-title">Contacto Directo</h3>
+          <ul class="footer-contact-list">
+            <li>
+              <span class="contact-icon">📍</span>
+              <span>Ubicación: República Dominicana, Santo Domingo Este, La Ureña, C. El Sol</span>
+            </li>
+            <li>
+              <span class="contact-icon">📞</span>
+              <span>Teléfono: +1 (849) 857-2321</span>
+            </li>
+            <li>
+              <span class="contact-icon">✉️</span>
+              <span>Correo electrónico:<br><a href="mailto:Danieldecena63@gmail.com" class="footer-email">Danieldecena63@gmail.com</a></span>
+            </li>
+          </ul>
+        </div>
+
+      </div>
+
+      <!-- Barra Inferior (Copyright y Políticas) -->
+      <div class="footer-bottom">
+        <div class="footer-bottom-container">
+          <p>© 2026 Compra tu casa en RD. Todos los derechos reservados.</p>
+          <div class="footer-legal-links">
+            <a href="#">Política de Privacidad</a>
+            <a href="#">Términos de Servicio</a>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <!-- SCRIPT DE FIREBASE, VALIDACIÓN DE ACCESO EMPRESARIAL Y LÓGICA DE GESTIÓN -->
+    <script type="module">
+      import { auth, db } from './firebase-config.js';
+      import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+      import { doc, getDoc, collection, query, getDocs, addDoc, onSnapshot, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+      // UIDs autorizados para acceder al panel de empresa (puedes añadir más separándolos por comas)
+      const ALLOWED_UIDS = ["3VUuf3bJLKfAWqAlT94L1VlvaHB3"];
+
+      window.addEventListener('DOMContentLoaded', () => {
+        const savedTheme = localStorage.getItem('site_theme') || 'dark';
+        if (savedTheme === 'light') {
+          document.body.classList.add('light-mode');
+        } else if (savedTheme === 'system') {
+          if (window.matchMedia('(prefers-color-scheme: light)').matches) {
+            document.body.classList.add('light-mode');
+          }
+        }
+
+        const authContainer = document.getElementById('authContainer');
+        const navMensajesEmpresa = document.getElementById('navMensajesEmpresa');
+        const conversationsList = document.getElementById('conversationsList');
+        const chatMainArea = document.getElementById('chatMainArea');
+        const searchInput = document.getElementById('searchClientInput');
+
+        onAuthStateChanged(auth, async (user) => {
+          if (!user) {
+            window.location.href = 'login.html';
+            return;
+          }
+
+          // Verificar si el UID del usuario está autorizado para la empresa
+          if (!ALLOWED_UIDS.includes(user.uid)) {
+            alert("Acceso denegado. Esta sección es exclusiva para agentes inmobiliarios autorizados.");
+            window.location.href = 'index.html';
+            return;
+          }
+
+          let displayName = user.email.split('@')[0];
+          let avatarSrc = 'assets/onlybladi-avatar.png';
+
+          try {
+            const docRef = doc(db, "usuarios", user.uid);
+            const docSnap = await getDoc(docRef);
+            if (docSnap.exists()) {
+              const data = docSnap.data();
+              if (data.nombres) displayName = data.nombres;
+              if (data.fotoPerfil) avatarSrc = data.fotoPerfil;
+            }
+          } catch (error) {
+            console.error("Error al obtener usuario:", error);
+          }
+
+          if (navMensajesEmpresa) navMensajesEmpresa.style.display = 'inline-flex';
+
+          if (authContainer) {
+            authContainer.innerHTML = `
+              <div class="profile-dropdown-container" style="position: relative; display: inline-block;">
+                <button id="profileBtn" style="background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 12px; padding: 4px 8px 4px 4px; border-radius: 999px; transition: background 0.2s;">
+                  <img src="${avatarSrc}" alt="Avatar" style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 2px solid #ef4444;" onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=${user.uid}'">
+                  <span style="color: #fff; font-weight: 600; font-size: 15px; font-family: var(--font-display, sans-serif);">${displayName} (Agente)</span>
+                </button>
+
+                <div id="profileMenu" class="profile-menu">
+                  <button class="profile-menu-item" onclick="window.location.href='perfil.html'">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                    Ir al Perfil
+                  </button>
+
+                  <div class="profile-menu-divider"></div>
+                  <div class="profile-menu-section-title">Aspecto físico</div>
+                  
+                  <div class="profile-theme-selector">
+                    <button class="theme-btn ${savedTheme === 'light' ? 'active' : ''}" data-theme="light" title="Claro">☀️</button>
+                    <button class="theme-btn ${savedTheme === 'system' ? 'active' : ''}" data-theme="system" title="💻">💻</button>
+                    <button class="theme-btn ${savedTheme === 'dark' ? 'active' : ''}" data-theme="dark" title="Oscuro">🌙</button>
+                  </div>
+
+                  <div class="profile-menu-divider"></div>
+                  <button class="profile-menu-item" id="cerrarSesionBtn" style="color: #ef4444;">
+                    <span style="font-size: 16px;">⎋</span> Cerrar Sesión
+                  </button>
+                </div>
+              </div>
+            `;
+
+            const profileBtn = document.getElementById('profileBtn');
+            const profileMenu = document.getElementById('profileMenu');
+            if (profileBtn && profileMenu) {
+              profileBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                profileMenu.classList.toggle('show');
+              });
+              document.addEventListener('click', (e) => {
+                if (!profileMenu.contains(e.target) && !profileBtn.contains(e.target)) {
+                  profileMenu.classList.remove('show');
+                }
+              });
+            }
+
+            const cerrarBtn = document.getElementById('cerrarSesionBtn');
+            if (cerrarBtn) {
+              cerrarBtn.addEventListener('click', async (event) => {
+                event.stopPropagation();
+                try {
+                  await signOut(auth);
+                  localStorage.clear();
+                  window.location.href = 'index.html';
+                } catch (error) {
+                  console.error("Error al cerrar sesión:", error);
+                }
+              });
+            }
+          }
+
+          loadCompanyConversations();
+        });
+
+        async function loadCompanyConversations() {
+          try {
+            // Como empresa, escuchamos todos los mensajes de la colección 'mensajes'
+            const q = query(collection(db, "mensajes"));
+            
+            onSnapshot(q, async (snapshot) => {
+              if (snapshot.empty) {
+                conversationsList.innerHTML = `
+                  <div style="padding: 30px 20px; text-align: center; color: #a1a1aa; font-size: 13px;">
+                    No hay mensajes de clientes registrados en el sistema.
+                  </div>
+                `;
+                return;
+              }
+
+              const conversationsMap = new Map();
+              
+              snapshot.forEach(docSnap => {
+                const data = docSnap.data();
+                const clientId = data.userId;
+                const propId = data.propertyId || 'general';
+                const compositeKey = `${clientId}_${propId}`;
+
+                if (!clientId) return;
+
+                if (!conversationsMap.has(compositeKey)) {
+                  conversationsMap.set(compositeKey, {
+                    clientId: clientId,
+                    propertyId: propId,
+                    propertyTitle: data.propertyTitle || 'Consulta Inmobiliaria General',
+                    propertyImage: data.propertyImage || 'assets/puerto-marina.png',
+                    propertyPrice: data.propertyPrice || '',
+                    lastMessage: data.mensaje || data.text || '',
+                    timestamp: data.timestamp
+                  });
+                }
+              });
+
+              const convs = Array.from(conversationsMap.values());
+              renderConversations(convs);
+
+              searchInput.addEventListener('input', (e) => {
+                const term = e.target.value.toLowerCase();
+                const filtered = convs.filter(c => 
+                  c.propertyTitle.toLowerCase().includes(term) || 
+                  c.clientId.toLowerCase().includes(term)
+                );
+                renderConversations(filtered);
+              });
+
+            });
+          } catch (error) {
+            console.error("Error cargando conversaciones de empresa:", error);
+            conversationsList.innerHTML = `<div style="padding: 20px; text-align: center; color: #ef4444;">Error al cargar los chats de clientes.</div>`;
+          }
+        }
+
+        function renderConversations(convs) {
+          if (convs.length === 0) {
+            conversationsList.innerHTML = `<div style="padding: 20px; text-align: center; color: #a1a1aa; font-size: 13px;">No se encontraron resultados.</div>`;
+            return;
+          }
+
+          conversationsList.innerHTML = '';
+          convs.forEach(conv => {
+            const item = document.createElement('div');
+            item.className = 'conversation-item';
+            item.innerHTML = `
+              <img src="${conv.propertyImage}" alt="Propiedad" class="conv-thumb" onerror="this.src='assets/puerto-marina.png'">
+              <div class="conv-info">
+                <div class="conv-property-title">${conv.propertyTitle}</div>
+                <div class="conv-last-msg">Cliente: ${conv.clientId.substring(0, 8)}...</div>
+              </div>
+            `;
+
+            item.addEventListener('click', () => {
+              document.querySelectorAll('.conversation-item').forEach(el => el.classList.remove('active'));
+              item.classList.add('active');
+              openCompanyChatWindow(conv.clientId, conv.propertyId, conv.propertyTitle, conv.propertyImage, conv.propertyPrice);
+            });
+
+            conversationsList.appendChild(item);
+          });
+        }
+
+        function openCompanyChatWindow(clientId, propertyId, propertyTitle, propertyImage, propertyPrice) {
+          chatMainArea.innerHTML = `
+            <div class="chat-header">
+              <div class="chat-property-meta">
+                <img src="${propertyImage}" alt="Propiedad" class="chat-prop-img" onerror="this.src='assets/puerto-marina.png'">
+                <div>
+                  <div class="chat-prop-name">${propertyTitle}</div>
+                  <div class="chat-prop-price">Cliente UID: ${clientId}</div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="chat-messages-box" id="chatMessagesBox">
+              <div style="text-align: center; color: #71717a; padding: 20px;">Cargando chat del cliente...</div>
+            </div>
+
+            <div class="chat-input-area">
+              <input type="text" id="chatMessageInput" placeholder="Escribe tu respuesta como agente inmobiliario...">
+              <button class="chat-send-btn" id="chatSendBtn">Responder</button>
+            </div>
+          `;
+
+          const messagesBox = document.getElementById('chatMessagesBox');
+          const messageInput = document.getElementById('chatMessageInput');
+          const sendBtn = document.getElementById('chatSendBtn');
+
+          const qMsgs = query(
+            collection(db, "mensajes"), 
+            where("userId", "==", clientId),
+            where("propertyId", "==", propertyId),
+            orderBy("timestamp", "asc")
+          );
+
+          onSnapshot(qMsgs, (snapshot) => {
+            messagesBox.innerHTML = '';
+            if (snapshot.empty) {
+              messagesBox.innerHTML = `<div style="text-align: center; color: #71717a; font-size: 13px; margin: auto;">No hay mensajes en este hilo.</div>`;
+              return;
+            }
+
+            snapshot.forEach(docSnap => {
+              const msgData = docSnap.data();
+              // Como agente, los mensajes salientes son los del agente y los entrantes los del cliente
+              const isOutgoing = msgData.sender === 'agent' || msgData.sender === 'company';
+              
+              const bubble = document.createElement('div');
+              bubble.className = `message-bubble ${isOutgoing ? 'outgoing' : 'incoming'}`;
+              bubble.innerHTML = `
+                <div>${msgData.mensaje || msgData.text || ''}</div>
+                <div class="message-time">${msgData.timestamp?.toDate ? new Date(msgData.timestamp.toDate()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'Hace un momento'}</div>
+              `;
+              messagesBox.appendChild(bubble);
+            });
+
+            messagesBox.scrollTop = messagesBox.scrollHeight;
+          });
+
+          const responderMensajeHandler = async () => {
+            const texto = messageInput.value.trim();
+            if (!texto) return;
+
+            try {
+              messageInput.value = '';
+              await addDoc(collection(db, "mensajes"), {
+                userId: clientId,
+                propertyId: propertyId,
+                propertyTitle: propertyTitle,
+                propertyImage: propertyImage,
+                propertyPrice: propertyPrice,
+                mensaje: texto,
+                sender: 'agent',
+                timestamp: serverTimestamp()
+              });
+            } catch (error) {
+              console.error("Error al enviar respuesta:", error);
+              alert("No se pudo enviar la respuesta. Inténtalo de nuevo.");
+            }
+          };
+
+          sendBtn.addEventListener('click', responderMensajeHandler);
+          messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') responderMensajeHandler();
+          });
+        }
+      });
+    </script>
+
+</body>
+</html>
