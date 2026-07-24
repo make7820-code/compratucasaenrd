@@ -676,8 +676,10 @@
           const rawPrice = selectedProperty.precio || selectedProperty.price || '0';
           const moneda = (selectedProperty.moneda || selectedProperty.currency || '').toUpperCase();
           
+          // Detectar si la moneda es Dólar (USD, US$ o símbolo de dólar)
           const isDolar = moneda === 'USD' || moneda === 'US$' || rawPrice.toString().toUpperCase().includes('USD') || rawPrice.toString().includes('US$');
           
+          // Definir prefijo exacto según el tipo de moneda guardado en publicar.html
           const currencyLabel = isDolar ? 'USD ' : 'RD$ ';
           const cleanPriceNum = rawPrice.toString().replace(/USD|US\$|RD\$|\$/g, '').trim();
           const finalPriceFormatted = `${currencyLabel}${cleanPriceNum}`;
@@ -702,7 +704,7 @@
           
           const aceptaExtranjero = rawExtranjero === true || rawExtranjero === "true" || rawExtranjero === "si" || rawExtranjero === "sí" || rawExtranjero === 1 || rawExtranjero === "on";
 
-          // Tarjeta de extranjero condicional obligatoria según publicar.html
+          // Tarjeta de extranjero condicional (muestra si está marcado en publicar.html)
           const extranjeroHtml = aceptaExtranjero 
             ? `<div class="spec-card">
                  <span>Extranjeros</span>
