@@ -412,7 +412,7 @@
           <a href="propiedades.html" class="nav-link"><span class="nav-emoji">🏢</span> Propiedades</a>
           <a href="comunidad.html" class="nav-link"><span class="nav-emoji">👥</span> Comunidad</a>
           <a href="blog.html" class="nav-link"><span class="nav-emoji">📰</span> Blog</a>
-          <a href="mensajes.html" class="nav-link active" id="navMensajes" style="display: inline-flex;"><span class="nav-emoji">💬</span> Mensajes</a>
+          <a href="mensajes.html" class="nav-link active" id="navMensajes"><span class="nav-emoji">💬</span> Mensajes</a>
           <a href="nosotros.html" class="nav-link"><span class="nav-emoji">ℹ️</span> Nosotros</a>
           <a href="vender.html" class="nav-link"><span class="nav-emoji">🤝</span> Vender</a>
         </nav>
@@ -500,7 +500,7 @@
     <script type="module">
       import { auth, db } from './firebase-config.js';
       import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-      import { doc, getDoc, collection, query, where, getDocs, addDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+      import { doc, getDoc, collection, query, where, getDocs, addDoc, onSnapshot, serverTimestamp, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
       window.addEventListener('DOMContentLoaded', () => {
         const authContainer = document.getElementById('authContainer');
@@ -509,7 +509,26 @@
         const chatMainArea = document.getElementById('chatMainArea');
         const searchInput = document.getElementById('searchPropertyInput');
 
-        const openedConversations = new Set();
+        // Función para marcar todos los mensajes de una propiedad como leídos por el usuario en Firestore
+        async function marcarChatComoLeidoEnFirestore(userId, propertyId) {
+          try {
+            const q = query(
+              collection(db, "mensajes"), 
+              where("userId", "==", userId),
+              where("propertyId", "==", propertyId),
+              where("sender", "!=", "user")
+            );
+            const snapshot = await getDocs(q);
+            snapshot.forEach(async (docSnap) => {
+              const data = docSnap.data();
+              if (!data.leidoPorUsuario) {
+                await updateDoc(docSnap.ref, { leidoPorUsuario: true });
+              }
+            });
+          } catch (error) {
+            console.error("Error al actualizar estado de lectura en Firestore:", error);
+          }
+        }
 
         const urlParams = new URLSearchParams(window.location.search);
         const paramPropId = urlParams.get('propiedadId') || urlParams.get('id');
@@ -565,6 +584,7 @@
                 propertyPrice: price || '',
                 mensaje: 'Hola, estoy interesado en esta propiedad y me gustaría recibir más información.',
                 sender: 'user',
+                leidoPorUsuario: true,
                 timestamp: serverTimestamp()
               });
             }
@@ -596,6 +616,7 @@
                 const propId = data.propertyId || 'general';
                 
                 const timeA = data.timestamp?.toMillis ? data.timestamp.toMillis() : 0;
+                const isUnread = (data.sender && data.sender !== 'user') && !data.leidoPorUsuario;
                 
                 if (!conversationsMap.has(propId)) {
                   conversationsMap.set(propId, {
@@ -605,10 +626,14 @@
                     propertyPrice: data.propertyPrice || '',
                     lastMessage: data.mensaje || data.text || '',
                     sender: data.sender || 'user',
+                    hasUnread: isUnread,
                     timestamp: timeA
                   });
                 } else {
                   const existing = conversationsMap.get(propId);
+                  if (isUnread) {
+                    existing.hasUnread = true;
+                  }
                   if (timeA >= existing.timestamp) {
                     existing.lastMessage = data.mensaje || data.text || '';
                     existing.sender = data.sender || 'user';
@@ -651,36 +676,31 @@
               targetConvToOpen = conv;
             }
 
-            const isUnread = (conv.sender && conv.sender !== 'user') && !openedConversations.has(conv.propertyId);
-
             item.innerHTML = `
               <img src="${conv.propertyImage}" alt="Propiedad" class="conv-thumb" onerror="this.src='assets/puerto-marina.png'">
               <div class="conv-info">
                 <div class="conv-property-title">${conv.propertyTitle}</div>
                 <div class="conv-last-msg">${conv.lastMessage}</div>
               </div>
-              ${isUnread ? '<div class="unread-dot" title="Nuevo mensaje"></div>' : ''}
+              ${conv.hasUnread ? '<div class="unread-dot" title="Nuevo mensaje"></div>' : ''}
             `;
 
-            item.addEventListener('click', () => {
+            item.addEventListener('click', async () => {
               document.querySelectorAll('.conversation-item').forEach(el => el.classList.remove('active'));
               item.classList.add('active');
               
-              openedConversations.add(conv.propertyId);
+              await marcarChatComoLeidoEnFirestore(userId, conv.propertyId);
               
               openChatWindow(conv.propertyId, conv.propertyTitle, conv.propertyImage, conv.propertyPrice, userId);
               const dot = item.querySelector('.unread-dot');
               if(dot) dot.remove();
-
-              const unreadConvs = convs.filter(c => (c.sender && c.sender !== 'user') && !openedConversations.has(c.propertyId));
-              updateNotificationBellState(unreadConvs);
             });
 
             conversationsList.appendChild(item);
           });
 
           if (targetConvToOpen && chatMainArea.querySelector('.chat-empty-state')) {
-            openedConversations.add(targetConvToOpen.propertyId);
+            marcarChatComoLeidoEnFirestore(userId, targetConvToOpen.propertyId);
             openChatWindow(targetConvToOpen.propertyId, targetConvToOpen.propertyTitle, targetConvToOpen.propertyImage, targetConvToOpen.propertyPrice, userId);
             
             const activeItemNode = Array.from(conversationsList.children).find(el => el.classList.contains('active'));
@@ -688,8 +708,6 @@
               const dot = activeItemNode.querySelector('.unread-dot');
               if (dot) dot.remove();
             }
-            const unreadConvs = convs.filter(c => (c.sender && c.sender !== 'user') && !openedConversations.has(c.propertyId));
-            updateNotificationBellState(unreadConvs);
           }
         }
 
@@ -719,7 +737,7 @@
         }
 
         function renderHeaderWithNotifications(convs, userId, displayName, avatarSrc, activePropId) {
-          const unreadConvs = convs.filter(c => (c.sender && c.sender !== 'user') && !openedConversations.has(c.propertyId));
+          const unreadConvs = convs.filter(c => c.hasUnread);
           const hasUnread = unreadConvs.length > 0;
 
           authContainer.innerHTML = `
@@ -823,7 +841,15 @@
           const closeBtn = document.getElementById('chatCloseBtn');
 
           closeBtn.addEventListener('click', () => {
-            window.location.reload();
+            document.querySelectorAll('.conversation-item').forEach(el => el.classList.remove('active'));
+            chatMainArea.innerHTML = `
+              <div class="chat-empty-state">
+                <div class="chat-empty-icon">💬</div>
+                <div class="chat-empty-title">TU CENTRO DE NEGOCIOS</div>
+                <p style="margin: 0; font-size: 14px; color: #a1a1aa;">Selecciona un chat para gestionar tus cierres y consultas.</p>
+              </div>
+            `;
+            window.history.replaceState({}, document.title, window.location.pathname);
           });
 
           const renderMessagesList = (mensajesList) => {
@@ -884,6 +910,7 @@
                 propertyPrice: propertyPrice,
                 mensaje: texto,
                 sender: 'user',
+                leidoPorUsuario: true,
                 timestamp: serverTimestamp()
               });
 
