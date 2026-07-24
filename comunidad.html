@@ -315,14 +315,12 @@
         border-color: rgba(59, 130, 246, 0.6);
       }
 
-      /* Alineación exacta del header y líneas divisorias del menú de perfil */
       #authContainer {
         display: flex;
         align-items: center;
         gap: 15px;
       }
 
-      /* Animación de la campana y menús desplegables con sus líneas divisorias */
       .bell-ringing {
         display: inline-block;
         animation: ring 1.5s ease infinite;
@@ -404,7 +402,6 @@
         background: rgba(255,255,255,0.08);
       }
 
-      /* Líneas divisorias del menú desplegable */
       .profile-menu-divider {
         height: 1px;
         background: rgba(255, 255, 255, 0.1);
@@ -424,16 +421,22 @@
         padding: 4px 8px;
       }
 
+      /* Diseño circular corregido para los botones de aspecto físico */
       .theme-btn {
         flex: 1;
         background: rgba(255,255,255,0.05);
         border: 1px solid rgba(255,255,255,0.1);
-        border-radius: 6px;
-        padding: 6px;
+        border-radius: 999px; /* Cambio de cuadrado a redondeado circular */
+        padding: 8px;
         cursor: pointer;
         color: #fff;
         font-size: 14px;
         text-align: center;
+        transition: all 0.2s ease;
+      }
+
+      .theme-btn:hover {
+        background: rgba(255,255,255,0.15);
       }
 
       .theme-btn.active {
@@ -488,6 +491,7 @@
           <a href="propiedades.html" class="nav-link"><span class="nav-emoji">🏢</span> Propiedades</a>
           <a href="comunidad.html" class="nav-link active"><span class="nav-emoji">👥</span> Comunidad</a>
           <a href="blog.html" class="nav-link"><span class="nav-emoji">📰</span> Blog</a>
+          <a href="mensajes.html" class="nav-link"><span class="nav-emoji">💬</span> Mensajes</a>
           <a href="nosotros.html" class="nav-link"><span class="nav-emoji">ℹ️</span> Nosotros</a>
           <a href="vender.html" class="nav-link"><span class="nav-emoji">🤝</span> Vender</a>
         </nav>
