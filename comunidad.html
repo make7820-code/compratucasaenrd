@@ -405,6 +405,434 @@
 
             <!-- VISTA 2: SOLICITUDES DE CASAS -->
             <div class="tab-pane" id="paneSolicitudes">
+              <!-- Banner superior para crear solicitud --><!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comunidad | Compra tu casa en RD</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+    <!-- Hoja de Estilos -->
+    <link rel="stylesheet" href="styles.css">
+    <style>
+      /* Fondo general de la página con la foto y capa oscura */
+      body {
+        background-color: #0b0b0e;
+      }
+
+      .main-page-wrapper {
+        position: relative;
+        background-image: url('assets/hero-plaza-bandera.jpg');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+        padding-bottom: 40px;
+      }
+
+      .main-page-wrapper::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.55);
+        z-index: 1;
+      }
+
+      .community-hero-overlap,
+      .community-layout-overlap {
+        position: relative;
+        z-index: 2;
+      }
+
+      .community-hero-overlap {
+        padding-top: 110px;
+        padding-bottom: 120px;
+      }
+
+      .community-layout-overlap {
+        display: flex;
+        gap: 30px;
+        max-width: 1400px;
+        margin: -90px auto 0 auto;
+        padding: 0 20px;
+        align-items: flex-start;
+      }
+
+      .community-content-area {
+        flex-grow: 1;
+      }
+
+      .recommended-sidebar {
+        width: 400px;
+        flex-shrink: 0;
+        background: rgba(18, 18, 20, 0.85);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        padding: 24px;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+        transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+      }
+
+      .recommended-sidebar:hover {
+        transform: translateY(-4px);
+        border-color: rgba(59, 130, 246, 0.4);
+        box-shadow: 0 25px 50px rgba(59, 130, 246, 0.15), 0 20px 40px rgba(0,0,0,0.6);
+      }
+
+      .recommended-sidebar h3 {
+        color: #fff;
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .recommended-user-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 16px;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      .recommended-user-item:last-child {
+        margin-bottom: 0;
+      }
+      .user-info-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 0;
+        flex: 1;
+        margin-right: 12px;
+      }
+      
+      .avatar-wrapper {
+        position: relative;
+        flex-shrink: 0;
+      }
+
+      .user-avatar-small {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+        background: #27272a;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #a1a1aa;
+        font-size: 14px;
+      }
+
+      .rank-badge {
+        position: absolute;
+        bottom: -2px;
+        right: -4px;
+        font-size: 13px;
+        filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+        z-index: 3;
+      }
+
+      .user-details {
+        min-width: 0;
+      }
+      .user-details h4 {
+        color: #fff;
+        font-size: 14px;
+        font-weight: 600;
+        margin: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .user-details span {
+        color: #a1a1aa;
+        font-size: 12px;
+        white-space: nowrap;
+      }
+      .follow-btn {
+        background: rgba(59, 130, 246, 0.15);
+        color: #60a5fa;
+        border: 1px solid rgba(59, 130, 246, 0.3);
+        padding: 6px 16px;
+        border-radius: 999px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        flex-shrink: 0;
+        width: 85px;
+        text-align: center;
+      }
+      .follow-btn:hover {
+        background: #3b82f6;
+        color: #fff;
+      }
+      .follow-btn.following {
+        background: #3b82f6;
+        color: #fff;
+        border-color: #3b82f6;
+      }
+
+      .community-tabs {
+        display: flex;
+        gap: 16px;
+        margin-bottom: 24px;
+      }
+
+      .tab-btn {
+        flex: 1;
+        background: rgba(18, 18, 20, 0.85);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: #a1a1aa;
+        padding: 14px 20px;
+        border-radius: 14px;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        text-align: center;
+        transition: color 0.3s ease, border-color 0.3s ease, transform 0.3s ease;
+      }
+
+      .tab-btn:hover {
+        color: #fff;
+        border-color: rgba(255, 255, 255, 0.2);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+      }
+
+      .tab-btn.active {
+        background: #3b82f6;
+        border-color: #3b82f6;
+        color: #fff;
+        box-shadow: 0 8px 25px rgba(59, 130, 246, 0.5);
+        transform: translateY(-2px);
+      }
+
+      .request-banner {
+        position: relative;
+        overflow: hidden;
+        background: linear-gradient(135deg, rgba(30, 27, 75, 0.85) 0%, rgba(15, 23, 42, 0.9) 100%);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        padding: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+        transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+      }
+
+      .request-banner::after {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, transparent 60%);
+        opacity: 0;
+        transition: opacity 0.4s ease;
+        pointer-events: none;
+      }
+
+      .request-banner:hover {
+        transform: translateY(-4px);
+        border-color: rgba(59, 130, 246, 0.4);
+        box-shadow: 0 20px 45px rgba(59, 130, 246, 0.2), 0 15px 35px rgba(0,0,0,0.4);
+      }
+
+      .request-banner:hover::after {
+        opacity: 1;
+      }
+
+      .tab-content-container {
+        margin-top: 24px;
+      }
+
+      .tab-pane {
+        display: none;
+      }
+
+      .tab-pane.active {
+        display: block;
+        animation: fadeIn 0.4s ease forwards;
+      }
+
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      .empty-state-card {
+        background: rgba(18, 18, 20, 0.85);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        padding: 50px 30px;
+        text-align: center;
+        color: #a1a1aa;
+        font-size: 15px;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+      }
+
+      .nav-link {
+        position: relative;
+        color: #d4d4d8;
+        text-decoration: none;
+        padding: 8px 16px;
+        border-radius: 999px;
+        transition: all 0.3s ease;
+      }
+
+      .nav-link:hover {
+        color: #ffffff !important;
+        background: rgba(255, 255, 255, 0.08);
+        transform: translateY(-1px);
+      }
+
+      .nav-link::after {
+        display: none !important;
+      }
+
+      .nav-link.active {
+        background: rgba(239, 68, 68, 0.15);
+        color: #ef4444 !important;
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        box-shadow: 0 0 15px rgba(239, 68, 68, 0.2);
+      }
+
+      .login-btn {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      .login-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
+        border-color: rgba(59, 130, 246, 0.6);
+      }
+
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .community-layout-overlap {
+        animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.2s forwards;
+        opacity: 0;
+        animation-fill-mode: forwards;
+      }
+
+      @media(max-width: 900px) {
+        .community-layout-overlap {
+          flex-direction: column;
+          margin-top: -40px;
+        }
+        .recommended-sidebar {
+          width: 100%;
+        }
+        .request-banner {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+      }
+    </style>
+</head>
+<body>
+
+    <!-- ================= HEADER ================= -->
+    <header class="site-header">
+      <div class="header-inner">
+        
+        <a href="index.html" class="brand">
+          <img src="assets/mi-logo.png" alt="Compra tu casa en RD" class="brand-logo">
+        </a>
+
+        <nav class="main-nav">
+          <a href="index.html" class="nav-link"><span class="nav-emoji">🏠</span> Inicio</a>
+          <a href="propiedades.html" class="nav-link"><span class="nav-emoji">🏢</span> Propiedades</a>
+          <a href="comunidad.html" class="nav-link active"><span class="nav-emoji">👥</span> Comunidad</a>
+          <a href="blog.html" class="nav-link"><span class="nav-emoji">📰</span> Blog</a>
+          <a href="mensajes.html" class="nav-link" id="navMensajes" style="display: none;"><span class="nav-emoji">💬</span> Mensajes</a>
+          <a href="nosotros.html" class="nav-link"><span class="nav-emoji">ℹ️</span> Nosotros</a>
+          <a href="vender.html" class="nav-link"><span class="nav-emoji">🤝</span> Vender</a>
+        </nav>
+
+        <!-- CONTENEDOR DE SESIÓN / PERFIL -->
+        <div id="authContainer">
+          <a href="login.html" class="login-btn">
+            <span>🔐</span> Iniciar sesión
+          </a>
+        </div>
+
+      </div>
+    </header>
+
+    <!-- ================= CONTENEDOR GENERAL CON FONDO DE FOTO ================= -->
+    <div class="main-page-wrapper">
+
+      <!-- HERO / BANNER SUPERIOR -->
+      <section class="hero community-hero community-hero-overlap" style="min-height: 45vh; text-align: center;">
+        <div class="hero-content">
+          
+          <h1 class="hero-title" style="font-size: 52px; font-weight: 800; color: #fff; margin-bottom: 12px; font-family: var(--font-display, sans-serif);">La Comunidad</h1>
+          
+          <p class="hero-subtitle" style="font-size: 16px; color: #d4d4d8; background: rgba(18, 18, 20, 0.7); display: inline-block; padding: 10px 24px; border-radius: 30px; backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.08);">
+            Conecta con los mejores profesionales, descubre oportunidades.
+          </p>
+
+        </div>
+      </section>
+
+      <!-- CONTENIDO SUPERPUESTO: PESTAÑAS + BANNER + PANEL LATERAL -->
+      <div class="community-layout-overlap">
+        
+        <!-- ÁREA CENTRAL DE CONTENIDO -->
+        <div class="community-content-area">
+          
+          <!-- Pestañas de Navegación -->
+          <div class="community-tabs">
+            <button class="tab-btn active" id="btnPublicaciones" onclick="cambiarPestana('publicaciones')">Publicaciones</button>
+            <button class="tab-btn" id="btnSolicitudes" onclick="cambiarPestana('solicitudes')">Solicitudes de Casas</button>
+          </div>
+
+          <!-- CONTENEDOR DE VISTAS DINÁMICAS -->
+          <div class="tab-content-container">
+
+            <!-- VISTA 1: PUBLICACIONES -->
+            <div class="tab-pane active" id="panePublicaciones">
+              <!-- Banner Informativo / Solicitud original -->
+              <div class="request-banner">
+                <div style="max-width: 550px;">
+                  <h3 style="color: #fff; font-size: 20px; font-weight: 700; margin-bottom: 8px;">¿No encuentras el hogar de tus sueños?</h3>
+                  <p style="color: #a1a1aa; font-size: 14px; line-height: 1.5;">
+                    Publica tu solicitud con las características que buscas, presupuesto y ubicación. ¡Nuestros agentes te contactarán directamente con las mejores opciones de forma personalizada!
+                  </p>
+                </div>
+                <a href="#" style="background: #3b82f6; color: #fff; padding: 12px 20px; border-radius: 12px; font-weight: 600; font-size: 14px; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4); white-space: nowrap; transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 12px 30px rgba(59, 130, 246, 0.6)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 20px rgba(59, 130, 246, 0.4)';">
+                  <span>+</span> Hacer Solicitud de Búsqueda
+                </a>
+              </div>
+            </div>
+
+            <!-- VISTA 2: SOLICITUDES DE CASAS -->
+            <div class="tab-pane" id="paneSolicitudes">
               <!-- Banner superior para crear solicitud -->
               <div class="request-banner" style="margin-bottom: 24px;">
                 <div style="max-width: 550px;">
@@ -434,59 +862,8 @@
             <span>👔</span> Agentes Recomendados
           </h3>
           
-          <div class="recommended-user-item">
-            <div class="user-info-left">
-              <img id="mainAgentAvatar" src="assets/onlybladi-avatar.png" alt="Avatar" class="user-avatar-small" style="object-fit: cover; border-radius: 50%;" onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=agente'">
-              <div class="user-details">
-                <h4 id="mainAgentName">Cargando...</h4>
-                <span id="counter-agent-0">0 seguidores</span>
-              </div>
-            </div>
-            <button class="follow-btn" onclick="toggleFollow(0, this)">Seguir</button>
-          </div>
-
-          <div class="recommended-user-item">
-            <div class="user-info-left">
-              <div class="user-avatar-small" style="background: #27272a; display: flex; align-items: center; justify-content: center; color: #a1a1aa; font-size: 14px;">+</div>
-              <div class="user-details">
-                <h4>Nuevo usuario</h4>
-                <span id="counter-agent-1">0 seguidores</span>
-              </div>
-            </div>
-            <button class="follow-btn" disabled style="opacity: 0.4; cursor: not-allowed;">Seguir</button>
-          </div>
-
-          <div class="recommended-user-item">
-            <div class="user-info-left">
-              <div class="user-avatar-small" style="background: #27272a; display: flex; align-items: center; justify-content: center; color: #a1a1aa; font-size: 14px;">+</div>
-              <div class="user-details">
-                <h4>Nuevo usuario</h4>
-                <span id="counter-agent-2">0 seguidores</span>
-              </div>
-            </div>
-            <button class="follow-btn" disabled style="opacity: 0.4; cursor: not-allowed;">Seguir</button>
-          </div>
-
-          <div class="recommended-user-item">
-            <div class="user-info-left">
-              <div class="user-avatar-small" style="background: #27272a; display: flex; align-items: center; justify-content: center; color: #a1a1aa; font-size: 14px;">+</div>
-              <div class="user-details">
-                <h4>Nuevo usuario</h4>
-                <span id="counter-agent-3">0 seguidores</span>
-              </div>
-            </div>
-            <button class="follow-btn" disabled style="opacity: 0.4; cursor: not-allowed;">Seguir</button>
-          </div>
-
-          <div class="recommended-user-item">
-            <div class="user-info-left">
-              <div class="user-avatar-small" style="background: #27272a; display: flex; align-items: center; justify-content: center; color: #a1a1aa; font-size: 14px;">+</div>
-              <div class="user-details">
-                <h4>Nuevo usuario</h4>
-                <span id="counter-agent-4">0 seguidores</span>
-              </div>
-            </div>
-            <button class="follow-btn" disabled style="opacity: 0.4; cursor: not-allowed;">Seguir</button>
+          <div id="recommendedAgentsContainer">
+            <!-- Los agentes se renderizarán dinámicamente aquí ordenados por seguidores -->
           </div>
         </aside>
 
@@ -591,6 +968,76 @@
         }
       }
 
+      const AGENT_FIXED_UID = "2E7tIaEfdGeVERzDtWvaXQEmPG02";
+
+      // Definición de los 5 agentes/usuarios del ranking
+      let agentsList = [
+        { id: 0, uid: AGENT_FIXED_UID, name: "Cargando...", avatar: "assets/onlybladi-avatar.png", isFixed: true },
+        { id: 1, uid: "user_1", name: "Nuevo usuario", avatar: null, isFixed: false },
+        { id: 2, uid: "user_2", name: "Nuevo usuario", avatar: null, isFixed: false },
+        { id: 3, uid: "user_3", name: "Nuevo usuario", avatar: null, isFixed: false },
+        { id: 4, uid: "user_4", name: "Nuevo usuario", avatar: null, isFixed: false }
+      ];
+
+      function renderAgents(currentUser) {
+        const container = document.getElementById('recommendedAgentsContainer');
+        if (!container) return;
+
+        // Leer seguidores actuales de localStorage para cada agente y ordenarlos de mayor a menor
+        agentsList.forEach(agent => {
+          const countKey = `agent_${agent.id}_followers_count`;
+          agent.followers = parseInt(localStorage.getItem(countKey)) || 0;
+          
+          if (currentUser) {
+            const storageKey = `agent_${agent.id}_followed_${currentUser.uid}`;
+            agent.isFollowing = localStorage.getItem(storageKey) === 'true';
+          } else {
+            agent.isFollowing = false;
+          }
+        });
+
+        // Ordenar de mayor a menor número de seguidores
+        agentsList.sort((a, b) => b.followers - a.followers);
+
+        let htmlContent = '';
+        agentsList.forEach((agent, index) => {
+          // Asignar medallas/estrellas según la posición en el ranking (0: Oro, 1: Plata, 2: Bronce, 3 y 4: sin medalla o estándar)
+          let medalEmoji = '';
+          if (index === 0) medalEmoji = '⭐';      // Estrella de Oro
+          else if (index === 1) medalEmoji = '🥈'; // Estrella/Medalla de Plata
+          else if (index === 2) medalEmoji = '🥉'; // Estrella/Medalla de Bronce
+
+          const followerText = `${agent.followers} ${agent.followers === 1 ? 'seguidor' : 'seguidores'}`;
+          
+          let avatarInner = '';
+          if (agent.avatar) {
+            avatarInner = `<img src="${agent.avatar}" alt="Avatar" class="user-avatar-small" onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=${agent.uid}'">`;
+          } else {
+            avatarInner = `<div class="user-avatar-small">+</div>`;
+          }
+
+          htmlContent += `
+            <div class="recommended-user-item" data-agent-original-id="${agent.id}">
+              <div class="user-info-left">
+                <div class="avatar-wrapper">
+                  ${avatarInner}
+                  ${medalEmoji ? `<span class="rank-badge">${medalEmoji}</span>` : ''}
+                </div>
+                <div class="user-details">
+                  <h4>${agent.name}</h4>
+                  <span id="counter-agent-${agent.id}">${followerText}</span>
+                </div>
+              </div>
+              <button class="follow-btn ${agent.isFollowing ? 'following' : ''}" onclick="toggleFollow(${agent.id}, this)">
+                ${agent.isFollowing ? 'Siguiendo' : 'Seguir'}
+              </button>
+            </div>
+          `;
+        });
+
+        container.innerHTML = htmlContent;
+      }
+
       window.toggleFollow = function(agentIndex, btnElement) {
         const currentUser = auth.currentUser;
         if (!currentUser) {
@@ -599,8 +1046,7 @@
           return;
         }
 
-        const username = currentUser.uid;
-        const storageKey = `agent_${agentIndex}_followed_${username}`;
+        const storageKey = `agent_${agentIndex}_followed_${currentUser.uid}`;
         const countKey = `agent_${agentIndex}_followers_count`;
 
         let isFollowing = localStorage.getItem(storageKey) === 'true';
@@ -609,21 +1055,15 @@
         if (isFollowing) {
           currentCount = Math.max(0, currentCount - 1);
           localStorage.setItem(storageKey, 'false');
-          btnElement.textContent = 'Seguir';
-          btnElement.classList.remove('following');
         } else {
           currentCount += 1;
           localStorage.setItem(storageKey, 'true');
-          btnElement.textContent = 'Siguiendo';
-          btnElement.classList.add('following');
         }
 
         localStorage.setItem(countKey, currentCount);
         
-        const counterSpan = document.getElementById(`counter-agent-${agentIndex}`);
-        if (counterSpan) {
-          counterSpan.textContent = `${currentCount} ${currentCount === 1 ? 'seguidor' : 'seguidores'}`;
-        }
+        // Volver a renderizar la lista completa ordenada dinámicamente
+        renderAgents(currentUser);
       }
 
       window.addEventListener('DOMContentLoaded', () => {
@@ -638,30 +1078,8 @@
 
         const authContainer = document.getElementById('authContainer');
         const navMensajes = document.getElementById('navMensajes');
-        const mainAgentName = document.getElementById('mainAgentName');
-        const mainAgentAvatar = document.getElementById('mainAgentAvatar');
-
-        // UID FIJO ESTABLECIDO PARA EL AGENTE RECOMENDADO PRINCIPAL
-        const AGENT_FIXED_UID = "2E7tIaEfdGeVERzDtWvaXQEmPG02";
 
         onAuthStateChanged(auth, async (user) => {
-          for (let i = 0; i < 5; i++) {
-            const countKey = `agent_${i}_followers_count`;
-            const counterSpan = document.getElementById(`counter-agent-${i}`);
-            let currentCount = parseInt(localStorage.getItem(countKey)) || 0;
-            if (counterSpan) {
-              counterSpan.textContent = `${currentCount} ${currentCount === 1 ? 'seguidor' : 'seguidores'}`;
-            }
-            if (user) {
-              const storageKey = `agent_${i}_followed_${user.uid}`;
-              const btn = document.querySelectorAll('.follow-btn')[i];
-              if (btn && localStorage.getItem(storageKey) === 'true') {
-                btn.textContent = 'Siguiendo';
-                btn.classList.add('following');
-              }
-            }
-          }
-
           // CARGAR SIEMPRE AL AGENTE FIJO DESDE FIRESTORE
           try {
             const docRef = doc(db, "usuarios", AGENT_FIXED_UID);
@@ -677,15 +1095,19 @@
               }
               let agentAvatarSrc = data.fotoPerfil || 'assets/onlybladi-avatar.png';
 
-              if (mainAgentName) mainAgentName.textContent = agentDisplayName;
-              if (mainAgentAvatar) mainAgentAvatar.src = agentAvatarSrc;
-            } else {
-              if (mainAgentName) mainAgentName.textContent = "Agente Principal";
+              // Actualizar en el array de agentes
+              const fixedAgent = agentsList.find(a => a.isFixed);
+              if (fixedAgent) {
+                fixedAgent.name = agentDisplayName;
+                fixedAgent.avatar = agentAvatarSrc;
+              }
             }
           } catch (error) {
             console.error("Error al obtener datos del agente en Firestore:", error);
-            if (mainAgentName) mainAgentName.textContent = "Agente Principal";
           }
+
+          // Renderizar inicial con el usuario actual
+          renderAgents(user);
 
           // GESTIÓN DE SESIÓN DEL USUARIO QUE NAVEGA ACTUALMENTE
           if (user) {
