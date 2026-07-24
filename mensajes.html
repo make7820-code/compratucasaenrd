@@ -10,9 +10,14 @@
     <!-- Hoja de Estilos Principal -->
     <link rel="stylesheet" href="styles.css">
     <style>
-      /* Estilos específicos para la interfaz de mensajería estilo panel con margen superior corregido */
+      /* Estilos específicos para la mensajería con fondo de imagen y margen superior ajustado */
       body {
         background-color: #0b0b0e;
+        /* Fondo con la imagen mi-zona.png, fija y cubierta en toda la pantalla */
+        background-image: linear-gradient(rgba(11, 11, 14, 0.85), rgba(11, 11, 14, 0.92)), url('assets/mi-zona.png');
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
         color: #fff;
         font-family: 'Inter', sans-serif;
         margin: 0;
@@ -24,7 +29,7 @@
 
       .messaging-wrapper {
         max-width: 1300px;
-        margin: 120px auto 40px auto; /* Margen superior aumentado para que el header fijo no lo cubra */
+        margin: 120px auto 40px auto; /* Margen superior amplio para evitar que el banner fijo cubra el contenido */
         padding: 0 20px;
         width: 100%;
         box-sizing: border-box;
@@ -34,7 +39,8 @@
       .messaging-container {
         display: grid;
         grid-template-columns: 350px 1fr;
-        background: rgba(18, 18, 20, 0.95);
+        background: rgba(18, 18, 20, 0.90);
+        backdrop-filter: blur(10px);
         border: 1px solid rgba(255, 255, 255, 0.08);
         border-radius: 20px;
         overflow: hidden;
@@ -47,7 +53,7 @@
         border-right: 1px solid rgba(255, 255, 255, 0.08);
         display: flex;
         flex-direction: column;
-        background: #121214;
+        background: rgba(18, 18, 20, 0.95);
       }
 
       .sidebar-header {
@@ -156,7 +162,7 @@
       .chat-main-area {
         display: flex;
         flex-direction: column;
-        background: #0e0e11;
+        background: rgba(14, 14, 17, 0.90);
         position: relative;
       }
 
@@ -187,7 +193,7 @@
 
       .chat-header {
         padding: 16px 24px;
-        background: #121214;
+        background: rgba(18, 18, 20, 0.95);
         border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         display: flex;
         align-items: center;
@@ -260,7 +266,7 @@
 
       .chat-input-area {
         padding: 16px 24px;
-        background: #121214;
+        background: rgba(18, 18, 20, 0.95);
         border-top: 1px solid rgba(255, 255, 255, 0.08);
         display: flex;
         gap: 12px;
@@ -457,7 +463,6 @@
       import { doc, getDoc, collection, query, where, getDocs, addDoc, onSnapshot, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
       window.addEventListener('DOMContentLoaded', () => {
-        // Manejo de Tema (Claro / Oscuro / Sistema)
         const savedTheme = localStorage.getItem('site_theme') || 'dark';
         if (savedTheme === 'light') {
           document.body.classList.add('light-mode');
