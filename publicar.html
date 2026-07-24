@@ -858,7 +858,7 @@
       </div>
     </footer>
 
-    <!-- SCRIPTS CON CONTROL DE ERRORES ROBUSTO -->
+    <!-- SCRIPTS CON CONTROL DE ACCESO Y PERFIL -->
     <script type="module">
       import { db, storage, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, ref, uploadBytes, getDownloadURL } from './firebase-config.js';
 
@@ -867,7 +867,7 @@
 
       window.addEventListener('DOMContentLoaded', () => {
         try {
-          // ================= CONTROL DE ACCESO (CLIENTES Y NO LOGEADOS) =================
+          // ================= CONTROL DE ACCESO Y SESIÓN =================
           const usuarioActivo = localStorage.getItem('usuario_activo');
           const rolUsuario = localStorage.getItem('usuario_rol') || 'cliente'; // Por defecto se asume cliente si no existe
 
@@ -880,11 +880,12 @@
             window.location.href = 'index.html';
             return; // Detiene la ejecución posterior
           }
-          // ==============================================================================
+          // ==============================================================
 
           const savedTheme = localStorage.getItem('site_theme') || 'dark';
           if (savedTheme === 'light') document.body.classList.add('light-mode');
 
+          // Carga los datos del perfil guardados en localStorage (igual que en perfil.html)
           const username = usuarioActivo;
           const nombreCompleto = localStorage.getItem('perfil_nombre') || username;
           const fotoGuardada = localStorage.getItem('perfil_foto');
