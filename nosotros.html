@@ -426,7 +426,6 @@
           <a href="propiedades.html" class="nav-link"><span class="nav-emoji">🏢</span> Propiedades</a>
           <a href="comunidad.html" class="nav-link"><span class="nav-emoji">👥</span> Comunidad</a>
           <a href="blog.html" class="nav-link"><span class="nav-emoji">📰</span> Blog</a>
-          <a href="mensajes.html" class="nav-link" id="navMensajes" style="display: none;"><span class="nav-emoji">💬</span> Mensajes</a>
           <a href="nosotros.html" class="nav-link active"><span class="nav-emoji">ℹ️</span> Nosotros</a>
           <a href="vender.html" class="nav-link"><span class="nav-emoji">🤝</span> Vender</a>
         </nav>
@@ -557,7 +556,6 @@
 
       document.addEventListener('DOMContentLoaded', () => {
         const authContainer = document.getElementById('authContainer');
-        const navMensajes = document.getElementById('navMensajes');
         if (!authContainer) return;
 
         const savedTheme = localStorage.getItem('site_theme') || 'dark';
@@ -570,10 +568,7 @@
         }
 
         onAuthStateChanged(auth, async (user) => {
-          if (!user) {
-            if (navMensajes) navMensajes.style.display = 'none';
-            return;
-          }
+          if (!user) return;
 
           let displayName = user.email.split('@')[0];
           let avatarSrc = 'assets/onlybladi-avatar.png';
@@ -587,11 +582,6 @@
             }
           } catch (e) {
             console.error("Error al cargar perfil en navbar:", e);
-          }
-
-          if (navMensajes) {
-            navMensajes.style.display = 'inline-flex';
-            navMensajes.href = 'mensajes.html';
           }
 
           const q = query(collection(db, "mensajes"), where("userId", "==", user.uid));
