@@ -1,10 +1,10 @@
-// Importa los SDKs necesarios de Firebase desde su CDN oficial[cite: 3]
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";[cite: 3]
-import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";[cite: 3]
-import { getFirestore, collection, addDoc, getDocs, doc, getDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";[cite: 3]
-import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";[cite: 3]
+// Importa los SDKs necesarios de Firebase desde su CDN oficial
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, collection, addDoc, getDocs, doc, getDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
-// Tus credenciales limpias sin el measurementId problemático
+// Tus credenciales limpias
 const firebaseConfig = {
   apiKey: "AIzaSyDJjporsjk6QnY5HaHAU-8QfeCJvDsayyc",
   authDomain: "compratucasaenrd-11e1a.firebaseapp.com",
@@ -20,5 +20,5 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
 
-// Exportar todas las herramientas incluyendo 'auth'[cite: 3]
-export { auth, db, storage, collection, addDoc, getDocs, doc, getDoc, updateDoc, deleteDoc, ref, uploadBytes, getDownloadURL };[cite: 3]
+// Exportar todas las herramientas incluyendo 'auth'
+export { auth, db, storage, collection, addDoc, getDocs, doc, getDoc, updateDoc, deleteDoc, ref, uploadBytes, getDownloadURL };
