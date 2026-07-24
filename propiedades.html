@@ -1027,7 +1027,7 @@
               </div>
             `;
 
-            // Escuchar notificaciones y mensajes en tiempo real con Firestore
+            // Escuchar notificaciones y mensajes en tiempo real con Firestore de forma segura (con try/catch)
             try {
               const qNotif = query(collection(db, "mensajes"), where("destinatarioId", "==", user.uid), where("leido", "==", false));
               onSnapshot(qNotif, (snapshot) => {
@@ -1055,6 +1055,8 @@
                   badge.style.display = 'none';
                   list.innerHTML = '<div style="padding: 16px; text-align: center; color: #71717a; font-size: 13px;">No hay notificaciones nuevas</div>';
                 }
+              }, (error) => {
+                console.warn("Aviso de permisos en mensajes (Snapshot):", error.message);
               });
             } catch (e) {
               console.warn("No se pudo iniciar el listener de notificaciones:", e);
