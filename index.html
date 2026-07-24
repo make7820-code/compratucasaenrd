@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compra tu casa en RD | Venta, Alquiler e Hipoteca</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+    <!-- Hoja de Estilos -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <!-- ================= HEADER ================= -->
+    <header class="site-header">
+      <div class="header-inner">
+        
+        <!-- LOGO PRINCIPAL + SELLO DEMO INTEGRADO -->
+        <a href="index.html" class="brand">
+          <img src="assets/mi-logo.png" alt="Compra tu casa en RD" class="brand-logo">
+          <img src="assets/demo.png" alt="DEMO" class="brand-demo-badge">
+        </a>
+
+        <!-- NAVEGACIÓN PRINCIPAL DINÁMICA -->
+        <nav class="main-nav">
+          <a href="index.html" class="nav-link active"><span class="nav-emoji">🏠</span> Inicio</a>
+          <a href="propiedades.html" class="nav-link"><span class="nav-emoji">🏢</span> Propiedades</a>
+          <a href="comunidad.html" class="nav-link"><span class="nav-emoji">👥</span> Comunidad</a>
+          <a href="blog.html" class="nav-link"><span class="nav-emoji">📰</span> Blog</a>
+          <a href="mensajes.html" class="nav-link" id="navMensajes" style="display: none;"><span class="nav-emoji">💬</span> Mensajes</a>
+          <a href="nosotros.html" class="nav-link"><span class="nav-emoji">ℹ️</span> Nosotros</a>
+          <a href="vender.html" class="nav-link"><span class="nav-emoji">🤝</span> Vender</a>
+        </nav>
+
+        <!-- BOTÓN DE INICIO DE SESIÓN / PERFIL -->
+        <div id="authContainer">
+          <a href="login.html" class="login-btn">
+            <span>🔐</span> Iniciar sesión
+          </a>
+        </div>
+
+      </div>
+    </header>
+
+    <!-- ================= HERO ================= -->
+    <section class="hero">
+      <div class="hero-content">
+        
+        <div class="hero-eyebrow">
+          <span class="hero-emoji">🏠</span> Bienvenidos a
+        </div>
+        
+        <h1 class="hero-title">Compra tu casa en RD</h1>
+        
+        <p class="hero-subtitle">El hogar de tus sueños, nuestro compromiso</p>
+        
+        <a href="propiedades.html" class="hero-cta">
+          <span>🏢</span> Ver propiedades
+        </a>
+
+      </div>
+    </section>
+
+    <!-- ================= EXPLORA NUESTRAS OFERTAS ================= -->
+    <section class="offers-section" id="ofertas">
+      <div class="offers-container">
+        
+        <h2 class="offers-title">Explora nuestras ofertas</h2>
+        <p class="offers-subtitle">Encuentra tu propiedad en un solo lugar</p>
+        
+        <a href="propiedades.html" class="offers-main-btn">Ver todas las propiedades</a>
+
+        <!-- CAJA INFERIOR: SOLICITAR UNA PROPIEDAD -->
+        <div class="request-card">
+          <h3 class="request-title">¿No encuentras la propiedad ideal?</h3>
+          <p class="request-desc">
+            ¡No busques más! Describe las características de tu casa ideal y nuestro equipo de agentes inmobiliarios expertos se encargará de encontrarla por ti de forma personalizada.
+          </p>
+          <a href="mensajes.html" class="request-btn">
+            <span>🏠</span> Solicitar una Propiedad
+          </a>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ================= SECCIÓN NOSOTROS ================= -->
+    <section class="about-section">
+      <div class="about-container">
+        
+        <!-- COLUMNA TEXTO -->
+        <div class="about-text-content">
+          <h2 class="about-main-title">Nosotros</h2>
+          <h3 class="about-brand-title">Compra tu casa en RD</h3>
+          <p class="about-description">
+            Somos tus expertos inmobiliarios en República Dominicana. Te ofrecemos asesoramiento especializado para ayudarte a encontrar la mejor inversión para rentar o vivir, acompañándote en cada paso del proceso de compra. Nuestro compromiso es hacer que encontrar el hogar de tus sueños sea una experiencia fácil y segura. ¡Descubre las mejores propiedades con nosotros!
+          </p>
+          <a href="nosotros.html" class="about-btn">Ver más</a>
+        </div>
+
+        <!-- COLUMNA IMAGEN (PNG) -->
+        <div class="about-image-content">
+          <img src="assets/puerto-marina.png" alt="Puerto Marina" class="about-img">
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ================= SECCIÓN TESTIMONIOS ================= -->
+    <section class="testimonials-section">
+      <div class="testimonials-container">
+        
+        <h2 class="testimonials-main-title">Testimonios</h2>
+        <h3 class="testimonials-subtitle">Lo que dicen nuestros clientes</h3>
+
+        <!-- CONTENEDOR DE TARJETAS APILADAS -->
+        <div class="testimonials-slider" id="testimonialSlider">
+          
+          <!-- Tarjeta 1: Fraulin Caminero (Verde) -->
+          <div class="testimonial-card card-green active">
+            <div class="testimonial-avatar">
+              <svg viewBox="0 0 24 24" width="48" height="48" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>
+            </div>
+            <h4 class="testimonial-name">Fraulin Caminero</h4>
+            <p class="testimonial-text">
+              Es gratificante hacer mi primera inversión. Tener mi casa fue con muchos sacrificios y planificación financiera, pero lo pudimos hacer de la mano de Compra tu casa en RD.
+            </p>
+          </div>
+
+          <!-- Tarjeta 2: Miguel Fabian (Gris Oscuro) -->
+          <div class="testimonial-card card-gray">
+            <div class="testimonial-avatar">
+              <svg viewBox="0 0 24 24" width="48" height="48" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>
+            </div>
+            <h4 class="testimonial-name">Miguel Fabian</h4>
+            <p class="testimonial-text">
+              Compra tu casa en RD Proporciona un servicio excepcional. Su equipo experto y personalizado hizo que encontrara mi nueva casa fuera una experiencia fácil y agradable.
+            </p>
+          </div>
+
+          <!-- Tarjeta 3: Jorge Maldonado (Rojo) -->
+          <div class="testimonial-card card-red">
+            <div class="testimonial-avatar">
+              <svg viewBox="0 0 24 24" width="48" height="48" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>
+            </div>
+            <h4 class="testimonial-name">Jorge Maldonado</h4>
+            <p class="testimonial-text">
+              Richy Rojas Tiene una cualidad excepcional, que el se hace amigo de los clientes, considero que eso le abre muchas puertas. Le compré mi casa y gané un amigo.
+            </p>
+          </div>
+
+        </div>
+
+        <!-- PUNTOS INDICADORES -->
+        <div class="testimonial-dots" id="testimonialDots">
+          <span class="dot active" data-index="0"></span>
+          <span class="dot" data-index="1"></span>
+          <span class="dot" data-index="2"></span>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ================= SECCIÓN MUDANZA (MI CAMIÓN) ================= -->
+    <section class="moving-section">
+      <div class="moving-container">
+        <div class="moving-card">
+          
+          <!-- Columna Izquierda: Imagen del Camión -->
+          <div class="moving-image-col">
+            <div class="moving-img-box">
+              <img src="assets/mi-camion.jpg" alt="Camión de Mudanza" class="moving-truck-img">
+            </div>
+            <p class="moving-img-caption">Tu acarreo de confianza en República Dominicana</p>
+          </div>
+
+          <!-- Columna Derecha: Información y Botón Centrados -->
+          <div class="moving-content-col">
+            <h2 class="moving-title">¡Haz tu <span class="highlight-red">mudanza</span> con nosotros!</h2>
+            <p class="moving-subtitle">Tu Mudanza sin Estrés: Precios Justos y Transparentes.</p>
+            
+            <span class="moving-call-label">LLÁMANOS AHORA MISMO</span>
+            <a href="tel:+18498572321" class="moving-phone">+1(849) 857-2321</a>
+
+            <a href="tel:+18498572321" class="moving-cta-btn">¡Llamar para Presupuesto!</a>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= SECCIÓN ACCIONES (VENTAS / COMPRAS) ================= -->
+    <section class="actions-section">
+      <div class="actions-container">
+        
+        <!-- Tarjeta Izquierda: Para ventas o alquileres -->
+        <div class="action-card">
+          <h3 class="action-title">Para ventas o alquileres</h3>
+          <p class="action-desc">¿Quieres vender o alquilar tu vivienda?</p>
+          <a href="vender.html" class="action-btn">
+            <span>📞</span> Contáctanos
+          </a>
+        </div>
+
+        <!-- Tarjeta Derecha: Para comprar o alquiler -->
+        <div class="action-card">
+          <h3 class="action-title">Para comprar o alquilar</h3>
+          <p class="action-desc">¿Interesado en comprar o alquilar?</p>
+          <a href="propiedades.html" class="action-btn">
+            <span>✉️</span> Ver propiedades
+          </a>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ================= FOOTER / PIE DE PÁGINA ================= -->
+    <footer class="site-footer">
+      <div class="footer-container">
+        
+        <!-- Columna 1: Marca y Redes -->
+        <div class="footer-col footer-brand-col">
+          <h2 class="footer-brand-title">Compra tu casa en <span class="highlight-red">RD</span></h2>
+          <p class="footer-brand-desc">
+            Tu aliado confiable en la búsqueda y adquisición de propiedades en República Dominicana. Hacemos tus sueños de hogar una realidad.
+          </p>
+          <div class="footer-socials">
+            <a href="#" class="social-icon" aria-label="Instagram">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+            </a>
+            <a href="#" class="social-icon" aria-label="Facebook">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M9 8H6v4h3v12h5V12h3.642L18 8h-4V6.333C14 5.378 14.5 5 15.5 5H18V0h-3.808C10.59 0 9 1.581 9 4.615V8z"/></svg>
+            </a>
+            <a href="#" class="social-icon" aria-label="WhatsApp">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.124-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+            </a>
+            <a href="#" class="social-icon" aria-label="TikTok">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 3 15.6a6.34 6.34 0 0 0 10.86 4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1.04-.06z"/></svg>
+            </a>
+          </div>
+        </div>
+
+        <!-- Columna 2: Navegación Rápida -->
+        <div class="footer-col">
+          <h3 class="footer-col-title">Navegación Rápida</h3>
+          <ul class="footer-links">
+            <li><a href="index.html">Inicio</a></li>
+            <li><a href="nosotros.html">Acerca de Nosotros</a></li>
+            <li><a href="propiedades.html">Propiedades</a></li>
+          </ul>
+        </div>
+
+        <!-- Columna 3: Nuestros Servicios -->
+        <div class="footer-col">
+          <h3 class="footer-col-title">Nuestros Servicios</h3>
+          <ul class="footer-links">
+            <li><a href="propiedades.html">Calculadora Hipotecaria</a></li>
+          </ul>
+        </div>
+
+        <!-- Columna 4: Contacto Directo -->
+        <div class="footer-col">
+          <h3 class="footer-col-title">Contacto Directo</h3>
+          <ul class="footer-contact-list">
+            <li>
+              <span class="contact-icon">📍</span>
+              <span>Ubicación: República Dominicana, Santo Domingo Este, La Ureña, C. El Sol</span>
+            </li>
+            <li>
+              <span class="contact-icon">📞</span>
+              <span>Teléfono: +1 (849) 857-2321</span>
+            </li>
+            <li>
+              <span class="contact-icon">✉️</span>
+              <span>Correo electrónico:<br><a href="mailto:Danieldecena63@gmail.com" class="footer-email">Danieldecena63@gmail.com</a></span>
+            </li>
+          </ul>
+        </div>
+
+      </div>
+
+      <!-- Barra Inferior (Copyright y Políticas) -->
+      <div class="footer-bottom">
+        <div class="footer-bottom-container">
+          <p>© 2026 Compra tu casa en RD. Todos los derechos reservados.</p>
+          <div class="footer-legal-links">
+            <a href="#">Política de Privacidad</a>
+            <a href="#">Términos de Servicio</a>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <!-- SCRIPT DE TESTIMONIOS -->
+    <script>
+      const cards = document.querySelectorAll('.testimonial-card');
+      const dots = document.querySelectorAll('.testimonial-dots .dot');
+      let currentIndex = 0;
+
+      function showCard(index) {
+        cards.forEach((card, i) => {
+          card.classList.remove('active');
+          dots[i].classList.remove('active');
+          if (i === index) {
+            card.classList.add('active');
+            dots[i].classList.add('active');
+          }
+        });
+      }
+
+      function nextCard() {
+        currentIndex = (currentIndex + 1) % cards.length;
+        showCard(currentIndex);
+      }
+
+      let slideInterval = setInterval(nextCard, 4000);
+
+      dots.forEach((dot, index) => {
+        dot.addEventListener('click', () => {
+          currentIndex = index;
+          showCard(currentIndex);
+          clearInterval(slideInterval);
+          slideInterval = setInterval(nextCard, 4000);
+        });
+      });
+    </script>
+
+    <!-- SCRIPT DE FIREBASE, SESIÓN Y CAMBIO DE TEMA -->
+    <script type="module">
+      import { auth, db } from './firebase-config.js';
+      import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+      import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+      window.addEventListener('DOMContentLoaded', () => {
+        const savedTheme = localStorage.getItem('site_theme') || 'dark';
+        if (savedTheme === 'light') {
+          document.body.classList.add('light-mode');
+        } else if (savedTheme === 'system') {
+          if (window.matchMedia('(prefers-color-scheme: light)').matches) {
+            document.body.classList.add('light-mode');
+          }
+        }
+
+        const authContainer = document.getElementById('authContainer');
+        const navMensajes = document.getElementById('navMensajes');
+
+        onAuthStateChanged(auth, async (user) => {
+          if (user) {
+            let displayName = user.email.split('@')[0];
+            let avatarSrc = 'assets/onlybladi-avatar.png';
+
+            try {
+              const docRef = doc(db, "usuarios", user.uid);
+              const docSnap = await getDoc(docRef);
+              if (docSnap.exists()) {
+                const data = docSnap.data();
+                if (data.nombres) {
+                  displayName = data.nombres;
+                }
+                if (data.fotoPerfil) {
+                  avatarSrc = data.fotoPerfil;
+                }
+              }
+            } catch (error) {
+              console.error("Error al obtener datos de Firestore:", error);
+            }
+
+            if (navMensajes) {
+              navMensajes.style.display = 'inline-flex';
+              navMensajes.href = 'mensajes.html';
+            }
+
+            if (authContainer) {
+              authContainer.innerHTML = `
+                <div class="profile-dropdown-container" style="position: relative; display: inline-block;">
+                  <button id="profileBtn" style="background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 12px; padding: 4px 8px 4px 4px; border-radius: 999px; transition: background 0.2s;">
+                    <img src="${avatarSrc}" alt="Avatar" style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 2px solid #ef4444;" onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=${user.uid}'">
+                    <span style="color: #fff; font-weight: 600; font-size: 15px; font-family: var(--font-display, sans-serif);">${displayName}</span>
+                  </button>
+
+                  <div id="profileMenu" class="profile-menu">
+                    <button class="profile-menu-item" onclick="window.location.href='perfil.html'">
+                      <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                      Ir al Perfil
+                    </button>
+
+                    <div class="profile-menu-divider"></div>
+                    <div class="profile-menu-section-title">Aspecto físico</div>
+                    
+                    <div class="profile-theme-selector">
+                      <button class="theme-btn ${savedTheme === 'light' ? 'active' : ''}" data-theme="light" title="Claro">☀️</button>
+                      <button class="theme-btn ${savedTheme === 'system' ? 'active' : ''}" data-theme="system" title="💻">💻</button>
+                      <button class="theme-btn ${savedTheme === 'dark' ? 'active' : ''}" data-theme="dark" title="Oscuro">🌙</button>
+                    </div>
+
+                    <div class="profile-menu-divider"></div>
+                    <button class="profile-menu-item" id="cerrarSesionBtn" style="color: #ef4444;">
+                      <span style="font-size: 16px;">⎋</span> Cerrar Sesión
+                    </button>
+                  </div>
+                </div>
+              `;
+
+              const profileBtn = document.getElementById('profileBtn');
+              const profileMenu = document.getElementById('profileMenu');
+
+              if (profileBtn && profileMenu) {
+                profileBtn.addEventListener('click', (e) => {
+                  e.stopPropagation();
+                  profileMenu.classList.toggle('show');
+                });
+
+                document.addEventListener('click', (e) => {
+                  if (!profileMenu.contains(e.target) && !profileBtn.contains(e.target)) {
+                    profileMenu.classList.remove('show');
+                  }
+                });
+              }
+
+              const cerrarBtn = document.getElementById('cerrarSesionBtn');
+              if (cerrarBtn) {
+                cerrarBtn.addEventListener('click', async (event) => {
+                  event.stopPropagation();
+                  try {
+                    await signOut(auth);
+                    localStorage.removeItem('sesion_activa');
+                    localStorage.removeItem('usuario_activo');
+                    alert("Has cerrado sesión correctamente.");
+                    window.location.href = 'index.html';
+                  } catch (error) {
+                    console.error("Error al cerrar sesión:", error);
+                  }
+                });
+              }
+
+              const themeBtns = document.querySelectorAll('.theme-btn');
+              themeBtns.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                  e.stopPropagation();
+                  const theme = btn.getAttribute('data-theme');
+                  themeBtns.forEach(b => b.classList.remove('active'));
+                  btn.classList.add('active');
+
+                  if (theme === 'light') {
+                    document.body.classList.add('light-mode');
+                    localStorage.setItem('site_theme', 'light');
+                  } else if (theme === 'dark') {
+                    document.body.classList.remove('light-mode');
+                    localStorage.setItem('site_theme', 'dark');
+                  } else if (theme === 'system') {
+                    localStorage.setItem('site_theme', 'system');
+                    if (window.matchMedia('(prefers-color-scheme: light)').matches) {
+                      document.body.classList.add('light-mode');
+                    } else {
+                      document.body.classList.remove('light-mode');
+                    }
+                  }
+                });
+              });
+            }
+          } else {
+            if (navMensajes) {
+              navMensajes.style.display = 'none';
+            }
+          }
+        });
+      });
+    </script>
+
+</body>
+</html>

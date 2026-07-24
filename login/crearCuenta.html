@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crear Cuenta Completa | Compra tu casa en RD</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+    <!-- Hoja de Estilos Principal -->
+    <link rel="stylesheet" href="../styles.css">
+    <style>
+      body {
+        background-color: #0b0b0e;
+        color: #fff;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        margin: 0;
+        font-family: 'Inter', sans-serif;
+      }
+
+      .site-header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        z-index: 1000;
+        background: rgba(11, 11, 14, 0.95);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .header-inner {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 15px 20px;
+      }
+
+      .login-main-wrapper {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 140px 20px 60px 20px;
+        position: relative;
+        background-image: url('../assets/hero-plaza-bandera.jpg');
+        background-size: cover;
+        background-position: center;
+      }
+
+      .login-main-wrapper::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.75);
+        z-index: 1;
+      }
+
+      .login-card {
+        position: relative;
+        z-index: 2;
+        background: rgba(18, 18, 20, 0.92);
+        backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 24px;
+        padding: 40px;
+        width: 100%;
+        max-width: 650px;
+        box-shadow: 0 25px 50px rgba(0,0,0,0.7);
+      }
+
+      .section-title {
+        font-size: 14px;
+        color: #3b82f6;
+        text-transform: uppercase;
+        font-weight: 700;
+        letter-spacing: 1px;
+        margin-top: 20px;
+        margin-bottom: 12px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        padding-bottom: 6px;
+      }
+
+      .login-card h2 {
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 10px;
+        font-family: var(--font-display, 'Poppins', sans-serif);
+      }
+
+      .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+      }
+
+      .form-group {
+        margin-bottom: 15px;
+      }
+
+      .form-group.full-width {
+        grid-column: span 2;
+      }
+
+      .form-group label {
+        display: block;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 6px;
+        color: #d4d4d8;
+      }
+
+      .password-container {
+        position: relative;
+      }
+
+      .form-control {
+        width: 100%;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 12px 14px;
+        border-radius: 12px;
+        color: #fff;
+        font-size: 14px;
+        outline: none;
+        transition: all 0.3s ease;
+        box-sizing: border-box;
+      }
+
+      .form-control:focus {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        background: rgba(255, 255, 255, 0.08);
+      }
+
+      .phone-input-group {
+        display: flex;
+        gap: 10px;
+      }
+
+      .phone-input-group select {
+        flex: 0 0 140px;
+      }
+
+      .phone-input-group input {
+        flex: 1;
+      }
+
+      .toggle-password {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        color: #a1a1aa;
+        cursor: pointer;
+        font-size: 16px;
+        padding: 0;
+      }
+
+      .toggle-password:hover {
+        color: #fff;
+      }
+
+      select.form-control option {
+        background: #121214;
+        color: #fff;
+      }
+
+      .btn-submit {
+        width: 100%;
+        background: #3b82f6;
+        color: #fff;
+        border: none;
+        padding: 14px;
+        border-radius: 12px;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
+        margin-top: 20px;
+      }
+
+      .btn-submit:hover {
+        background: #2563eb;
+        transform: translateY(-2px);
+        box-shadow: 0 12px 25px rgba(59, 130, 246, 0.6);
+      }
+
+      .login-footer-text {
+        text-align: center;
+        margin-top: 20px;
+        font-size: 14px;
+        color: #a1a1aa;
+      }
+
+      .login-footer-text a {
+        color: #60a5fa;
+        text-decoration: none;
+        font-weight: 600;
+      }
+
+      .login-footer-text a:hover {
+        text-decoration: underline;
+      }
+
+      .site-footer {
+        background: #0b0b0e;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        padding: 40px 20px;
+        color: #a1a1aa;
+      }
+      .footer-container {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+      .footer-brand-title { font-size: 18px; font-weight: 800; color: #fff; margin-bottom: 10px; }
+      .highlight-red { color: #ef4444; }
+      .footer-bottom { max-width: 1200px; margin: 30px auto 0 auto; border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 20px; font-size: 13px; text-align: center; }
+    </style>
+</head>
+<body>
+
+    <header class="site-header">
+      <div class="header-inner">
+        <a href="../index.html" class="brand" style="text-decoration: none; display: flex; align-items: center; gap: 8px;">
+          <span style="color: #fff; font-weight: 800; font-size: 16px;">Compra tu casa en RD</span>
+        </a>
+        <nav class="main-nav" style="display: flex; gap: 20px;">
+          <a href="../index.html" class="nav-link" style="color: #fff; text-decoration: none; font-size: 14px;">🏠 Inicio</a>
+          <a href="../propiedades.html" class="nav-link" style="color: #fff; text-decoration: none; font-size: 14px;">🏢 Propiedades</a>
+          <a href="../comunidad.html" class="nav-link" style="color: #fff; text-decoration: none; font-size: 14px;">👥 Comunidad</a>
+        </nav>
+        <div>
+          <a href="../login.html" class="login-btn" style="color: #3b82f6; text-decoration: none; font-weight: 600; font-size: 14px;">
+            <span>🔐</span> Iniciar sesión
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <div class="login-main-wrapper">
+      <div class="login-card">
+        <h2>Crear Cuenta Completa</h2>
+        <p style="font-size: 13px; color: #a1a1aa; margin-bottom: 20px;">Completa tus datos para registrarte en la plataforma.</p>
+        
+        <form id="registroCompletoForm">
+          
+          <!-- SECCIÓN 1: CUENTA -->
+          <div class="section-title">1. Credenciales de Cuenta</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="nombreUsuario">Nombre de Usuario *</label>
+              <input type="text" id="nombreUsuario" class="form-control" placeholder="usuario123" required>
+            </div>
+            <div class="form-group">
+              <label for="email">Correo Electrónico *</label>
+              <input type="email" id="email" class="form-control" placeholder="tu@email.com" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="password">Contraseña *</label>
+              <div class="password-container">
+                <input type="password" id="password" class="form-control" placeholder="••••••••" required minlength="6">
+                <button type="button" class="toggle-password" onclick="togglePasswordVisibility('password', this)">👁️</button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="confirmPassword">Confirmar Contraseña *</label>
+              <div class="password-container">
+                <input type="password" id="confirmPassword" class="form-control" placeholder="••••••••" required minlength="6">
+                <button type="button" class="toggle-password" onclick="togglePasswordVisibility('confirmPassword', this)">👁️</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- SECCIÓN 2: PERSONAL -->
+          <div class="section-title">2. Información Personal</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="nombres">Nombres *</label>
+              <input type="text" id="nombres" class="form-control" placeholder="Tus nombres" required>
+            </div>
+            <div class="form-group">
+              <label for="apellidos">Apellidos *</label>
+              <input type="text" id="apellidos" class="form-control" placeholder="Tus apellidos" required>
+            </div>
+            
+            <div class="form-group full-width">
+              <label for="telefono">Teléfono / Celular *</label>
+              <div class="phone-input-group">
+                <select id="prefijoPais" class="form-control">
+                  <option value="+1">🇩🇴 +1 (RD/US)</option>
+                  <option value="+34">🇪🇸 +34 (ES)</option>
+                  <option value="+52">🇲🇽 +52 (MX)</option>
+                  <option value="+57">🇨🇴 +57 (CO)</option>
+                  <option value="+58">🇻🇪 +58 (VE)</option>
+                  <option value="+54">🇦🇷 +54 (AR)</option>
+                </select>
+                <input type="tel" id="telefono" class="form-control" placeholder="809 000 0000" required maxlength="14">
+              </div>
+            </div>
+          </div>
+
+          <!-- SECCIÓN 3: UBICACIÓN -->
+          <div class="section-title">3. Ubicación</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="provincia">Provincia / Ciudad *</label>
+              <input type="text" id="provincia" class="form-control" placeholder="Ej. Santo Domingo" required>
+            </div>
+            <div class="form-group">
+              <label for="sector">Sector / Sector Residencial *</label>
+              <input type="text" id="sector" class="form-control" placeholder="Ej. Piantini" required>
+            </div>
+          </div>
+
+          <!-- SECCIÓN 4: ROL / TIPO DE CUENTA -->
+          <div class="section-title">4. Tipo de Perfil Deseado</div>
+          <div class="form-group full-width">
+            <label for="rolDeseado">Selecciona tu rol en la plataforma *</label>
+            <select id="rolDeseado" class="form-control" required>
+              <option value="cliente">Cliente / Buscador de Propiedades (Gratis)</option>
+              <option value="agente">Agente Inmobiliario (Requiere Membresía)</option>
+              <option value="agentepro">Agente Pro (Requiere Membresía)</option>
+            </select>
+            <small style="color: #a1a1aa; font-size: 11px; display: block; margin-top: 5px;">Los roles de Agente y Agente Pro conllevan una inversión de membresía para habilitar la publicación de inmuebles.</small>
+          </div>
+
+          <button type="submit" class="btn-submit">Registrarse y Acceder ➔</button>
+        </form>
+
+        <div class="login-footer-text">
+          ¿Ya tienes una cuenta? <a href="../login.html">Inicia sesión aquí</a>
+        </div>
+      </div>
+    </div>
+
+    <footer class="site-footer">
+      <div class="footer-container">
+        <div>
+          <h2 class="footer-brand-title">Compra tu casa en <span class="highlight-red">RD</span></h2>
+          <p style="font-size: 13px; line-height: 1.5;">Tu aliado confiable en la búsqueda y adquisición de propiedades en República Dominicana.</p>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>© 2026 Compra tu casa en RD. Todos los derechos reservados.</p>
+      </div>
+    </footer>
+
+    <!-- SCRIPTS (MASCARA DE TELEFONO, PASSWORD Y FIREBASE) -->
+    <script>
+      function togglePasswordVisibility(fieldId, btn) {
+        const input = document.getElementById(fieldId);
+        if (input.type === "password") {
+          input.type = "text";
+          btn.textContent = "🙈";
+        } else {
+          input.type = "password";
+          btn.textContent = "👁️";
+        }
+      }
+
+      const telefonoInput = document.getElementById('telefono');
+      telefonoInput.addEventListener('input', function (e) {
+        let x = e.target.value.replace(/\D/g, '').match(/(\d{0,3})(\d{0,3})(\d{0,4})/);
+        e.target.value = !x[2] ? x[1] : '(' + x[1] + ') ' + x[2] + (x[3] ? '-' + x[3] : '');
+      });
+    </script>
+
+    <script type="module">
+      import { auth, db } from '../firebase-config.js';
+      import { createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+      import { doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+      const form = document.getElementById('registroCompletoForm');
+
+      form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const nombreUsuario = document.getElementById('nombreUsuario').value.trim();
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+        const nombres = document.getElementById('nombres').value.trim();
+        const apellidos = document.getElementById('apellidos').value.trim();
+        
+        const prefijo = document.getElementById('prefijoPais').value;
+        const numeroLimpio = document.getElementById('telefono').value.trim();
+        const telefonoCompleto = `${prefijo} ${numeroLimpio}`;
+
+        const provincia = document.getElementById('provincia').value.trim();
+        const sector = document.getElementById('sector').value.trim();
+        const rolDeseado = document.getElementById('rolDeseado').value;
+
+        if (password !== confirmPassword) {
+          alert("Las contraseñas no coinciden.");
+          return;
+        }
+
+        if (rolDeseado === 'agente' || rolDeseado === 'agentepro') {
+          const confirmarPago = confirm(`Has seleccionado el plan "${rolDeseado.toUpperCase()}", el cual cuenta con un costo de membresía. ¿Deseas proceder con el registro y la validación del pago?`);
+          if (!confirmarPago) {
+            return; 
+          }
+        }
+
+        try {
+          // 1. Crear el usuario en Firebase Authentication (genera su UID único)
+          const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+          const user = userCredential.user;
+
+          // 2. Crear de forma limpia el documento en la colección 'usuarios' usando exactamente el UID del usuario
+          await setDoc(doc(db, "usuarios", user.uid), {
+            uid: user.uid,
+            nombreUsuario: nombreUsuario,
+            email: email,
+            nombres: nombres,
+            apellidos: apellidos,
+            telefono: telefonoCompleto,
+            provincia: provincia,
+            sector: sector,
+            rol: rolDeseado,
+            pagado: (rolDeseado === 'agente' || rolDeseado === 'agentepro'),
+            fechaRegistro: new Date().toISOString()
+          });
+
+          // 3. Establecer respaldos locales para navegación rápida
+          localStorage.setItem('sesion_activa', 'true');
+          localStorage.setItem('usuario_activo', nombreUsuario);
+          localStorage.setItem('rol_usuario', rolDeseado);
+          
+          alert("¡Cuenta creada con éxito!");
+          window.location.href = '../comunidad.html';
+
+        } catch (error) {
+          console.error("Error detallado al registrar en Firebase:", error);
+          alert("Error al registrar: " + error.message);
+        }
+      });
+    </script>
+</body>
+</html>

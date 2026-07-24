@@ -1,0 +1,1071 @@
+:root {
+--black: #000000;
+--red: #ef4444;
+--red-dark: #dc2626;
+--blue: #60a5fa;
+--white: #ffffff;
+--gray-200: #e5e7eb;
+--font-display: 'Poppins', sans-serif;
+--font-body: 'Inter', sans-serif;
+}
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+}
+
+body{
+font-family:var(--font-body);
+background:var(--black);
+color:var(--white);
+overflow-x:hidden;
+}
+
+a{
+text-decoration:none;
+color:inherit;
+}
+
+/* ================= HEADER ================= */
+
+.site-header{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+z-index:1000;
+background:#000;
+border-bottom:1px solid rgba(255,255,255,0.06);
+}
+
+.header-inner{
+max-width:1400px;
+margin:0 auto;
+height:88px;
+padding:0 36px;
+display:flex;
+align-items:center;
+justify-content:space-between;
+gap:24px;
+}
+
+/* NAV */
+.main-nav{
+display:flex;
+align-items:center;
+justify-content:center;
+gap:10px;
+flex:1;
+}
+
+.nav-link{
+display:flex;
+align-items:center;
+gap:8px;
+padding:12px 18px;
+border-radius:999px;
+font-size:16px;
+font-weight:600;
+color:#f3f4f6;
+transition:all .2s ease;
+white-space:nowrap;
+}
+
+.nav-link:hover{
+background:rgba(255,255,255,0.08);
+transform:translateY(-2px);
+}
+
+.nav-link.active{
+background:rgba(239,68,68,0.15);
+color:#ff5a4f;
+box-shadow:0 0 18px rgba(239,68,68,0.25);
+}
+
+.nav-emoji{
+font-size:16px;
+line-height:1;
+}
+
+/* BOTON LOGIN / PERFIL */
+.login-btn{
+display:flex;
+align-items:center;
+gap:8px;
+background:var(--red);
+color:#fff;
+padding:12px 20px;
+border-radius:999px;
+font-size:16px;
+font-weight:600;
+transition:all .2s ease;
+flex-shrink:1;
+min-width:0;
+white-space:nowrap;
+}
+
+.login-btn:hover{
+background:var(--red-dark);
+transform:translateY(-2px);
+}
+
+.login-btn span:nth-child(2){
+overflow:hidden;
+text-overflow:ellipsis;
+white-space:nowrap;
+display:block;
+max-width:180px;
+}
+
+/* ================= MENÚ DESPLEGABLE DE PERFIL ================= */
+.profile-dropdown-container {
+  position: relative;
+  display: inline-block;
+}
+
+.profile-menu {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  width: 260px;
+  background: #141414;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 16px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  z-index: 1100;
+  display: none;
+}
+
+.profile-menu.show {
+  display: block;
+}
+
+.profile-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 500;
+  border-radius: 12px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.2s ease;
+}
+
+.profile-menu-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.profile-menu-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.08);
+  margin: 10px 0;
+}
+
+.profile-menu-section-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: #9ca3af;
+  letter-spacing: 0.8px;
+  margin: 12px 12px 8px 12px;
+  text-transform: uppercase;
+}
+
+.profile-theme-selector {
+  display: flex;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  padding: 4px;
+  gap: 4px;
+}
+
+.theme-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  border-radius: 8px;
+  background: transparent;
+  border: none;
+  color: #9ca3af;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.theme-btn:hover {
+  color: #ffffff;
+}
+
+.theme-btn.active {
+  background: #374151;
+  color: #60a5fa;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* ================= HERO ================= */
+
+.hero{
+position:relative;
+min-height:100vh;
+display:flex;
+align-items:center;
+justify-content:center;
+text-align:center;
+overflow:hidden;
+padding-top:88px;
+background:url('assets/hero-plaza-bandera.jpg') center center/cover no-repeat;
+}
+
+.hero::before{
+content:'';
+position:absolute;
+inset:0;
+background:rgba(0,0,0,.52);
+}
+
+.hero::after{
+content:'';
+position:absolute;
+inset:0;
+background:linear-gradient(
+180deg,
+rgba(0,0,0,.20) 0%,
+rgba(0,0,0,.30) 35%,
+rgba(0,0,0,.48) 100%
+);
+}
+
+.hero-content{
+position:relative;
+z-index:2;
+max-width:900px;
+padding:0 24px;
+}
+
+.hero-eyebrow{
+display:flex;
+align-items:center;
+justify-content:center;
+gap:12px;
+margin-bottom:10px;
+font-family:var(--font-display);
+font-size:28px;
+font-weight:700;
+color:#ffffff;
+}
+
+.hero-eyebrow .hero-emoji{
+font-size:34px;
+color:var(--blue);
+}
+
+.hero-title{
+font-family:var(--font-display);
+font-size:72px;
+font-weight:800;
+line-height:1.05;
+color:#fff;
+margin-bottom:22px;
+text-shadow:0 2px 10px rgba(0,0,0,.25);
+}
+
+.hero-subtitle{
+font-size:19px;
+font-weight:500;
+color:#f3f4f6;
+margin-bottom:36px;
+}
+
+.hero-cta{
+display:inline-flex;
+align-items:center;
+gap:10px;
+background:var(--red);
+color:#fff;
+padding:16px 32px;
+border-radius:999px;
+font-size:17px;
+font-weight:700;
+box-shadow:0 10px 25px rgba(239,68,68,.30);
+transition:all .2s ease;
+}
+
+.hero-cta:hover{
+background:var(--red-dark);
+transform:translateY(-2px);
+}
+
+/* ================= SECCIÓN OFERTAS ================= */
+
+.offers-section{
+position:relative;
+background:var(--black);
+padding:100px 20px;
+text-align:center;
+}
+
+.offers-container{
+max-width:1000px;
+margin:0 auto;
+display:flex;
+flex-direction:column;
+align-items:center;
+}
+
+.offers-title{
+font-family:var(--font-display);
+font-size:42px;
+font-weight:700;
+color:#ffffff;
+margin-bottom:12px;
+}
+
+.offers-subtitle{
+font-size:18px;
+font-weight:600;
+color:var(--red);
+margin-bottom:36px;
+}
+
+.offers-main-btn{
+display:inline-block;
+background:var(--red);
+color:#ffffff;
+padding:16px 36px;
+border-radius:999px;
+font-size:16px;
+font-weight:700;
+box-shadow:0 10px 25px rgba(239,68,68,0.3);
+transition:all .2s ease;
+margin-bottom:70px;
+}
+
+.offers-main-btn:hover{
+background:var(--red-dark);
+transform:translateY(-2px);
+}
+
+.request-card{
+width:100%;
+background:#080808;
+border:1px solid rgba(255,255,255,0.08);
+border-radius:24px;
+padding:50px 40px;
+text-align:center;
+box-shadow:0 20px 40px rgba(0,0,0,0.5);
+}
+
+.request-title{
+font-family:var(--font-display);
+font-size:28px;
+font-weight:700;
+color:#ffffff;
+margin-bottom:16px;
+}
+
+.request-desc{
+max-width:680px;
+margin:0 auto 30px auto;
+font-size:16px;
+line-height:1.6;
+color:#9ca3af;
+}
+
+.request-btn{
+display:inline-flex;
+align-items:center;
+gap:10px;
+background:linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
+color:#ffffff;
+padding:14px 30px;
+border-radius:999px;
+font-size:16px;
+font-weight:600;
+box-shadow:0 10px 25px rgba(59,130,246,0.3);
+transition:all .2s ease;
+}
+
+.request-btn:hover{
+opacity:0.9;
+transform:translateY(-2px);
+}
+
+/* ================= SECCIÓN NOSOTROS ================= */
+
+.about-section{
+position:relative;
+background:#080808;
+padding:80px 20px;
+border-top:1px solid rgba(255,255,255,0.06);
+border-bottom:1px solid rgba(255,255,255,0.06);
+}
+
+.about-container{
+max-width:1250px;
+margin:0 auto;
+display:flex;
+align-items:center;
+justify-content:space-between;
+gap:60px;
+}
+
+.about-text-content{
+flex:1;
+text-align:left;
+}
+
+.about-main-title{
+font-family:var(--font-display);
+font-size:42px;
+font-weight:700;
+color:#ffffff;
+margin-bottom:10px;
+}
+
+.about-brand-title{
+font-family:var(--font-display);
+font-size:22px;
+font-weight:700;
+color:var(--red);
+margin-bottom:20px;
+}
+
+.about-description{
+font-size:16px;
+line-height:1.7;
+color:#9ca3af;
+margin-bottom:30px;
+}
+
+.about-btn{
+display:inline-block;
+background:var(--red);
+color:#ffffff;
+padding:14px 32px;
+border-radius:999px;
+font-size:16px;
+font-weight:700;
+box-shadow:0 10px 25px rgba(239,68,68,0.3);
+transition:all .2s ease;
+}
+
+.about-btn:hover{
+background:var(--red-dark);
+transform:translateY(-2px);
+}
+
+.about-image-content{
+flex:1;
+display:flex;
+justify-content:flex-end;
+}
+
+.about-img{
+width:100%;
+max-width:600px;
+height:auto;
+border-radius:20px;
+object-fit:cover;
+box-shadow:0 20px 40px rgba(0,0,0,0.6);
+}
+
+/* ================= SECCIÓN TESTIMONIOS ================= */
+
+.testimonials-section{
+position:relative;
+background:var(--black);
+padding:100px 20px;
+text-align:center;
+}
+
+.testimonials-container{
+max-width:700px;
+margin:0 auto;
+display:flex;
+flex-direction:column;
+align-items:center;
+}
+
+.testimonials-main-title{
+font-family:var(--font-display);
+font-size:42px;
+font-weight:700;
+color:#ffffff;
+margin-bottom:12px;
+}
+
+.testimonials-subtitle{
+font-size:18px;
+font-weight:600;
+color:var(--red);
+margin-bottom:50px;
+}
+
+.testimonials-slider{
+position:relative;
+width:100%;
+max-width:550px;
+height:380px;
+margin:0 auto;
+}
+
+.testimonial-card{
+position:absolute;
+top:0;
+left:0;
+width:100%;
+height:100%;
+border-radius:24px;
+padding:50px 40px;
+display:flex;
+flex-direction:column;
+align-items:center;
+justify-content:center;
+text-align:center;
+color:#ffffff;
+box-shadow:0 20px 40px rgba(0,0,0,0.6);
+opacity:0;
+transform:scale(0.95) translateY(10px);
+transition:all 0.6s ease-in-out;
+pointer-events:none;
+}
+
+.testimonial-card.active{
+opacity:1;
+transform:scale(1) translateY(0);
+pointer-events:auto;
+z-index:10;
+}
+
+.card-green { background-color: #22c55e; }
+.card-gray { background-color: #4b5563; }
+.card-red { background-color: #ef4444; }
+
+.testimonial-avatar{
+margin-bottom:20px;
+color:#ffffff;
+}
+
+.testimonial-name{
+font-family:var(--font-display);
+font-size:24px;
+font-weight:700;
+margin-bottom:16px;
+}
+
+.testimonial-text{
+font-size:16px;
+line-height:1.6;
+font-style:italic;
+color:#f9fafb;
+}
+
+.testimonial-dots{
+display:flex;
+justify-content:center;
+gap:10px;
+margin-top:30px;
+}
+
+.dot{
+width:12px;
+height:12px;
+border-radius:50%;
+background:rgba(255,255,255,0.3);
+cursor:pointer;
+transition:all 0.3s ease;
+}
+
+.dot.active{
+background:var(--red);
+transform:scale(1.2);
+}
+
+/* ================= SECCIÓN MUDANZA (MI CAMIÓN) ================= */
+
+.moving-section {
+position: relative;
+background: #080808;
+padding: 100px 20px;
+display: flex;
+justify-content: center;
+align-items: center;
+}
+
+.moving-container {
+width: 100%;
+max-width: 1100px;
+margin: 0 auto;
+}
+
+.moving-card {
+background: #e5e7eb;
+color: #111827;
+border-radius: 30px;
+display: flex;
+align-items: center;
+justify-content: space-between;
+padding: 50px 60px;
+gap: 50px;
+box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+}
+
+.moving-image-col {
+flex: 1;
+display: flex;
+flex-direction: column;
+align-items: center;
+text-align: center;
+}
+
+.moving-img-box {
+background: #ffffff;
+border-radius: 20px;
+padding: 20px;
+width: 100%;
+max-width: 420px;
+box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+margin-bottom: 20px;
+}
+
+.moving-truck-img {
+width: 100%;
+height: auto;
+object-fit: contain;
+display: block;
+}
+
+.moving-img-caption {
+font-size: 17px;
+font-weight: 600;
+color: #1f2937;
+max-width: 360px;
+text-align: center;
+}
+
+.moving-content-col {
+flex: 1;
+display: flex;
+flex-direction: column;
+align-items: center;
+text-align: center;
+}
+
+.moving-title {
+font-family: var(--font-display);
+font-size: 38px;
+font-weight: 800;
+color: #111827;
+line-height: 1.15;
+margin-bottom: 16px;
+text-align: center;
+}
+
+.highlight-red {
+color: var(--red);
+}
+
+.moving-subtitle {
+font-size: 17px;
+color: #4b5563;
+font-weight: 500;
+margin-bottom: 30px;
+line-height: 1.5;
+text-align: center;
+}
+
+.moving-call-label {
+font-size: 14px;
+font-weight: 700;
+color: var(--red);
+letter-spacing: 0.5px;
+margin-bottom: 6px;
+text-align: center;
+}
+
+.moving-phone {
+font-family: var(--font-display);
+font-size: 36px;
+font-weight: 800;
+color: var(--red);
+margin-bottom: 30px;
+letter-spacing: -0.5px;
+text-align: center;
+transition: opacity 0.2s;
+}
+
+.moving-phone:hover {
+opacity: 0.85;
+}
+
+.moving-cta-btn {
+display: inline-block;
+background: var(--red);
+color: #ffffff;
+padding: 16px 36px;
+border-radius: 999px;
+font-size: 17px;
+font-weight: 700;
+box-shadow: 0 10px 25px rgba(239, 68, 68, 0.35);
+transition: all 0.2s ease;
+text-align: center;
+}
+
+.moving-cta-btn:hover {
+background: var(--red-dark);
+transform: translateY(-2px);
+}
+
+/* ================= SECCIÓN ACCIONES (VENTAS / COMPRAS) ================= */
+
+.actions-section {
+position: relative;
+background: var(--black);
+padding: 60px 20px 100px 20px;
+}
+
+.actions-container {
+max-width: 1250px;
+margin: 0 auto;
+display: flex;
+justify-content: space-between;
+gap: 30px;
+}
+
+.action-card {
+flex: 1;
+background: #080808;
+border: 1px solid rgba(255, 255, 255, 0.08);
+border-radius: 24px;
+padding: 50px 40px;
+text-align: center;
+box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.action-card:hover {
+border-color: rgba(239, 68, 68, 0.3);
+transform: translateY(-4px);
+}
+
+.action-title {
+font-family: var(--font-display);
+font-size: 28px;
+font-weight: 700;
+color: #ffffff;
+margin-bottom: 12px;
+}
+
+.action-desc {
+font-size: 16px;
+color: #9ca3af;
+margin-bottom: 30px;
+}
+
+.action-btn {
+display: inline-flex;
+align-items: center;
+gap: 10px;
+background: var(--red);
+color: #ffffff;
+padding: 14px 32px;
+border-radius: 999px;
+font-size: 16px;
+font-weight: 700;
+box-shadow: 0 10px 25px rgba(239, 68, 68, 0.3);
+transition: all 0.2s ease;
+}
+
+.action-btn:hover {
+background: var(--red-dark);
+transform: translateY(-2px);
+}
+
+/* ================= FOOTER / PIE DE PÁGINA ================= */
+
+.site-footer {
+position: relative;
+background: var(--black);
+color: #9ca3af;
+padding-top: 80px;
+border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.footer-container {
+max-width: 1250px;
+margin: 0 auto;
+padding: 0 20px 60px 20px;
+display: grid;
+grid-template-columns: 1.5fr 1fr 1fr 1.5fr;
+gap: 40px;
+}
+
+.footer-col {
+display: flex;
+flex-direction: column;
+}
+
+.footer-brand-title {
+font-family: var(--font-display);
+font-size: 24px;
+font-weight: 700;
+color: #ffffff;
+margin-bottom: 16px;
+line-height: 1.2;
+}
+
+.footer-brand-desc {
+font-size: 15px;
+line-height: 1.6;
+color: #9ca3af;
+margin-bottom: 24px;
+}
+
+.footer-socials {
+display: flex;
+gap: 12px;
+}
+
+.social-icon {
+display: flex;
+align-items: center;
+justify-content: center;
+width: 38px;
+height: 38px;
+border-radius: 50%;
+background: rgba(255, 255, 255, 0.06);
+color: #ffffff;
+transition: all 0.2s ease;
+}
+
+.social-icon:hover {
+background: var(--red);
+transform: translateY(-2px);
+}
+
+.footer-col-title {
+font-family: var(--font-display);
+font-size: 18px;
+font-weight: 700;
+color: #ffffff;
+margin-bottom: 20px;
+}
+
+.footer-links {
+list-style: none;
+display: flex;
+flex-direction: column;
+gap: 12px;
+}
+
+.footer-links a {
+font-size: 15px;
+color: #9ca3af;
+transition: color 0.2s ease;
+}
+
+.footer-links a:hover {
+color: var(--red);
+}
+
+.footer-contact-list {
+list-style: none;
+display: flex;
+flex-direction: column;
+gap: 16px;
+font-size: 15px;
+}
+
+.footer-contact-list li {
+display: flex;
+align-items: flex-start;
+gap: 10px;
+line-height: 1.5;
+}
+
+.contact-icon {
+font-size: 16px;
+flex-shrink: 0;
+margin-top: 2px;
+}
+
+.footer-email {
+color: var(--blue);
+word-break: break-all;
+transition: opacity 0.2s;
+}
+
+.footer-email:hover {
+opacity: 0.8;
+text-decoration: underline;
+}
+
+.footer-bottom {
+border-top: 1px solid rgba(255, 255, 255, 0.06);
+padding: 24px 20px;
+font-size: 14px;
+}
+
+.footer-bottom-container {
+max-width: 1250px;
+margin: 0 auto;
+display: flex;
+justify-content: space-between;
+align-items: center;
+flex-wrap: wrap;
+gap: 15px;
+}
+
+.footer-legal-links {
+display: flex;
+gap: 24px;
+}
+
+.footer-legal-links a {
+color: #9ca3af;
+transition: color 0.2s;
+}
+
+.footer-legal-links a:hover {
+color: #ffffff;
+}
+
+/* ================= MODO CLARO (LIGHT MODE) ================= */
+body.light-mode {
+  background: #f3f4f6;
+  color: #111827;
+}
+
+body.light-mode .site-header {
+  background: #ffffff;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+body.light-mode .nav-link {
+  color: #374151;
+}
+
+body.light-mode .nav-link:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+body.light-mode .offers-section,
+body.light-mode .testimonials-section,
+body.light-mode .actions-section,
+body.light-mode .site-footer {
+  background: #f9fafb;
+  color: #111827;
+}
+
+body.light-mode .about-section,
+body.light-mode .request-card,
+body.light-mode .action-card {
+  background: #ffffff;
+  color: #111827;
+  border-color: rgba(0, 0, 0, 0.08);
+}
+
+body.light-mode .about-description,
+body.light-mode .request-desc,
+body.light-mode .action-desc,
+body.light-mode .footer-brand-desc,
+body.light-mode .footer-links a,
+body.light-mode .footer-contact-list {
+  color: #4b5563;
+}
+
+body.light-mode .offers-title,
+body.light-mode .request-title,
+body.light-mode .about-main-title,
+body.light-mode .testimonials-main-title,
+body.light-mode .action-title,
+body.light-mode .footer-brand-title,
+body.light-mode .footer-col-title {
+  color: #111827;
+}
+
+body.light-mode .profile-menu {
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+}
+
+body.light-mode .profile-menu-item {
+  color: #111827;
+}
+
+body.light-mode .profile-menu-item:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+body.light-mode .profile-menu-divider {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+body.light-mode .profile-theme-selector {
+  background: rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+body.light-mode .theme-btn {
+  color: #6b7280;
+}
+
+body.light-mode .theme-btn:hover {
+  color: #111827;
+}
+
+body.light-mode .theme-btn.active {
+  background: #e5e7eb;
+  color: #2563eb;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* ================= CORRECCIÓN DEL LOGO Y SELLO DEMO (TAMAÑO DESTACADO Y LEVEMENTE A LA DERECHA) ================= */
+
+/* Contenedor principal de la marca en columna, desplazado ligeramente a la derecha */
+.site-header .header-inner .brand {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  width: auto !important;
+  flex-shrink: 0 !important;
+  transform: translateX(18px) !important;
+}
+
+/* Imagen del logo principal */
+.site-header .header-inner .brand .brand-logo {
+  height: 48px !important;
+  max-height: 48px !important;
+  width: auto !important;
+  max-width: 100% !important;
+  object-fit: contain !important;
+  display: block !important;
+}
+
+/* Sello DEMO con tamaño mucho más grande y prominente, y un ajuste extra sutil a la derecha */
+.site-header .header-inner .brand .brand-demo-badge {
+  height: 38px !important;
+  max-height: 38px !important;
+  width: auto !important;
+  object-fit: contain !important;
+  display: block !important;
+  margin-left: 6px !important;
+}
