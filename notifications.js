@@ -1,6 +1,6 @@
 import { auth, db } from './firebase-config.js';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { collection, query, limit, onSnapshot, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { collection, query, where, onSnapshot, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 document.addEventListener('DOMContentLoaded', () => {
   const authContainer = document.getElementById('authContainer');
@@ -28,48 +28,41 @@ document.addEventListener('DOMContentLoaded', () => {
       console.error("Error al cargar perfil en navbar:", e);
     }
 
-    // Consulta general optimizada para capturar mensajes recientes de la base de datos
-    const q = query(collection(db, "mensajes"), limit(50));
+    // Usamos exactamente el mismo filtro por userId que utiliza tu chat principal
+    const q = query(collection(db, "mensajes"), where("userId", "==", user.uid));
     
     onSnapshot(q, (snapshot) => {
       const conversationsMap = new Map();
       
       snapshot.forEach(docSnap => {
         const data = docSnap.data();
+        const propId = data.propertyId || 'general';
+        const timeA = data.timestamp?.toMillis ? data.timestamp.toMillis() : 0;
         
-        // Verificamos si el mensaje pertenece al usuario actual (ya sea como receptor o emisor)
-        const isForThisUser = data.userId === user.uid || data.receiverId === user.uid || data.agentId === user.uid || !data.userId;
-        if (!isForThisUser) return;
+        // Si el remitente NO es 'user', significa que es un mensaje entrante (no leído)
+        const isUnread = data.sender && data.sender !== 'user';
 
-        const propId = data.propertyId || data.propiedadId || 'general';
-        const timeA = data.timestamp?.toMillis ? data.timestamp.toMillis() : (data.creadoen ? new Date(data.creadoen).getTime() : Date.now());
-        
-        // Determinamos si el mensaje fue enviado por alguien más
-        const senderVal = data.sender || data.remitente || '';
-        const isFromMe = senderVal === 'user' || senderVal === user.uid || data.emisor === user.uid;
-        
         if (!conversationsMap.has(propId)) {
           conversationsMap.set(propId, {
             propertyId: propId,
-            propertyTitle: data.propertyTitle || data.titulo || 'Consulta Inmobiliaria',
-            propertyImage: data.propertyImage || data.imagen || 'assets/puerto-marina.png',
-            lastMessage: data.mensaje || data.text || data.contenido || '',
-            isFromMe: isFromMe,
+            propertyTitle: data.propertyTitle || 'Consulta Inmobiliaria',
+            propertyImage: data.propertyImage || 'assets/puerto-marina.png',
+            lastMessage: data.mensaje || data.text || '',
+            isUnread: isUnread,
             timestamp: timeA
           });
         } else {
           const existing = conversationsMap.get(propId);
           if (timeA >= existing.timestamp) {
-            existing.lastMessage = data.mensaje || data.text || data.contenido || '';
-            existing.isFromMe = isFromMe;
+            existing.lastMessage = data.mensaje || data.text || '';
+            existing.isUnread = isUnread;
             existing.timestamp = timeA;
           }
         }
       });
 
       const convs = Array.from(conversationsMap.values());
-      // Consideramos no leído si el último mensaje NO fue enviado por mí
-      const unreadConvs = convs.filter(c => !c.isFromMe);
+      const unreadConvs = convs.filter(c => c.isUnread);
       
       renderGlobalNavbar(authContainer, user.uid, displayName, avatarSrc, unreadConvs);
     });
