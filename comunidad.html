@@ -638,6 +638,8 @@
 
         const authContainer = document.getElementById('authContainer');
         const navMensajes = document.getElementById('navMensajes');
+        const mainAgentName = document.getElementById('mainAgentName');
+        const mainAgentAvatar = document.getElementById('mainAgentAvatar');
 
         onAuthStateChanged(auth, async (user) => {
           for (let i = 0; i < 5; i++) {
@@ -669,6 +671,9 @@
                 if (data.nombres) {
                   displayName = data.nombres;
                 }
+                if (data.apellidos) {
+                  displayName += " " + data.apellidos;
+                }
                 if (data.fotoPerfil) {
                   avatarSrc = data.fotoPerfil;
                 }
@@ -676,6 +681,10 @@
             } catch (error) {
               console.error("Error al obtener datos de Firestore:", error);
             }
+
+            // Actualizar la tarjeta del Agente Recomendado principal con los datos de Firestore
+            if (mainAgentName) mainAgentName.textContent = displayName;
+            if (mainAgentAvatar) mainAgentAvatar.src = avatarSrc;
 
             if (navMensajes) {
               navMensajes.style.display = 'inline-flex';
