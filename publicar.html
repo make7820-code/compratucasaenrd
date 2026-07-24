@@ -1156,7 +1156,8 @@
             carouselImgsHtml += `<img src="${imgSrc}" class="carousel-img" data-index="${idx}">`;
           });
 
-          const propString = encodeURIComponent(JSON.stringify(prop));
+          // CORRECCIÓN: Se reemplaza btoa/encodeURIComponent por escape seguro o paso directo de ID para evitar errores de sintaxis y corrupción de cadenas por comillas
+          const propIdSeguro = prop.id;
 
           html += `
             <div class="propiedad-card-pro" id="card-${prop.id}">
@@ -1190,9 +1191,9 @@
                     <button class="action-btn unarchive" onclick="desarchivarPublicacion('${prop.id}')">📂 Restaurar</button>
                     <button class="action-btn delete" onclick="eliminarDefinitivoArchivada('${prop.id}')">🗑️ Borrar</button>
                   ` : `
-                    <button class="action-btn edit" onclick="editarPublicacion('${propString}')">✏️ Editar</button>
-                    <button class="action-btn duplicate" onclick="duplicarPublicacion('${propString}')">📋 Duplicar</button>
-                    <button class="action-btn archive" onclick="archivarPublicacion('${propString}')">🗄️ Archivar</button>
+                    <button class="action-btn edit" onclick="editarPublicacionPorId('${propIdSeguro}')">✏️ Editar</button>
+                    <button class="action-btn duplicate" onclick="duplicarPublicacionPorId('${propIdSeguro}')">📋 Duplicar</button>
+                    <button class="action-btn archive" onclick="archivarPublicacionPorId('${propIdSeguro}')">🗄️ Archivar</button>
                     <button class="action-btn delete" onclick="eliminarPublicacionActiva('${prop.id}')">🗑️ Borrar</button>
                   `}
                 </div>
@@ -1201,6 +1202,60 @@
           `;
         });
         contenedor.innerHTML = html;
+      }
+
+      // CORRECCIÓN: Almacén global temporal de propiedades renderizadas para que las acciones por ID funcionen sin romper comillas
+      let cachePropiedadesActuales = {};
+
+      // Sobrescribimos la carga para almacenar en caché
+      const originalDibujarTarjetas = dibujarTarjetas;
+      window.dibujarTarjetas = function(fuenteDatos, contenedor, esArchivada) {
+        cachePropiedadesActuales = {};
+        fuenteDatos.forEach(p => { cachePropiedadesActuales[p.id] = p; });
+        originalDibujarTarjetas(fuenteDatos, contenedor, esArchivada);
+      };
+
+      window.editarPublicacionPorId = function(id) {
+        const prop = cachePropiedadesActuales[id];
+        if (prop) abrirModalPublicar(prop);
+      }
+
+      window.duplicarPublicacionPorId = async function(id) {
+        const prop = cachePropiedadesActuales[id];
+        if (!prop) return;
+        try {
+          alert("Duplicando propiedad en la nube...");
+          const nuevaProp = { ...prop };
+          delete nuevaProp.id;
+          nuevaProp.titulo = `${prop.titulo} (Copia)`;
+          nuevaProp.fechaCreacion = new Date().toISOString();
+
+          await addDoc(collection(db, "propiedades"), nuevaProp);
+          alert("¡Propiedad duplicada con éxito!");
+          location.reload();
+        } catch (error) {
+          console.error("Error al duplicar:", error);
+          alert("Hubo un error al duplicar la propiedad.");
+        }
+      }
+
+      window.archivarPublicacionPorId = async function(id) {
+        const prop = cachePropiedadesActuales[id];
+        if (!prop) return;
+        try {
+          let archivadas = JSON.parse(localStorage.getItem('lista_archivadas')) || [];
+          archivadas.push(prop);
+          localStorage.setItem('lista_archivadas', JSON.stringify(archivadas));
+
+          await deleteDoc(doc(db, "propiedades", prop.id));
+
+          alert("¡Propiedad archivada correctamente!");
+          actualizarContadorArchivadas();
+          renderizarPublicaciones();
+        } catch (error) {
+          console.error("Error al archivar:", error);
+          alert("Hubo un error al archivar la propiedad.");
+        }
       }
 
       const carruselIndices = {};
@@ -1221,47 +1276,6 @@
         const queryInput = document.getElementById('inputFiltroBusqueda');
         if(queryInput) {
           renderizarPublicaciones(queryInput.value);
-        }
-      }
-
-      window.editarPublicacion = function(propString) {
-        const prop = JSON.parse(decodeURIComponent(propString));
-        abrirModalPublicar(prop);
-      }
-
-      window.duplicarPublicacion = async function(propString) {
-        const prop = JSON.parse(decodeURIComponent(propString));
-        try {
-          alert("Duplicando propiedad en la nube...");
-          const nuevaProp = { ...prop };
-          delete nuevaProp.id;
-          nuevaProp.titulo = `${prop.titulo} (Copia)`;
-          nuevaProp.fechaCreacion = new Date().toISOString();
-
-          await addDoc(collection(db, "propiedades"), nuevaProp);
-          alert("¡Propiedad duplicada con éxito!");
-          location.reload();
-        } catch (error) {
-          console.error("Error al duplicar:", error);
-          alert("Hubo un error al duplicar la propiedad.");
-        }
-      }
-
-      window.archivarPublicacion = async function(propString) {
-        const prop = JSON.parse(decodeURIComponent(propString));
-        try {
-          let archivadas = JSON.parse(localStorage.getItem('lista_archivadas')) || [];
-          archivadas.push(prop);
-          localStorage.setItem('lista_archivadas', JSON.stringify(archivadas));
-
-          await deleteDoc(doc(db, "propiedades", prop.id));
-
-          alert("¡Propiedad archivada correctamente!");
-          actualizarContadorArchivadas();
-          renderizarPublicaciones();
-        } catch (error) {
-          console.error("Error al archivar:", error);
-          alert("Hubo un error al archivar la propiedad.");
         }
       }
 
