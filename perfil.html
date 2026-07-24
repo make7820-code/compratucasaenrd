@@ -486,7 +486,8 @@
           <button type="button" class="profile-action-btn-secondary" onclick="alert('Vista de perfil público.')">
             <span>👤</span> Ver Perfil Público
           </button>
-          <button type="button" class="profile-action-btn-publish" onclick="window.location.href='publicar.html'">
+          <!-- Botón de publicar con ID y oculto por defecto para evitar parpadeos -->
+          <button type="button" class="profile-action-btn-publish" id="btnPublicarPropiedad" style="display: none;" onclick="window.location.href='publicar.html'">
             <span>🏠</span> Publicar Propiedad
           </button>
         </div>
@@ -503,7 +504,8 @@
           <h2 class="profile-username" id="displayNombreCompleto">onlybladi</h2>
           <p class="profile-email-txt" id="displayUsernameSub">@onlybladi</p>
           
-          <div class="profile-role-badge">Usuario</div>
+          <!-- Badge del rol con ID para actualizarlo dinámicamente -->
+          <div class="profile-role-badge" id="textRolBadge">Usuario</div>
 
           <div class="profile-meta-box">
             <div class="profile-meta-row">
@@ -854,12 +856,21 @@
         if (!db) return;
         try {
           const docRef = db.collection("usuarios").doc(uid);
-          const doc = await docRef.get();
-          if (doc.exists) {
-            const data = doc.data();
+          const docSnap = await docRef.get();
+          if (docSnap.exists) {
+            const data = docSnap.data();
+            // Fusionamos los datos de Firestore y forzamos a que el rol tome prioridad real
             usuarioActualData = { ...usuarioActualData, ...data };
+            
+            if (data.rol) {
+              usuarioActualData.rol = data.rol;
+            }
+
             localStorage.setItem('usuario_activo', data.nombreUsuario || data.email || 'usuario');
             localStorage.setItem('sesion_activa', 'true');
+            if (data.rol) {
+              localStorage.setItem(`${data.nombreUsuario || 'usuario'}_perfil_rol`, data.rol);
+            }
           }
         } catch (error) {
           console.error("Error al cargar datos de Firestore:", error);
@@ -879,6 +890,7 @@
         usuarioActualData.idioma = localStorage.getItem(`${username}_perfil_idioma`) || '';
         usuarioActualData.zonaHoraria = localStorage.getItem(`${username}_perfil_zona`) || '';
         usuarioActualData.fotoPerfil = localStorage.getItem(`${username}_perfil_foto`) || '';
+        usuarioActualData.rol = localStorage.getItem(`${username}_perfil_rol`) || 'cliente';
       }
 
       function obtenerUsuarioActual() {
@@ -948,7 +960,8 @@
                 biografia: usuarioActualData.biografia,
                 codigoPostal: usuarioActualData.codigoPostal,
                 idioma: usuarioActualData.idioma,
-                zonaHoraria: usuarioActualData.zonaHoraria
+                zonaHoraria: usuarioActualData.zonaHoraria,
+                rol: usuarioActualData.rol || 'cliente' // Mantiene el rol actual seguro
               };
               if (usuarioActualData.fotoPerfil) {
                 datosParaFirestore.fotoPerfil = usuarioActualData.fotoPerfil;
@@ -969,13 +982,14 @@
             localStorage.setItem(`${nuevoUsername}_perfil_direccion`, sector);
             localStorage.setItem(`${nuevoUsername}_perfil_idioma`, usuarioActualData.idioma);
             localStorage.setItem(`${nuevoUsername}_perfil_zona`, usuarioActualData.zonaHoraria);
+            localStorage.setItem(`${nuevoUsername}_perfil_rol`, usuarioActualData.rol || 'cliente');
             if (usuarioActualData.fotoPerfil) {
               localStorage.setItem(`${nuevoUsername}_perfil_foto`, usuarioActualData.fotoPerfil);
             }
 
             aplicarDatosEnPantalla();
             cerrarModalEdicion();
-            alert('¡Perfil y foto subidos a Firebase Storage con éxito!');
+            alert('¡Perfil actualizado con éxito!');
           } catch (error) {
             console.error("Error al guardar en base de datos:", error);
             alert("Error al guardar los datos del usuario.");
@@ -984,20 +998,15 @@
 
         if (archivoInput.files && archivoInput.files[0]) {
           const archivo = archivoInput.files[0];
-          
           try {
             const storageRef = firebase.storage().ref();
             const rutaArchivo = storageRef.child(`fotosperfil/${Date.now()}_${archivo.name}`);
-            
-            console.log("Subiendo archivo a Firebase Storage...");
             const snapshot = await rutaArchivo.put(archivo);
             const downloadURL = await snapshot.ref.getDownloadURL();
-            console.log("Archivo subido con éxito. URL:", downloadURL);
-
             await finalizarGuardado(downloadURL);
           } catch (error) {
-            console.error("Fallo detallado al subir a Storage:", error);
-            alert("Error al subir la imagen. Revisa si tus Reglas de Firebase Storage permiten escrituras públicas.");
+            console.error("Fallo al subir a Storage:", error);
+            alert("Error al subir la imagen.");
           }
         } else {
           await finalizarGuardado();
@@ -1010,6 +1019,24 @@
 
         document.getElementById('displayNombreCompleto').innerText = nombreMostrado;
         document.getElementById('displayUsernameSub').innerText = "@" + (usuarioActualData.nombreUsuario || username);
+
+        // --- RENDERIZAR ROL Y VISIBILIDAD DEL BOTÓN DE PUBLICAR ---
+        const rolUsuario = (usuarioActualData.rol || 'cliente').toLowerCase();
+        const badgeRol = document.getElementById('textRolBadge');
+        if (badgeRol) {
+          badgeRol.innerText = rolUsuario;
+        }
+
+        const rolesPermitidos = ['superadmin', 'admin', 'agentepro', 'agente'];
+        const btnPublicar = document.getElementById('btnPublicarPropiedad');
+        
+        if (btnPublicar) {
+          if (rolesPermitidos.includes(rolUsuario)) {
+            btnPublicar.style.display = 'inline-flex';
+          } else {
+            btnPublicar.style.display = 'none';
+          }
+        }
 
         const authContainer = document.getElementById('authContainer');
         const fotoGuardada = usuarioActualData.fotoPerfil || localStorage.getItem(`${username}_perfil_foto`);
