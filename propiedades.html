@@ -958,18 +958,13 @@
             const propLocation = prop.ubicacion || prop.location || 'República Dominicana';
             const propType = prop.tipo || prop.type || 'Casa';
             
-            // =============================================================
-            // DETECCIÓN SEGURA DE LA OFERTA (Soporta oferta, offer, tipoOferta, status)
-            // =============================================================
             const rawOffer = prop.oferta || prop.offer || prop.tipoOferta || prop.status || 'Venta';
             const propOffer = rawOffer.charAt(0).toUpperCase() + rawOffer.slice(1).toLowerCase();
-            // =============================================================
 
             const propPrice = prop.precio || '0';
             const propHabs = prop.habitaciones || prop.habs || '1';
             const propBanos = prop.banos || '2';
             
-            // Recopilar todas las imágenes disponibles de la propiedad
             let listaImagenes = [];
             if (prop.imagenes && Array.isArray(prop.imagenes) && prop.imagenes.length > 0) {
               listaImagenes = prop.imagenes;
@@ -979,11 +974,9 @@
               listaImagenes = ['assets/puerto-marina.png'];
             }
 
-            // Asignación de color según tipo de oferta guardada
             const badgeBg = propOffer === 'Venta' ? '#10b981' : '#3b82f6';
             const esFavorito = favoritos.includes(propId);
 
-            // Construir HTML para el carrusel de imágenes interno de la tarjeta
             let slidesHtml = '';
             let dotsHtml = '';
 
@@ -1013,7 +1006,6 @@
                 <div class="property-img-container" data-current-slide="0" data-total-slides="${listaImagenes.length}">
                   <span class="property-badge-top" style="background: ${badgeBg};">${propOffer}</span>
                   
-                  <!-- Pista del carrusel -->
                   <div class="property-carousel-track">
                     ${slidesHtml}
                   </div>
@@ -1296,6 +1288,10 @@
           });
         }
       });
+    </script>
+
+</body>
+</html>
     </script>
 
 </body>
