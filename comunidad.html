@@ -807,7 +807,6 @@
               const userDocSnap = await getDoc(userDocRef);
               if (userDocSnap.exists()) {
                 const userData = userDocSnap.data();
-                // Tomamos únicamente el nombre principal como en perfil.html
                 if (userData.nombres) {
                   displayName = userData.nombres.trim();
                 } else if (userData.nombre) {
@@ -822,7 +821,6 @@
               console.error("Error al obtener datos del usuario actual:", error);
             }
 
-            // Escuchar mensajes en tiempo real para las notificaciones globales y campana
             const q = query(collection(db, "mensajes"), where("userId", "==", user.uid));
             
             onSnapshot(q, (snapshot) => {
