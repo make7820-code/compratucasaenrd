@@ -421,6 +421,14 @@
         const chatMainArea = document.getElementById('chatMainArea');
         const searchInput = document.getElementById('searchPropertyInput');
 
+        // Leer parámetros de la URL si vienen de una propiedad
+        const urlParams = new URLSearchParams(window.location.search);
+        const paramPropId = urlParams.get('propiedadId') || urlParams.get('id');
+        const paramDestinatario = urlParams.get('destinatario');
+        const paramTitulo = urlParams.get('titulo');
+        const paramUrlImg = urlParams.get('url') || urlParams.get('imagen');
+        const paramPrecio = urlParams.get('precio') || '';
+
         onAuthStateChanged(auth, async (user) => {
           if (!user) {
             window.location.href = 'login.html';
@@ -479,10 +487,42 @@
             }
           }
 
-          loadUserConversations(user.uid);
+          // Si hay una propiedad en la URL, verificamos si ya existe el chat o inicializamos la vista con ella
+          if (paramPropId) {
+            await verificarYCrearChatInicial(user.uid, paramPropId, paramTitulo, paramUrlImg, paramPrecio);
+          }
+
+          loadUserConversations(user.uid, paramPropId);
         });
 
-        async function loadUserConversations(userId) {
+        async function verificarYCrearChatInicial(userId, propertyId, title, image, price) {
+          try {
+            const q = query(
+              collection(db, "mensajes"), 
+              where("userId", "==", userId),
+              where("propertyId", "==", propertyId)
+            );
+            const snapshot = await getDocs(q);
+
+            // Si no hay mensajes previos para esta propiedad, creamos un mensaje inicial de bienvenida/contacto
+            if (snapshot.empty) {
+              await addDoc(collection(db, "mensajes"), {
+                userId: userId,
+                propertyId: propertyId,
+                propertyTitle: title || 'Consulta de Propiedad',
+                propertyImage: image || 'assets/puerto-marina.png',
+                propertyPrice: price || '',
+                mensaje: 'Hola, estoy interesado en esta propiedad y me gustaría recibir más información.',
+                sender: 'user',
+                timestamp: serverTimestamp()
+              });
+            }
+          } catch (error) {
+            console.error("Error al inicializar chat desde URL:", error);
+          }
+        }
+
+        async function loadUserConversations(userId, activePropId = null) {
           try {
             const q = query(collection(db, "mensajes"), where("userId", "==", userId));
             
@@ -515,12 +555,12 @@
               });
 
               const convs = Array.from(conversationsMap.values());
-              renderConversations(convs, userId);
+              renderConversations(convs, userId, activePropId);
 
               searchInput.addEventListener('input', (e) => {
                 const term = e.target.value.toLowerCase();
                 const filtered = convs.filter(c => c.propertyTitle.toLowerCase().includes(term));
-                renderConversations(filtered, userId);
+                renderConversations(filtered, userId, null);
               });
 
             });
@@ -530,16 +570,23 @@
           }
         }
 
-        function renderConversations(convs, userId) {
+        function renderConversations(convs, userId, activePropId) {
           if (convs.length === 0) {
             conversationsList.innerHTML = `<div style="padding: 20px; text-align: center; color: #a1a1aa; font-size: 13px;">No se encontraron resultados.</div>`;
             return;
           }
 
           conversationsList.innerHTML = '';
+          let targetConvToOpen = null;
+
           convs.forEach(conv => {
             const item = document.createElement('div');
             item.className = 'conversation-item';
+            if (activePropId && conv.propertyId === activePropId) {
+              item.classList.add('active');
+              targetConvToOpen = conv;
+            }
+
             item.innerHTML = `
               <img src="${conv.propertyImage}" alt="Propiedad" class="conv-thumb" onerror="this.src='assets/puerto-marina.png'">
               <div class="conv-info">
@@ -556,6 +603,11 @@
 
             conversationsList.appendChild(item);
           });
+
+          // Si hay un chat objetivo por abrir desde la URL y no se ha abierto aún, lo abrimos de manera automática
+          if (targetConvToOpen && chatMainArea.querySelector('.chat-empty-state')) {
+            openChatWindow(targetConvToOpen.propertyId, targetConvToOpen.propertyTitle, targetConvToOpen.propertyImage, targetConvToOpen.propertyPrice, userId);
+          }
         }
 
         function openChatWindow(propertyId, propertyTitle, propertyImage, propertyPrice, userId) {
@@ -600,7 +652,6 @@
 
             snapshot.forEach(docSnap => {
               const msgData = docSnap.data();
-              // El mensaje es saliente si lo mandó el usuario, o entrante si lo mandó el admin/agente
               const isOutgoing = msgData.sender === 'user';
               
               const bubble = document.createElement('div');
