@@ -77,7 +77,6 @@
           <a href="propiedades.html" class="nav-link"><span class="nav-emoji">🏢</span> Propiedades</a>
           <a href="comunidad.html" class="nav-link"><span class="nav-emoji">👥</span> Comunidad</a>
           <a href="blog.html" class="nav-link"><span class="nav-emoji">📰</span> Blog</a>
-          <a href="mensajes.html" class="nav-link" id="navMensajes" style="display: none;"><span class="nav-emoji">💬</span> Mensajes</a>
           <a href="nosotros.html" class="nav-link"><span class="nav-emoji">ℹ️</span> Nosotros</a>
           <a href="vender.html" class="nav-link"><span class="nav-emoji">🤝</span> Vender</a>
         </nav>
@@ -372,19 +371,6 @@
           clearInterval(slideInterval);
           slideInterval = setInterval(nextCard, 4000);
         });
-      });
-    </script>
-
-    <!-- SCRIPT DE FIREBASE: MOSTRAR ENLACE DE MENSAJES SI HAY SESIÓN ACTIVA -->
-    <script type="module">
-      import { auth } from './firebase-config.js';
-      import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-
-      const navMensajes = document.getElementById('navMensajes');
-      onAuthStateChanged(auth, (user) => {
-        if (navMensajes) {
-          navMensajes.style.display = user ? 'inline-flex' : 'none';
-        }
       });
     </script>
 
