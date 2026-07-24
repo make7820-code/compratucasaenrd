@@ -21,6 +21,9 @@
         --text-muted: #a1a1aa;
         --border-color: rgba(255, 255, 255, 0.1);
         --filter-sidebar-bg: rgba(18, 18, 20, 0.85);
+        /* Banners blancos forzados como solicitaste */
+        --banner-bg: #ffffff;
+        --banner-text: #212529;
       }
 
       [data-theme="light"] {
@@ -32,6 +35,8 @@
         --text-muted: #52525b;
         --border-color: rgba(0, 0, 0, 0.1);
         --filter-sidebar-bg: rgba(255, 255, 255, 0.9);
+        --banner-bg: #ffffff;
+        --banner-text: #212529;
       }
 
       /* Fondo general de la página */
@@ -40,6 +45,19 @@
         margin: 0;
         color: var(--text-main);
         transition: background-color 0.3s, color 0.3s;
+      }
+
+      /* ================= BANNER SUPERIOR (HEADER) BLANCO Y SIN LÍNEA ================= */
+      .site-header {
+        background-color: var(--banner-bg) !important;
+        color: var(--banner-text) !important;
+        border-bottom: none !important;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      }
+
+      .site-header .nav-link,
+      .site-header .brand-logo {
+        color: var(--banner-text) !important;
       }
 
       /* Contenedor principal con fondo fijo de la Plaza de la Bandera */
@@ -500,14 +518,15 @@
         color: var(--text-main);
       }
 
-      /* ================= FOOTER / BANNER INFERIOR ================= */
+      /* ================= FOOTER / BANNER INFERIOR BLANCO Y SIN LÍNEA ================= */
       .site-footer {
-        background-color: #000000;
-        color: #a1a1aa;
-        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        background-color: #ffffff;
+        color: #555555;
+        border-top: none !important; /* Línea superior eliminada */
         padding: 60px 20px 20px 20px;
         position: relative;
         z-index: 2;
+        box-shadow: 0 -2px 10px rgba(0,0,0,0.02);
       }
 
       .footer-container {
@@ -517,11 +536,11 @@
         grid-template-columns: 2fr 1fr 1fr 1.5fr;
         gap: 40px;
         padding-bottom: 40px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        border-bottom: 1px solid #dee2e6;
       }
 
       .footer-col-title {
-        color: #fff;
+        color: #212529;
         font-size: 16px;
         font-weight: 700;
         margin-bottom: 20px;
@@ -529,7 +548,7 @@
       }
 
       .footer-brand-title {
-        color: #fff;
+        color: #212529;
         font-size: 24px;
         font-weight: 800;
         margin-bottom: 14px;
@@ -542,7 +561,7 @@
       .footer-brand-desc {
         font-size: 14px;
         line-height: 1.6;
-        color: #a1a1aa;
+        color: #555555;
         margin-bottom: 20px;
       }
 
@@ -552,9 +571,9 @@
       }
 
       .footer-social-icon {
-        background: #121214;
-        border: 1px solid rgba(255, 255, 255, 0.05);
-        color: #fff;
+        background: #f1f3f5;
+        border: 1px solid #dee2e6;
+        color: #212529;
         width: 38px;
         height: 38px;
         border-radius: 50%;
@@ -569,6 +588,7 @@
       .footer-social-icon:hover {
         background: #ef4444;
         border-color: #ef4444;
+        color: #ffffff;
         opacity: 1;
       }
 
@@ -583,7 +603,7 @@
       }
 
       .footer-links a {
-        color: #a1a1aa;
+        color: #555555;
         text-decoration: none;
         font-size: 14px;
         transition: color 0.2s;
@@ -604,7 +624,7 @@
         align-items: flex-start;
         gap: 10px;
         font-size: 14px;
-        color: #a1a1aa;
+        color: #555555;
         margin-bottom: 14px;
       }
 
@@ -614,7 +634,7 @@
       }
 
       .footer-email {
-        color: #3b82f6;
+        color: #0066cc;
         text-decoration: none;
       }
 
@@ -645,7 +665,7 @@
       }
 
       .footer-bottom-links a:hover {
-        color: #fff;
+        color: #212529;
       }
 
       @media(max-width: 900px) {
@@ -682,13 +702,13 @@
 
     <!-- ================= HEADER ================= -->
     <header class="site-header">
-      <div class="header-inner">
+      <div class="header-inner" style="max-width: 1400px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; padding: 1rem 2rem;">
         
         <a href="index.html" class="brand">
-          <img src="assets/mi-logo.png" alt="Compra tu casa en RD" class="brand-logo">
+          <img src="assets/mi-logo.png" alt="Compra tu casa en RD" class="brand-logo" style="height: 40px;">
         </a>
 
-        <nav class="main-nav">
+        <nav class="main-nav" style="display: flex; gap: 20px; align-items: center;">
           <a href="index.html" class="nav-link"><span class="nav-emoji">🏠</span> Inicio</a>
           <a href="propiedades.html" class="nav-link active"><span class="nav-emoji">🏢</span> Propiedades</a>
           <a href="comunidad.html" class="nav-link"><span class="nav-emoji">👥</span> Comunidad</a>
@@ -707,12 +727,12 @@
                     <button type="button" class="notification-bell-btn">🔔</button>
                   </div>
                   <div style="display: flex; align-items: center; gap: 12px; padding: 4px 8px 4px 4px;">
-                    <span style="color: #fff; font-weight: 600; font-size: 15px; white-space: nowrap;">unai bladimir</span>
+                    <span style="font-weight: 600; font-size: 15px; white-space: nowrap;">unai bladimir</span>
                   </div>
                 </div>
               `);
             } else {
-              document.write(`<a href="login.html" class="login-btn"><span>🔐</span> Iniciar sesión</a>`);
+              document.write(`<a href="login.html" class="login-btn" style="background: #ef4444; color: #fff; padding: 10px 20px; border-radius: 20px; text-decoration: none; font-weight: 600;"><span>🔐</span> Iniciar sesión</a>`);
             }
           </script>
         </div>
@@ -864,7 +884,7 @@
 
     </div>
 
-    <!-- ================= FOOTER ================= -->
+    <!-- ================= FOOTER / BANNER INFERIOR ================= -->
     <footer class="site-footer">
       <div class="footer-container">
         
@@ -975,7 +995,7 @@
                 <div class="profile-dropdown-container" style="position: relative; display: inline-block;">
                   <button id="profileBtn" style="background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 12px; padding: 4px 8px 4px 4px; border-radius: 999px;">
                     <img src="${avatarSrc}" alt="Avatar" style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 2px solid #ef4444;" onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=${user.uid}'">
-                    <span style="color: #fff; font-weight: 600; font-size: 15px; white-space: nowrap;">${displayName}</span>
+                    <span style="font-weight: 600; font-size: 15px; white-space: nowrap;">${displayName}</span>
                   </button>
                   
                   <div id="profileDropdownMenu" class="profile-dropdown-menu">
@@ -1134,7 +1154,7 @@
           } else {
             localStorage.removeItem('user_logged');
             if (authContainer) {
-              authContainer.innerHTML = `<a href="login.html" class="login-btn"><span>🔐</span> Iniciar sesión</a>`;
+              authContainer.innerHTML = `<a href="login.html" class="login-btn" style="background: #ef4444; color: #fff; padding: 10px 20px; border-radius: 20px; text-decoration: none; font-weight: 600;"><span>🔐</span> Iniciar sesión</a>`;
             }
           }
         });
