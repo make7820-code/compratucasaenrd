@@ -65,7 +65,9 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function renderGlobalNavbar(container, userId, displayName, avatarSrc, unreadConvs) {
-  const hasUnread = unreadConvs.length > 0;
+  // Verificamos si el usuario ya marcó o leyó los mensajes en esta sesión actual mediante sessionStorage
+  const sessionCleared = sessionStorage.getItem(`notifications_cleared_${userId}`) === 'true';
+  const hasUnread = !sessionCleared && unreadConvs.length > 0;
 
   container.innerHTML = `
     <div style="position: relative; display: inline-block;">
@@ -73,15 +75,16 @@ function renderGlobalNavbar(container, userId, displayName, avatarSrc, unreadCon
         <span id="bellIconSpan" class="${hasUnread ? 'bell-ringing' : ''}">🔔</span>
       </button>
       <div id="notificationDropdown" class="notification-dropdown">
-        <div style="padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.08); font-weight: 700; font-size: 13px; color: #fff;">
-          Notificaciones de Mensajes
+        <div style="padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.08); font-weight: 700; font-size: 13px; color: #fff; display: flex; justify-content: space-between; align-items: center;">
+          <span>Notificaciones de Mensajes</span>
+          ${unreadConvs.length > 0 ? '<button id="markAllReadBtn" style="background:none; border:none; color:#3b82f6; font-size:11px; cursor:pointer; font-weight:600;">Marcar leídos</button>' : ''}
         </div>
         <div id="notificationListContent" style="max-height: 250px; overflow-y: auto;">
           ${
-            unreadConvs.length === 0 
+            unreadConvs.length === 0 || sessionCleared
             ? '<div style="padding: 20px; text-align: center; color: #71717a; font-size: 12px;">No hay mensajes nuevos</div>'
             : unreadConvs.map(c => `
-                <div class="notification-item" onclick="window.location.href='mensajes.html?propiedadId=${c.propertyId}'">
+                <div class="notification-item" data-prop="${c.propertyId}" style="display: flex; align-items: center; gap: 10px; padding: 10px 16px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.04);">
                   <img src="${c.propertyImage}" style="width: 32px; height: 32px; border-radius: 6px; object-fit: cover;" onerror="this.src='assets/puerto-marina.png'">
                   <div style="overflow: hidden;">
                     <div style="font-size: 13px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${c.propertyTitle}</div>
@@ -107,12 +110,52 @@ function renderGlobalNavbar(container, userId, displayName, avatarSrc, unreadCon
     </div>
   `;
 
-  // Eventos de interacción (hover para la campana y click para el perfil)
+  // Control del menú desplegable de notificaciones al pasar el ratón o hacer clic
   const notificationBellBtn = document.getElementById('notificationBellBtn');
   const notificationDropdown = document.getElementById('notificationDropdown');
+  
   if (notificationBellBtn && notificationDropdown) {
-    notificationBellBtn.addEventListener('mouseenter', () => { notificationDropdown.style.display = 'block'; });
-    notificationBellBtn.parentElement.addEventListener('mouseleave', () => { notificationDropdown.style.display = 'none'; });
+    notificationBellBtn.addEventListener('mouseenter', () => { 
+      notificationDropdown.style.display = 'block'; 
+    });
+    
+    notificationBellBtn.parentElement.addEventListener('mouseleave', () => { 
+      notificationDropdown.style.display = 'none'; 
+    });
+  }
+
+  // Marcar como leídas al hacer clic en el botón interno o al hacer clic en cualquier notificación individual
+  const markAllReadBtn = document.getElementById('markAllReadBtn');
+  if (markAllReadBtn) {
+    markAllReadBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      sessionStorage.setItem(`notifications_cleared_${userId}`, 'true');
+      const bellIconSpan = document.getElementById('bellIconSpan');
+      if (bellIconSpan) bellIconSpan.classList.remove('bell-ringing');
+      notificationDropdown.style.display = 'none';
+      // Recargamos o re-renderizamos visualmente el contenedor de la lista
+      const listContent = document.getElementById('notificationListContent');
+      if(listContent) listContent.innerHTML = '<div style="padding: 20px; text-align: center; color: #71717a; font-size: 12px;">No hay mensajes nuevos</div>';
+      if(markAllReadBtn) markAllReadBtn.style.display = 'none';
+    });
+  }
+
+  // Redirección y marcado automático al hacer clic en una notificación específica
+  const notificationItems = container.querySelectorAll('.notification-item');
+  notificationItems.forEach(item => {
+    item.addEventListener('click', () => {
+      sessionStorage.setItem(`notifications_cleared_${userId}`, 'true');
+      const propId = item.getAttribute('data-prop');
+      window.location.href = `mensajes.html?propiedadId=${propId}`;
+    });
+  });
+
+  // Evento de clic en el enlace general de "Mensajes" del menú principal para limpiar también la campana
+  const navMensajes = document.getElementById('navMensajes');
+  if (navMensajes) {
+    navMensajes.addEventListener('click', () => {
+      sessionStorage.setItem(`notifications_cleared_${userId}`, 'true');
+    });
   }
 
   const profileBtn = document.getElementById('profileBtn');
@@ -131,6 +174,7 @@ function renderGlobalNavbar(container, userId, displayName, avatarSrc, unreadCon
       const { signOut } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js");
       await signOut(auth);
       localStorage.clear();
+      sessionStorage.clear();
       window.location.href = 'index.html';
     });
   }
