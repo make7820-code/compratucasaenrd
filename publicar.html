@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestión de Publicaciones | Compra tu casa en RD</title>
-    <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
     <!-- Hoja de Estilos Principal -->
@@ -858,53 +856,71 @@
       </div>
     </footer>
 
-    <!-- SCRIPTS CON CONTROL DE ACCESO Y PERFIL -->
+    <!-- SCRIPTS CON CONTROL DE ERRORES ROBUSTO Y SEGURIDAD FIRESTORE -->
     <script type="module">
-      import { db, storage, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, ref, uploadBytes, getDownloadURL } from './firebase-config.js';
+      import { auth, db, storage, collection, addDoc, getDocs, doc, getDoc, updateDoc, deleteDoc, ref, uploadBytes, getDownloadURL } from './firebase-config.js';
+      import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
       let mostrandoArchivadas = false;
       let imagenesEditandoActuales = []; // Array temporal para controlar las imágenes al editar
 
       window.addEventListener('DOMContentLoaded', () => {
-        try {
-          // ================= CONTROL DE ACCESO Y SESIÓN =================
-          const usuarioActivo = localStorage.getItem('usuario_activo');
-          const rolUsuario = localStorage.getItem('usuario_rol') || 'cliente'; // Por defecto se asume cliente si no existe
-
-          // Roles permitidos para acceder a la gestión de publicaciones
-          const rolesPermitidos = ['superadmin', 'admin', 'agentepro', 'agente'];
-
-          // Si no hay sesión o el rol no está permitido, se bloquea el acceso redirigiendo al inicio
-          if (!usuarioActivo || !rolesPermitidos.includes(rolUsuario.toLowerCase())) {
-            alert("Acceso denegado. No tienes permisos para ver la sección de publicaciones.");
-            window.location.href = 'index.html';
-            return; // Detiene la ejecución posterior
-          }
-          // ==============================================================
-
-          const savedTheme = localStorage.getItem('site_theme') || 'dark';
-          if (savedTheme === 'light') document.body.classList.add('light-mode');
-
-          // Carga los datos del perfil guardados en localStorage (igual que en perfil.html)
-          const username = usuarioActivo;
-          const nombreCompleto = localStorage.getItem('perfil_nombre') || username;
-          const fotoGuardada = localStorage.getItem('perfil_foto');
-          const authContainer = document.getElementById('authContainer');
-          
-          if (authContainer) {
-            authContainer.innerHTML = `
-              <a href="perfil.html" style="display: flex; align-items: center; gap: 10px; text-decoration: none;">
-                <img src="${fotoGuardada || 'assets/onlybladi-avatar.png'}" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 2px solid #f59e0b;" onerror="this.src='https://picsum.photos/36'">
-                <span style="color: var(--text-main); font-weight: 600; font-size: 14px;">${nombreCompleto}</span>
-              </a>
-            `;
+        // ================= CONTROL DE ACCESO SEGURO DESDE FIREBASE =================
+        onAuthStateChanged(auth, async (user) => {
+          if (!user) {
+            alert("Debes iniciar sesión para acceder.");
+            window.location.href = "index.html";
+            return;
           }
 
-          actualizarContadorArchivadas();
-          renderizarPublicaciones();
-        } catch (e) {
-          console.error("Error al inicializar la interfaz:", e);
-        }
+          try {
+            const snap = await getDoc(doc(db, "usuarios", user.uid));
+
+            if (!snap.exists()) {
+              alert("Acceso denegado. No se encontró tu perfil en la base de datos.");
+              window.location.href = "index.html";
+              return;
+            }
+
+            const datos = snap.data();
+            const rolUsuario = (datos.rol || "").toLowerCase();
+
+            // Roles permitidos para acceder a la gestión de publicaciones
+            const rolesPermitidos = ['superadmin', 'admin', 'agentepro', 'agente'];
+
+            if (!rolesPermitidos.includes(rolUsuario)) {
+              alert("Acceso denegado. No tienes permisos para ver la sección de publicaciones.");
+              window.location.href = 'index.html';
+              return;
+            }
+
+            const savedTheme = localStorage.getItem('site_theme') || 'dark';
+            if (savedTheme === 'light') document.body.classList.add('light-mode');
+
+            // Obtenemos el nombre y foto de forma segura desde Firestore
+            const nombreCompleto = datos.nombre || datos.nombres || datos.nombreCompleto || "Usuario";
+            const fotoGuardada = datos.foto || datos.avatar || 'assets/onlybladi-avatar.png';
+            const authContainer = document.getElementById('authContainer');
+            
+            if (authContainer) {
+              authContainer.innerHTML = `
+                <a href="perfil.html" style="display: flex; align-items: center; gap: 10px; text-decoration: none;">
+                  <img src="${fotoGuardada}" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 2px solid #f59e0b;" onerror="this.src='https://picsum.photos/36'">
+                  <span style="color: var(--text-main); font-weight: 600; font-size: 14px;">${nombreCompleto}</span>
+                </a>
+              `;
+            }
+
+            actualizarContadorArchivadas();
+            renderizarPublicaciones();
+
+          } catch (e) {
+            console.error("Error al comprobar permisos en Firebase:", e);
+            alert("Ocurrió un error al validar tus credenciales.");
+            window.location.href = "index.html";
+          }
+        });
+        // ==============================================================================
       });
 
       function actualizarContadorArchivadas() {
