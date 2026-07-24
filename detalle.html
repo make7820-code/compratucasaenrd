@@ -667,20 +667,27 @@
         if (selectedProperty) {
           const offer = selectedProperty.operacion || selectedProperty.offer || 'Venta';
           const badgeBg = offer.toLowerCase() === 'venta' ? '#10b981' : '#3b82f6';
-          const title = selectedProperty.titulo || selectedProperty.title || 'Sin título';
-          const location = selectedProperty.ubicacion || selectedProperty.location || 'República Dominicana';
-          const price = selectedProperty.precio || '0';
-          const habs = selectedProperty.habitaciones || selectedProperty.habs || '1';
-          const banos = selectedProperty.banos || '2';
-          const metros = selectedProperty.metros || 'N/D';
+          const title = selectedProperty.titulo || selectedProperty.title || selectedProperty.nombre || 'Sin título';
+          const location = selectedProperty.ubicacion || selectedProperty.location || selectedProperty.direccion || 'República Dominicana';
+          const price = selectedProperty.precio || selectedProperty.price || '0';
+          const habs = selectedProperty.habitaciones || selectedProperty.habs || selectedProperty.habitacion || '1';
+          const banos = selectedProperty.banos || selectedProperty.bathrooms || selectedProperty.bano || '2';
+          const metros = selectedProperty.metros || selectedProperty.superficie || selectedProperty.area || 'N/D';
           
-          // Campos nuevos y sincronizados
-          const nivel = selectedProperty.nivel || selectedProperty.altura || 'N/D';
-          const parqueos = selectedProperty.parqueos || selectedProperty.parking || '1';
-          const depositos = selectedProperty.depositos || selectedProperty.deposits || '1 depósito';
+          const nivel = selectedProperty.nivel || selectedProperty.altura || selectedProperty.piso || 'N/D';
+          const parqueos = selectedProperty.parqueos || selectedProperty.parking || selectedProperty.parqueo || '1';
+          
+          // Búsqueda inteligente para Depósitos
+          const depositos = selectedProperty.depositos || selectedProperty.deposits || selectedProperty.cantidadDepositos || selectedProperty.deposito || null;
 
-          // Validación condicional de Extranjero (Si no está marcado, no se genera el HTML)
-          const aceptaExtranjero = selectedProperty.extranjero !== undefined ? selectedProperty.extranjero : selectedProperty.aceptanExtranjeros;
+          // Búsqueda inteligente para Extranjeros
+          const rawExtranjero = selectedProperty.extranjero !== undefined ? selectedProperty.extranjero 
+                              : selectedProperty.aceptanExtranjeros !== undefined ? selectedProperty.aceptanExtranjeros 
+                              : selectedProperty.permiteExtranjeros;
+          
+          const aceptaExtranjero = rawExtranjero === true || rawExtranjero === "true" || rawExtranjero === "si" || rawExtranjero === "sí" || rawExtranjero === 1;
+
+          // Tarjeta de extranjero condicional
           const extranjeroHtml = aceptaExtranjero 
             ? `<div class="spec-card">
                  <span>Extranjeros</span>
@@ -688,8 +695,16 @@
                </div>` 
             : '';
 
+          // Tarjeta de depósitos condicional
+          const depositosHtml = depositos 
+            ? `<div class="spec-card" style="grid-column: 1 / -1;">
+                 <span>Depósitos Requeridos</span>
+                 <strong>💰 ${depositos}</strong>
+               </div>` 
+            : '';
+
           const imgs = (selectedProperty.imagenes && selectedProperty.imagenes.length > 0) ? selectedProperty.imagenes : [selectedProperty.image || 'assets/puerto-marina.png'];
-          const description = selectedProperty.descripcion || selectedProperty.description || 'Sin descripción detallada.';
+          const description = selectedProperty.descripcion || selectedProperty.description || selectedProperty.detalles || 'Sin descripción detallada.';
           const agente = "Daniel Decena";
 
           container.innerHTML = `
@@ -738,13 +753,11 @@
                   <strong>🚗 ${parqueos} Parqueos</strong>
                 </div>
                 
-                <!-- Solo se muestra si la casilla de extranjero fue marcada -->
+                <!-- Tarjeta condicional de Extranjeros -->
                 ${extranjeroHtml}
 
-                <div class="spec-card" style="grid-column: 1 / -1;">
-                  <span>Depósitos Requeridos</span>
-                  <strong>💰 ${depositos}</strong>
-                </div>
+                <!-- Tarjeta condicional de Depósitos -->
+                ${depositosHtml}
               </div>
 
               <div class="property-description-section">
