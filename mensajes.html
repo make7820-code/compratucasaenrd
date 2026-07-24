@@ -112,6 +112,7 @@
         align-items: center;
         margin-bottom: 6px;
         border: 1px solid transparent;
+        position: relative;
       }
 
       .conversation-item:hover {
@@ -153,6 +154,18 @@
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+      }
+
+      .unread-dot {
+        width: 10px;
+        height: 10px;
+        background-color: #10b981;
+        border-radius: 50%;
+        position: absolute;
+        right: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        box-shadow: 0 0 8px #10b981;
       }
 
       .chat-main-area {
@@ -299,6 +312,49 @@
         background: #dc2626;
       }
 
+      /* Animación de la campanita */
+      @keyframes ringBell {
+        0% { transform: rotate(0deg); }
+        20% { transform: rotate(15deg); }
+        40% { transform: rotate(-15deg); }
+        60% { transform: rotate(10deg); }
+        80% { transform: rotate(-10deg); }
+        100% { transform: rotate(0deg); }
+      }
+
+      .bell-ringing {
+        animation: ringBell 1s infinite ease-in-out;
+        display: inline-block;
+      }
+
+      .notification-dropdown {
+        display: none;
+        position: absolute;
+        right: 0;
+        top: 50px;
+        background: #18181b;
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 12px;
+        width: 300px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+        z-index: 1000;
+        overflow: hidden;
+      }
+
+      .notification-item {
+        padding: 12px 16px;
+        border-bottom: 1px solid rgba(255,255,255,0.06);
+        cursor: pointer;
+        transition: background 0.2s;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .notification-item:hover {
+        background: rgba(255,255,255,0.05);
+      }
+
       @media(max-width: 900px) {
         .messaging-container {
           grid-template-columns: 1fr;
@@ -329,7 +385,7 @@
           <a href="vender.html" class="nav-link"><span class="nav-emoji">🤝</span> Vender</a>
         </nav>
 
-        <div id="authContainer">
+        <div id="authContainer" style="display: flex; align-items: center; gap: 15px;">
           <a href="login.html" class="login-btn">
             <span>🔐</span> Iniciar sesión
           </a>
@@ -450,46 +506,11 @@
 
           if (navMensajes) navMensajes.style.display = 'inline-flex';
 
-          if (authContainer) {
-            authContainer.innerHTML = `
-              <div class="profile-dropdown-container" style="position: relative; display: inline-block;">
-                <button id="profileBtn" style="background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 12px; padding: 4px 8px 4px 4px; border-radius: 999px;">
-                  <img src="${avatarSrc}" alt="Avatar" style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 2px solid #ef4444;" onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=${user.uid}'">
-                  <span style="color: #fff; font-weight: 600; font-size: 15px;">${displayName}</span>
-                </button>
-                <div id="profileMenu" class="profile-menu" style="display:none; position: absolute; right: 0; top: 50px; background: #18181b; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 10px; width: 180px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 1000;">
-                  <button class="profile-menu-item" onclick="window.location.href='perfil.html'" style="width:100%; background:none; border:none; color:#fff; text-align:left; padding:8px; cursor:pointer; border-radius:6px;">Ir al Perfil</button>
-                  <div style="height:1px; background:rgba(255,255,255,0.1); margin:6px 0;"></div>
-                  <button id="cerrarSesionBtn" style="width:100%; background:none; border:none; color:#ef4444; text-align:left; padding:8px; cursor:pointer; border-radius:6px;">Cerrar Sesión</button>
-                </div>
-              </div>
-            `;
-
-            const profileBtn = document.getElementById('profileBtn');
-            const profileMenu = document.getElementById('profileMenu');
-            if (profileBtn && profileMenu) {
-              profileBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                profileMenu.style.display = profileMenu.style.display === 'block' ? 'none' : 'block';
-              });
-              document.addEventListener('click', () => { profileMenu.style.display = 'none'; });
-            }
-
-            const cerrarBtn = document.getElementById('cerrarSesionBtn');
-            if (cerrarBtn) {
-              cerrarBtn.addEventListener('click', async () => {
-                await signOut(auth);
-                localStorage.clear();
-                window.location.href = 'index.html';
-              });
-            }
-          }
-
           if (paramPropId) {
             await verificarYCrearChatInicial(user.uid, paramPropId, paramTitulo, paramUrlImg, paramPrecio);
           }
 
-          loadUserConversations(user.uid, paramPropId);
+          loadUserConversationsAndNotifications(user.uid, paramPropId, displayName, avatarSrc);
         });
 
         async function verificarYCrearChatInicial(userId, propertyId, title, image, price) {
@@ -518,7 +539,7 @@
           }
         }
 
-        async function loadUserConversations(userId, activePropId = null) {
+        function loadUserConversationsAndNotifications(userId, activePropId, displayName, avatarSrc) {
           try {
             const q = query(collection(db, "mensajes"), where("userId", "==", userId));
             
@@ -530,6 +551,7 @@
                     Explora las propiedades y contacta al asesor desde el botón de detalle.
                   </div>
                 `;
+                renderHeaderWithNotifications([], userId, displayName, avatarSrc, activePropId);
                 return;
               }
 
@@ -538,6 +560,9 @@
               snapshot.forEach(docSnap => {
                 const data = docSnap.data();
                 const propId = data.propertyId || 'general';
+                
+                const timeA = data.timestamp?.toMillis ? data.timestamp.toMillis() : 0;
+                
                 if (!conversationsMap.has(propId)) {
                   conversationsMap.set(propId, {
                     propertyId: propId,
@@ -545,13 +570,22 @@
                     propertyImage: data.propertyImage || 'assets/puerto-marina.png',
                     propertyPrice: data.propertyPrice || '',
                     lastMessage: data.mensaje || data.text || '',
-                    timestamp: data.timestamp
+                    sender: data.sender || 'user',
+                    timestamp: timeA
                   });
+                } else {
+                  const existing = conversationsMap.get(propId);
+                  if (timeA >= existing.timestamp) {
+                    existing.lastMessage = data.mensaje || data.text || '';
+                    existing.sender = data.sender || 'user';
+                    existing.timestamp = timeA;
+                  }
                 }
               });
 
               const convs = Array.from(conversationsMap.values());
               renderConversations(convs, userId, activePropId);
+              renderHeaderWithNotifications(convs, userId, displayName, avatarSrc, activePropId);
 
               searchInput.addEventListener('input', (e) => {
                 const term = e.target.value.toLowerCase();
@@ -583,18 +617,23 @@
               targetConvToOpen = conv;
             }
 
+            const isUnread = conv.sender && conv.sender !== 'user';
+
             item.innerHTML = `
               <img src="${conv.propertyImage}" alt="Propiedad" class="conv-thumb" onerror="this.src='assets/puerto-marina.png'">
               <div class="conv-info">
                 <div class="conv-property-title">${conv.propertyTitle}</div>
                 <div class="conv-last-msg">${conv.lastMessage}</div>
               </div>
+              ${isUnread ? '<div class="unread-dot" title="Nuevo mensaje"></div>' : ''}
             `;
 
             item.addEventListener('click', () => {
               document.querySelectorAll('.conversation-item').forEach(el => el.classList.remove('active'));
               item.classList.add('active');
               openChatWindow(conv.propertyId, conv.propertyTitle, conv.propertyImage, conv.propertyPrice, userId);
+              const dot = item.querySelector('.unread-dot');
+              if(dot) dot.remove();
             });
 
             conversationsList.appendChild(item);
@@ -602,6 +641,82 @@
 
           if (targetConvToOpen && chatMainArea.querySelector('.chat-empty-state')) {
             openChatWindow(targetConvToOpen.propertyId, targetConvToOpen.propertyTitle, targetConvToOpen.propertyImage, targetConvToOpen.propertyPrice, userId);
+          }
+        }
+
+        function renderHeaderWithNotifications(convs, userId, displayName, avatarSrc, activePropId) {
+          const unreadConvs = convs.filter(c => c.sender && c.sender !== 'user');
+          const hasUnread = unreadConvs.length > 0;
+
+          authContainer.innerHTML = `
+            <div style="position: relative; display: inline-block;">
+              <button id="notificationBellBtn" style="background: none; border: none; cursor: pointer; font-size: 20px; padding: 6px; position: relative;">
+                <span class="${hasUnread ? 'bell-ringing' : ''}">🔔</span>
+              </button>
+              <div id="notificationDropdown" class="notification-dropdown">
+                <div style="padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.08); font-weight: 700; font-size: 13px; color: #fff;">
+                  Notificaciones de Mensajes
+                </div>
+                <div id="notificationListContent" style="max-height: 250px; overflow-y: auto;">
+                  ${
+                    unreadConvs.length === 0 
+                    ? '<div style="padding: 20px; text-align: center; color: #71717a; font-size: 12px;">No hay mensajes nuevos</div>'
+                    : unreadConvs.map(c => `
+                        <div class="notification-item" onclick="window.location.href='mensajes.html?propiedadId=${c.propertyId}'">
+                          <img src="${c.propertyImage}" style="width: 32px; height: 32px; border-radius: 6px; object-fit: cover;" onerror="this.src='assets/puerto-marina.png'">
+                          <div style="overflow: hidden;">
+                            <div style="font-size: 13px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${c.propertyTitle}</div>
+                            <div style="font-size: 11px; color: #a1a1aa; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${c.lastMessage}</div>
+                          </div>
+                        </div>
+                      `).join('')
+                  }
+                </div>
+              </div>
+            </div>
+
+            <div class="profile-dropdown-container" style="position: relative; display: inline-block;">
+              <button id="profileBtn" style="background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 12px; padding: 4px 8px 4px 4px; border-radius: 999px;">
+                <img src="${avatarSrc}" alt="Avatar" style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 2px solid #ef4444;" onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=${userId}'">
+                <span style="color: #fff; font-weight: 600; font-size: 15px;">${displayName}</span>
+              </button>
+              <div id="profileMenu" class="profile-menu" style="display:none; position: absolute; right: 0; top: 50px; background: #18181b; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 10px; width: 180px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 1000;">
+                <button class="profile-menu-item" onclick="window.location.href='perfil.html'" style="width:100%; background:none; border:none; color:#fff; text-align:left; padding:8px; cursor:pointer; border-radius:6px;">Ir al Perfil</button>
+                <div style="height:1px; background:rgba(255,255,255,0.1); margin:6px 0;"></div>
+                <button id="cerrarSesionBtn" style="width:100%; background:none; border:none; color:#ef4444; text-align:left; padding:8px; cursor:pointer; border-radius:6px;">Cerrar Sesión</button>
+              </div>
+            </div>
+          `;
+
+          const notificationBellBtn = document.getElementById('notificationBellBtn');
+          const notificationDropdown = document.getElementById('notificationDropdown');
+          
+          if (notificationBellBtn && notificationDropdown) {
+            notificationBellBtn.addEventListener('mouseenter', () => {
+              notificationDropdown.style.display = 'block';
+            });
+            notificationBellBtn.parentElement.addEventListener('mouseleave', () => {
+              notificationDropdown.style.display = 'none';
+            });
+          }
+
+          const profileBtn = document.getElementById('profileBtn');
+          const profileMenu = document.getElementById('profileMenu');
+          if (profileBtn && profileMenu) {
+            profileBtn.addEventListener('click', (e) => {
+              e.stopPropagation();
+              profileMenu.style.display = profileMenu.style.display === 'block' ? 'none' : 'block';
+            });
+            document.addEventListener('click', () => { profileMenu.style.display = 'none'; });
+          }
+
+          const cerrarBtn = document.getElementById('cerrarSesionBtn');
+          if (cerrarBtn) {
+            cerrarBtn.addEventListener('click', async () => {
+              await signOut(auth);
+              localStorage.clear();
+              window.location.href = 'index.html';
+            });
           }
         }
 
@@ -645,7 +760,6 @@
               return;
             }
 
-            // Ordenar los mensajes en memoria por fecha para evitar requerir índices compuestos en Firestore
             const mensajesList = [];
             snapshot.forEach(docSnap => {
               mensajesList.push(docSnap.data());
@@ -694,7 +808,6 @@
                 timestamp: serverTimestamp()
               });
 
-              // Recargar la página inmediatamente después de enviar para actualizar y ver el mensaje reflejado
               window.location.reload();
             } catch (error) {
               console.error("Error al enviar mensaje:", error);
