@@ -335,6 +335,24 @@
         100% { transform: rotate(0); }
       }
 
+      /* Animación para la luz verde parpadeante en la foto de perfil */
+      @keyframes greenPulse {
+        0% {
+          box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+        }
+        70% {
+          box-shadow: 0 0 0 10px rgba(34, 197, 94, 0);
+        }
+        100% {
+          box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+        }
+      }
+
+      .profile-avatar-active {
+        border: 2px solid #22c55e !important;
+        animation: greenPulse 1.5s infinite;
+      }
+
       .notification-dropdown {
         display: none;
         position: absolute;
@@ -669,7 +687,6 @@
 
       const AGENT_FIXED_UID = "2E7tIaEfdGeVERzDtWvaXQEmPG02";
 
-      // Definición de los 5 agentes/usuarios del ranking
       let agentsList = [
         { id: 0, uid: AGENT_FIXED_UID, name: "Cargando...", avatar: "assets/onlybladi-avatar.png", isFixed: true },
         { id: 1, uid: "user_1", name: "Nuevo usuario", avatar: null, isFixed: false },
@@ -877,6 +894,8 @@
         const existingProfileMenu = document.getElementById('profileMenu');
         const wasProfileMenuOpen = existingProfileMenu ? existingProfileMenu.classList.contains('show') : false;
 
+        const avatarBorderClass = hasUnread ? 'profile-avatar-active' : '';
+
         authContainer.innerHTML = `
           <div style="display: flex; align-items: center; gap: 12px;">
             <!-- Campana de Notificaciones -->
@@ -910,7 +929,7 @@
             <!-- Perfil Desplegable -->
             <div class="profile-dropdown-container" style="position: relative; display: inline-block;">
               <button id="profileBtn" style="background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 12px; padding: 4px 8px 4px 4px; border-radius: 999px; transition: background 0.2s;">
-                <img src="${avatarSrc}" alt="Avatar" style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 2px solid #ef4444;" onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=${user.uid}'">
+                <img src="${avatarSrc}" alt="Avatar" class="${avatarBorderClass}" style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover;" onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=${user.uid}'">
                 <span style="color: #fff; font-weight: 600; font-size: 15px; font-family: var(--font-display, sans-serif);">${displayName}</span>
               </button>
 
