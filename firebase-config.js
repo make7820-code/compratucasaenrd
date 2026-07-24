@@ -1,8 +1,3 @@
-El error se debe a que estás intentando importar **`query`** directamente desde `./firebase-config.js` en tu archivo `propiedades.html`, pero ese archivo todavía no exporta `query`.
-
-Para solucionarlo de una vez y asegurarnos de que no falte ninguna función de Firestore (como `query` o `where`), actualiza tu archivo **`firebase-config.js`** completo con el siguiente código:
-
-```javascript
 // Importa los SDKs necesarios de Firebase desde su CDN oficial[cite: 6]
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";[cite: 6]
 import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";[cite: 6]
@@ -27,7 +22,3 @@ const storage = getStorage(app);[cite: 6]
 
 // Exportar todas las herramientas incluyendo 'query' y 'where'[cite: 6]
 export { auth, db, storage, collection, addDoc, getDocs, doc, getDoc, updateDoc, deleteDoc, onSnapshot, query, where, ref, uploadBytes, getDownloadURL };[cite: 6]
-
-```
-
-Guarda los cambios en `firebase-config.js` y recarga la página. Con esto el perfil y las consultas volverán a funcionar correctamente.
