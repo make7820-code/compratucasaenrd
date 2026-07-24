@@ -323,7 +323,7 @@
         color: #a1a1aa;
       }
 
-      /* Estilos para el menú flotante del perfil */
+      /* Estilos para el menú flotante del perfil y notificaciones */
       .profile-dropdown-menu {
         display: none;
         position: absolute;
@@ -414,6 +414,106 @@
 
       .profile-dropdown-item.logout:hover {
         background: rgba(239, 68, 68, 0.1);
+      }
+
+      /* Campanita y contenedor de notificaciones en el header */
+      .header-right-actions {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+
+      .notification-bell-wrapper {
+        position: relative;
+      }
+
+      .notification-bell-btn {
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: #fff;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        position: relative;
+        transition: background 0.2s;
+      }
+
+      .notification-bell-btn:hover {
+        background: rgba(255, 255, 255, 0.15);
+      }
+
+      .notification-badge {
+        position: absolute;
+        top: -2px;
+        right: -2px;
+        background: #ef4444;
+        color: #fff;
+        font-size: 10px;
+        font-weight: 700;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid #121214;
+      }
+
+      .notification-dropdown {
+        display: none;
+        position: absolute;
+        right: 0;
+        top: 50px;
+        background: #18181b;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.7);
+        width: 320px;
+        z-index: 1000;
+        overflow: hidden;
+      }
+
+      .notification-dropdown.show {
+        display: block;
+      }
+
+      .notification-header {
+        padding: 14px 16px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .notification-header h4 {
+        margin: 0;
+        color: #fff;
+        font-size: 14px;
+        font-weight: 700;
+      }
+
+      .notification-list {
+        max-height: 280px;
+        overflow-y: auto;
+      }
+
+      .notification-item {
+        padding: 12px 16px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        color: #a1a1aa;
+        font-size: 13px;
+        text-decoration: none;
+        display: block;
+        transition: background 0.2s;
+      }
+
+      .notification-item:hover {
+        background: rgba(255, 255, 255, 0.04);
+        color: #fff;
       }
 
       /* ================= FOOTER / BANNER INFERIOR ================= */
@@ -603,7 +703,7 @@
           <a href="vender.html" class="nav-link"><span class="nav-emoji">🤝</span> Vender</a>
         </nav>
 
-        <!-- CONTENEDOR DE SESIÓN / PERFIL -->
+        <!-- CONTENEDOR DE SESIÓN / PERFIL + CAMPANITA -->
         <div id="authContainer">
           <a href="login.html" class="login-btn">
             <span>🔐</span> Iniciar sesión
@@ -825,9 +925,9 @@
       </div>
     </footer>
 
-    <!-- SCRIPT MÓDULO CONECTADO A FIREBASE + CARRUSEL + FAVORITOS + ETIQUETAS DINÁMICAS -->
+    <!-- SCRIPT MÓDULO CONECTADO A FIREBASE + CARRUSEL + FAVORITOS + NOTIFICACIONES + MENSAJES -->
     <script type="module">
-      import { auth, db, collection, getDocs, doc, getDoc } from './firebase-config.js';
+      import { auth, db, collection, getDocs, doc, getDoc, query, where, onSnapshot } from './firebase-config.js';
       import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
       window.addEventListener('DOMContentLoaded', async () => {
@@ -857,55 +957,124 @@
             }
 
             authContainer.innerHTML = `
-              <div class="profile-dropdown-container" style="position: relative; display: inline-block;">
-                <button id="profileBtn" style="background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 12px; padding: 4px 8px 4px 4px; border-radius: 999px;">
-                  <img src="${avatarSrc}" alt="Avatar" style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 2px solid #ef4444;" onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=${user.uid}'">
-                  <span style="color: #fff; font-weight: 600; font-size: 15px;">${displayName}</span>
-                </button>
-                
-                <div id="profileDropdownMenu" class="profile-dropdown-menu">
-                  <a href="perfil.html" class="profile-dropdown-item">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #fff; flex-shrink: 0;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                    <span>Ir al Perfil</span>
-                  </a>
-                  
-                  <div class="profile-dropdown-divider"></div>
-                  
-                  <div class="profile-dropdown-section-title">ASPECTO FÍSICO</div>
-                  <div class="theme-selector-box">
-                    <button type="button" class="theme-option" data-theme="light" title="Modo Claro">☀️</button>
-                    <button type="button" class="theme-option" data-theme="system" title="Sistema">💻</button>
-                    <button type="button" class="theme-option active" data-theme="dark" title="Modo Oscuro">🌙</button>
-                  </div>
-                  
-                  <div class="profile-dropdown-divider"></div>
-                  
-                  <button type="button" id="btnLogout" class="profile-dropdown-item logout">
-                    <span style="font-size: 16px;">🚫</span> Cerrar Sesión
+              <div class="header-right-actions">
+                <!-- CAMPANITA DE NOTIFICACIONES -->
+                <div class="notification-bell-wrapper">
+                  <button type="button" id="notificationBellBtn" class="notification-bell-btn" title="Notificaciones">
+                    <span>🔔</span>
+                    <span id="notificationBadge" class="notification-badge" style="display: none;">0</span>
                   </button>
+                  <div id="notificationDropdown" class="notification-dropdown">
+                    <div class="notification-header">
+                      <h4>Notificaciones</h4>
+                      <span style="font-size: 11px; color: #71717a;">Tiempo real</span>
+                    </div>
+                    <div id="notificationList" class="notification-list">
+                      <div style="padding: 16px; text-align: center; color: #71717a; font-size: 13px;">No hay notificaciones nuevas</div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- MENÚ FLOTANTE DE PERFIL -->
+                <div class="profile-dropdown-container" style="position: relative; display: inline-block;">
+                  <button id="profileBtn" style="background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 12px; padding: 4px 8px 4px 4px; border-radius: 999px;">
+                    <img src="${avatarSrc}" alt="Avatar" style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 2px solid #ef4444;" onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=${user.uid}'">
+                    <span style="color: #fff; font-weight: 600; font-size: 15px;">${displayName}</span>
+                  </button>
+                  
+                  <div id="profileDropdownMenu" class="profile-dropdown-menu">
+                    <a href="perfil.html" class="profile-dropdown-item">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #fff; flex-shrink: 0;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                      <span>Ir al Perfil</span>
+                    </a>
+
+                    <a href="mensajes.html" class="profile-dropdown-item">
+                      <span style="font-size: 16px;">💬</span>
+                      <span>Mensajes</span>
+                    </a>
+                    
+                    <div class="profile-dropdown-divider"></div>
+                    
+                    <div class="profile-dropdown-section-title">ASPECTO FÍSICO</div>
+                    <div class="theme-selector-box">
+                      <button type="button" class="theme-option" data-theme="light" title="Modo Claro">☀️</button>
+                      <button type="button" class="theme-option" data-theme="system" title="Sistema">💻</button>
+                      <button type="button" class="theme-option active" data-theme="dark" title="Modo Oscuro">🌙</button>
+                    </div>
+                    
+                    <div class="profile-dropdown-divider"></div>
+                    
+                    <button type="button" id="btnLogout" class="profile-dropdown-item logout">
+                      <span style="font-size: 16px;">🚫</span> Cerrar Sesión
+                    </button>
+                  </div>
                 </div>
               </div>
             `;
 
+            // Escuchar notificaciones y mensajes en tiempo real con Firestore
+            try {
+              const qNotif = query(collection(db, "mensajes"), where("destinatarioId", "==", user.uid), where("leido", "==", false));
+              onSnapshot(qNotif, (snapshot) => {
+                const badge = document.getElementById('notificationBadge');
+                const list = document.getElementById('notificationList');
+                if (!badge || !list) return;
+
+                const count = snapshot.size;
+                if (count > 0) {
+                  badge.textContent = count;
+                  badge.style.display = 'flex';
+                  
+                  let htmlNotifs = '';
+                  snapshot.forEach((docMsg) => {
+                    const mData = docMsg.data();
+                    htmlNotifs += `
+                      <a href="mensajes.html?chat=${mData.remitenteId || ''}" class="notification-item">
+                        <strong>Nuevo mensaje</strong>
+                        <p style="margin: 4px 0 0 0; font-size: 12px; color: #a1a1aa; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${mData.texto || 'Has recibido una interacción'}</p>
+                      </a>
+                    `;
+                  });
+                  list.innerHTML = htmlNotifs;
+                } else {
+                  badge.style.display = 'none';
+                  list.innerHTML = '<div style="padding: 16px; text-align: center; color: #71717a; font-size: 13px;">No hay notificaciones nuevas</div>';
+                }
+              });
+            } catch (e) {
+              console.warn("No se pudo iniciar el listener de notificaciones:", e);
+            }
+
             const profileBtn = document.getElementById('profileBtn');
             const profileDropdownMenu = document.getElementById('profileDropdownMenu');
+            const notificationBellBtn = document.getElementById('notificationBellBtn');
+            const notificationDropdown = document.getElementById('notificationDropdown');
             const btnLogout = document.getElementById('btnLogout');
             const themeButtons = document.querySelectorAll('.theme-option');
 
             if (profileBtn && profileDropdownMenu) {
               profileBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
+                if (notificationDropdown) notificationDropdown.classList.remove('show');
                 profileDropdownMenu.classList.toggle('show');
               });
+            }
 
-              document.addEventListener('click', () => {
-                profileDropdownMenu.classList.remove('show');
-              });
-
-              profileDropdownMenu.addEventListener('click', (e) => {
+            if (notificationBellBtn && notificationDropdown) {
+              notificationBellBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
+                if (profileDropdownMenu) profileDropdownMenu.classList.remove('show');
+                notificationDropdown.classList.toggle('show');
               });
             }
+
+            document.addEventListener('click', () => {
+              if (profileDropdownMenu) profileDropdownMenu.classList.remove('show');
+              if (notificationDropdown) notificationDropdown.classList.remove('show');
+            });
+
+            if (profileDropdownMenu) profileDropdownMenu.addEventListener('click', (e) => e.stopPropagation());
+            if (notificationDropdown) notificationDropdown.addEventListener('click', (e) => e.stopPropagation());
 
             themeButtons.forEach(btn => {
               const themeMode = btn.getAttribute('data-theme');
@@ -975,6 +1144,7 @@
         querySnapshot.forEach((docSnap) => {
           const prop = docSnap.data();
           const propId = docSnap.id;
+          const ownerId = prop.usuarioId || prop.ownerId || '';
 
           const propTitle = prop.titulo || prop.title || 'Propiedad sin título';
           const propLocation = prop.ubicacion || prop.location || 'República Dominicana';
@@ -1044,7 +1214,8 @@
                   <button class="property-action-icon btn-favorito-card" data-id="${propId}" title="Guardar en Favoritos">
                     ${esFavorito ? '❤️' : '🤍'}
                   </button>
-                  <button class="property-action-icon" title="Enviar Mensaje">💬</button>
+                  <!-- Botón de mensaje integrado para cada apartado de propiedad -->
+                  <button class="property-action-icon btn-mensaje-card" data-owner="${ownerId}" data-prop="${propId}" title="Enviar Mensaje">💬</button>
                 </div>
               </div>
 
@@ -1064,7 +1235,7 @@
           propertiesGrid.insertAdjacentHTML('beforeend', cardHtml);
         });
 
-        // ================= ACTIVAR EVENTOS DE CORAZONES (FAVORITOS) =================
+        // ================= ACTIVAR EVENTOS DE MENSAJES Y FAVORITOS =================
         document.querySelectorAll('.btn-favorito-card').forEach(btn => {
           btn.addEventListener('click', (e) => {
             e.preventDefault();
@@ -1080,6 +1251,20 @@
               btn.textContent = '❤️';
             }
             localStorage.setItem('mis_favoritos', JSON.stringify(favs));
+          });
+        });
+
+        document.querySelectorAll('.btn-mensaje-card').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const ownerId = btn.getAttribute('data-owner');
+            const propId = btn.getAttribute('data-prop');
+            if (ownerId) {
+              window.location.href = `mensajes.html?chat=${ownerId}&prop=${propId}`;
+            } else {
+              window.location.href = `mensajes.html?prop=${propId}`;
+            }
           });
         });
 
