@@ -236,7 +236,6 @@
       .property-price-main {
         font-size: 32px;
         font-weight: 800;
-        color: #f59e0b;
       }
 
       /* Cuadrícula de Especificaciones */
@@ -634,15 +633,16 @@
           "1": {
             titulo: "Apartamento Vista al Mar",
             ubicacion: "Santo Domingo, Malecón",
-            operacion: "Alquiler",
-            precio: "US$ 1,200",
+            operacion: "Venta",
+            moneda: "USD",
+            precio: "120,000",
             habitaciones: "2",
             banos: "2",
             metros: "120 m²",
             nivel: "Piso 5",
             parqueos: "2",
             extranjero: true,
-            depositos: "2 depósitos + 1 adelanto",
+            depositos: "",
             imagenes: ["assets/puerto-marina.png", "assets/mi-camion.jpg"],
             descripcion: "Espectacular apartamento totalmente amueblado con impresionante vista panorámica al mar Caribe."
           }
@@ -666,10 +666,21 @@
 
         if (selectedProperty) {
           const offer = selectedProperty.operacion || selectedProperty.offer || 'Venta';
-          const badgeBg = offer.toLowerCase() === 'venta' ? '#10b981' : '#3b82f6';
+          const isVenta = offer.toLowerCase() === 'venta';
+          const badgeBg = isVenta ? '#10b981' : '#3b82f6';
+          
           const title = selectedProperty.titulo || selectedProperty.title || selectedProperty.nombre || 'Sin título';
           const location = selectedProperty.ubicacion || selectedProperty.location || selectedProperty.direccion || 'República Dominicana';
-          const price = selectedProperty.precio || selectedProperty.price || '0';
+          
+          // Lógica de moneda y precio (Verde si es Venta, y etiqueta USD si aplica)
+          const rawPrice = selectedProperty.precio || selectedProperty.price || '0';
+          const moneda = (selectedProperty.moneda || selectedProperty.currency || '').toUpperCase();
+          const currencyLabel = (moneda === 'USD' || rawPrice.toString().includes('US')) ? 'USD ' : '';
+          const cleanPriceNum = rawPrice.toString().replace(/USD|US\$|\$/g, '').trim();
+          const finalPriceFormatted = `${currencyLabel}${cleanPriceNum}`;
+          
+          const priceColor = isVenta ? '#10b981' : '#f59e0b';
+
           const habs = selectedProperty.habitaciones || selectedProperty.habs || selectedProperty.habitacion || '1';
           const banos = selectedProperty.banos || selectedProperty.bathrooms || selectedProperty.bano || '2';
           const metros = selectedProperty.metros || selectedProperty.superficie || selectedProperty.area || 'N/D';
@@ -680,7 +691,7 @@
           // Búsqueda inteligente para Depósitos
           const depositos = selectedProperty.depositos || selectedProperty.deposits || selectedProperty.cantidadDepositos || selectedProperty.deposito || null;
 
-          // Búsqueda inteligente para Extranjeros
+          // Búsqueda inteligente para Extranjeros (según publicar.html)
           const rawExtranjero = selectedProperty.extranjero !== undefined ? selectedProperty.extranjero 
                               : selectedProperty.aceptanExtranjeros !== undefined ? selectedProperty.aceptanExtranjeros 
                               : selectedProperty.permiteExtranjeros;
@@ -727,7 +738,7 @@
                   <h1 class="property-title-main">${title}</h1>
                   <p class="property-location-main">📍 ${location}</p>
                 </div>
-                <div class="property-price-main">${price}</div>
+                <div class="property-price-main" style="color: ${priceColor};">${finalPriceFormatted}</div>
               </div>
 
               <!-- Cuadrícula de Especificaciones -->
