@@ -215,7 +215,6 @@
         border-radius: 20px;
         text-transform: uppercase;
         display: inline-block;
-        margin-bottom: 10px;
       }
 
       .property-title-main {
@@ -614,7 +613,7 @@
       </div>
     </footer>
 
-    <!-- SCRIPT CORREGIDO Y SINCRONIZADO CON FIREBASE -->
+    <!-- SCRIPT CORREGIDO PARA MOSTRAR AMBAS ETIQUETAS FLOTANTES -->
     <script type="module">
       import { db, doc, getDoc } from './firebase-config.js';
 
@@ -648,7 +647,7 @@
           const title = selectedProperty.titulo || selectedProperty.title || selectedProperty.nombre || 'Sin título';
           const location = selectedProperty.ubicacion || selectedProperty.location || selectedProperty.direccion || 'República Dominicana';
           
-          // --- CORRECCIÓN DE MONEDA (Detecta USD, US$ o signo de dólar $) ---
+          // Lógica de moneda
           const rawPrice = selectedProperty.precio || selectedProperty.price || '0';
           const moneda = (selectedProperty.moneda || selectedProperty.currency || '').toUpperCase();
           
@@ -672,19 +671,16 @@
           
           const depositos = selectedProperty.depositos || selectedProperty.deposits || selectedProperty.cantidadDepositos || selectedProperty.deposito || null;
 
-          // --- CORRECCIÓN ROBUSTA PARA EXTRANJEROS ---
+          // Verificación de Extranjeros
           const rawExtranjero = selectedProperty.extranjero !== undefined ? selectedProperty.extranjero 
                               : selectedProperty.aceptanExtranjeros !== undefined ? selectedProperty.aceptanExtranjeros 
                               : selectedProperty.permiteExtranjeros;
           
           const aceptaExtranjero = rawExtranjero === true || rawExtranjero === "true" || rawExtranjero === "si" || rawExtranjero === "sí" || rawExtranjero === 1 || rawExtranjero === "on";
 
-          // Tarjeta de extranjero idéntica a la vista en tus tarjetas activas
-          const extranjeroHtml = aceptaExtranjero 
-            ? `<div class="spec-card">
-                 <span>Extranjeros</span>
-                 <strong>🌐 Acepta Extranjeros</strong>
-               </div>` 
+          // HTML de la etiqueta flotante de extranjeros (idéntica al diseño de tus tarjetas)
+          const extranjeroBadgeHtml = aceptaExtranjero 
+            ? `<span class="property-tag-badge" style="background: #3b82f6;">Extranjeros</span>` 
             : '';
 
           const depositosHtml = depositos 
@@ -700,9 +696,12 @@
 
           container.innerHTML = `
             <div class="property-main-content">
-              <!-- Galería interactiva -->
+              <!-- Galería interactiva con las dos etiquetas flotantes -->
               <div class="property-gallery" id="propertyGalleryBox">
-                <span class="property-tag-badge" style="background: ${badgeBg}; position: absolute; top: 16px; left: 16px; z-index: 3;">${offer}</span>
+                <div style="position: absolute; top: 16px; left: 16px; z-index: 3; display: flex; gap: 8px; align-items: center;">
+                  <span class="property-tag-badge" style="background: ${badgeBg};">${offer}</span>
+                  ${extranjeroBadgeHtml}
+                </div>
                 
                 <img id="activeGalleryImg" src="${imgs[0]}" alt="${title}" onerror="this.src='assets/puerto-marina.png'">
                 
@@ -743,11 +742,8 @@
                   <span>Parqueos</span>
                   <strong>🚗 ${parqueos} Parqueos</strong>
                 </div>
-                
-                <!-- Tarjeta condicional de Extranjeros -->
-                ${extranjeroHtml}
 
-                <!-- Tarjeta condicional de Depósitos -->
+                <!-- Depósitos Requeridos -->
                 ${depositosHtml}
               </div>
 
