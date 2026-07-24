@@ -672,13 +672,16 @@
           const title = selectedProperty.titulo || selectedProperty.title || selectedProperty.nombre || 'Sin título';
           const location = selectedProperty.ubicacion || selectedProperty.location || selectedProperty.direccion || 'República Dominicana';
           
-          // Lógica de moneda y precio (Verde si es Venta, y etiqueta USD si aplica)
+          // Lógica estricta de moneda y precio: Verde si es Venta, y "USD " si la moneda es USD
           const rawPrice = selectedProperty.precio || selectedProperty.price || '0';
           const moneda = (selectedProperty.moneda || selectedProperty.currency || '').toUpperCase();
-          const currencyLabel = (moneda === 'USD' || rawPrice.toString().includes('US')) ? 'USD ' : '';
+          const isDolar = moneda === 'USD' || moneda === 'US$' || rawPrice.toString().toUpperCase().includes('USD') || rawPrice.toString().includes('US$');
+          
+          const currencyLabel = isDolar ? 'USD ' : '';
           const cleanPriceNum = rawPrice.toString().replace(/USD|US\$|\$/g, '').trim();
           const finalPriceFormatted = `${currencyLabel}${cleanPriceNum}`;
           
+          // Color verde si es venta, independientemente de que sea alquiler u otra cosa
           const priceColor = isVenta ? '#10b981' : '#f59e0b';
 
           const habs = selectedProperty.habitaciones || selectedProperty.habs || selectedProperty.habitacion || '1';
@@ -691,14 +694,14 @@
           // Búsqueda inteligente para Depósitos
           const depositos = selectedProperty.depositos || selectedProperty.deposits || selectedProperty.cantidadDepositos || selectedProperty.deposito || null;
 
-          // Búsqueda inteligente para Extranjeros (según publicar.html)
+          // Búsqueda robusta y directa para Extranjeros según publicar.html
           const rawExtranjero = selectedProperty.extranjero !== undefined ? selectedProperty.extranjero 
                               : selectedProperty.aceptanExtranjeros !== undefined ? selectedProperty.aceptanExtranjeros 
                               : selectedProperty.permiteExtranjeros;
           
-          const aceptaExtranjero = rawExtranjero === true || rawExtranjero === "true" || rawExtranjero === "si" || rawExtranjero === "sí" || rawExtranjero === 1;
+          const aceptaExtranjero = rawExtranjero === true || rawExtranjero === "true" || rawExtranjero === "si" || rawExtranjero === "sí" || rawExtranjero === 1 || rawExtranjero === "on";
 
-          // Tarjeta de extranjero condicional
+          // Tarjeta de extranjero condicional obligatoria
           const extranjeroHtml = aceptaExtranjero 
             ? `<div class="spec-card">
                  <span>Extranjeros</span>
@@ -815,7 +818,7 @@
 
             nextBtn.addEventListener('click', (e) => {
               e.stopPropagation();
-              currentIndex = (currentIndex + 1) % imgs.length;
+              currentIndex = (currentIndex + 1 + imgs.length) % imgs.length;
               activeImgElement.src = imgs[currentIndex];
               counterSpan.textContent = currentIndex + 1;
             });
