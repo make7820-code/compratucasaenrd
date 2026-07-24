@@ -856,20 +856,20 @@
       </div>
     </footer>
 
-    <!-- SCRIPTS CON CONTROL DE ERRORES ROBUSTO -->
+    <!-- SCRIPTS CON CONTROL DE ACCESO ESTRICTO DESDE FIRESTORE -->
     <script type="module">
       import { db, storage, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, ref, uploadBytes, getDownloadURL, query, where } from './firebase-config.js';
 
       let mostrandoArchivadas = false;
-      let imagenesEditandoActuales = []; // Array temporal para controlar las imágenes al editar
+      let imagenesEditandoActuales = []; 
 
       window.addEventListener('DOMContentLoaded', async () => {
         try {
-          // ================= CONTROL DE ACCESO DESDE FIRESTORE =================
+          // ================= CONTROL DE ACCESO ESTRICTO DESDE FIRESTORE =================
           const usuarioActivo = localStorage.getItem('usuario_activo');
           
           if (!usuarioActivo) {
-            alert("Acceso denegado. No has iniciado sesión.");
+            alert("Acceso denegado. Debes iniciar sesión.");
             window.location.href = 'index.html';
             return;
           }
@@ -878,26 +878,27 @@
           const q = query(collection(db, "usuarios"), where("email", "==", usuarioActivo));
           const querySnapshot = await getDocs(q);
           
-          let rolUsuario = 'cliente';
-          if (!querySnapshot.empty) {
-            const userData = querySnapshot.docs[0].data();
-            rolUsuario = userData.rol || 'cliente';
-          }
-
-          // Si en Firestore el rol es 'cliente', se bloquea el acceso
-          if (rolUsuario.toLowerCase() === 'cliente') {
-            alert("Acceso denegado. No tienes permisos para ver la sección de publicaciones.");
+          if (querySnapshot.empty) {
+            alert("Acceso denegado. Tu cuenta no está registrada en la base de datos de usuarios.");
             window.location.href = 'index.html';
             return;
           }
-          // =====================================================================
+
+          const userData = querySnapshot.docs[0].data();
+          const rolUsuario = (userData.rol || 'cliente').toLowerCase();
+
+          if (rolUsuario === 'cliente') {
+            alert("Acceso denegado. No tienes permisos de agente o administrador.");
+            window.location.href = 'index.html';
+            return;
+          }
+          // =============================================================================
 
           const savedTheme = localStorage.getItem('site_theme') || 'dark';
           if (savedTheme === 'light') document.body.classList.add('light-mode');
 
-          const username = usuarioActivo;
-          const nombreCompleto = localStorage.getItem('perfil_nombre') || username;
-          const fotoGuardada = localStorage.getItem('perfil_foto');
+          const nombreCompleto = userData.nombre || localStorage.getItem('perfil_nombre') || usuarioActivo;
+          const fotoGuardada = userData.foto || localStorage.getItem('perfil_foto');
           const authContainer = document.getElementById('authContainer');
           
           if (authContainer) {
@@ -912,7 +913,9 @@
           actualizarContadorArchivadas();
           renderizarPublicaciones();
         } catch (e) {
-          console.error("Error al inicializar la interfaz:", e);
+          console.error("Error al verificar permisos en Firestore:", e);
+          alert("Error de seguridad al verificar el acceso.");
+          window.location.href = 'index.html';
         }
       });
 
@@ -1079,7 +1082,7 @@
 
         } catch (error) {
           console.error("Error al guardar en Firebase:", error);
-          alert("Hubo un error al guardar la propiedad. Revisa la consola.");
+          alert("Hubo un error al guardar la propiedad.");
         }
       }
 
@@ -1124,7 +1127,7 @@
 
         } catch (error) {
           console.error("Error al cargar de Firebase:", error);
-          contenedor.innerHTML = `<p style="color: #ef4444; text-align: center; grid-column: 1 / -1; padding: 40px;">Error al conectar con la base de datos o cargar configuraciones.</p>`;
+          contenedor.innerHTML = `<p style="color: #ef4444; text-align: center; grid-column: 1 / -1; padding: 40px;">Error al conectar con la base de datos.</p>`;
         }
       }
 
