@@ -499,6 +499,9 @@
         const chatMainArea = document.getElementById('chatMainArea');
         const searchInput = document.getElementById('searchPropertyInput');
 
+        // Control local de chats abiertos para ocultar el punto verde y la campana en esta sesión
+        const openedConversations = new Set();
+
         const urlParams = new URLSearchParams(window.location.search);
         const paramPropId = urlParams.get('propiedadId') || urlParams.get('id');
         const paramTitulo = urlParams.get('titulo');
@@ -639,7 +642,8 @@
               targetConvToOpen = conv;
             }
 
-            const isUnread = conv.sender && conv.sender !== 'user';
+            // Ocultar punto verde si el remitente no es el usuario y aún no se ha abierto
+            const isUnread = (conv.sender && conv.sender !== 'user') && !openedConversations.has(conv.propertyId);
 
             item.innerHTML = `
               <img src="${conv.propertyImage}" alt="Propiedad" class="conv-thumb" onerror="this.src='assets/puerto-marina.png'">
@@ -653,27 +657,60 @@
             item.addEventListener('click', () => {
               document.querySelectorAll('.conversation-item').forEach(el => el.classList.remove('active'));
               item.classList.add('active');
+              
+              // Marcar como abierto para quitar punto verde y actualizar campana
+              openedConversations.add(conv.propertyId);
+              
               openChatWindow(conv.propertyId, conv.propertyTitle, conv.propertyImage, conv.propertyPrice, userId);
               const dot = item.querySelector('.unread-dot');
               if(dot) dot.remove();
+
+              const unreadConvs = convs.filter(c => (c.sender && c.sender !== 'user') && !openedConversations.has(c.propertyId));
+              updateNotificationBellState(unreadConvs);
             });
 
             conversationsList.appendChild(item);
           });
 
           if (targetConvToOpen && chatMainArea.querySelector('.chat-empty-state')) {
+            openedConversations.add(targetConvToOpen.propertyId);
             openChatWindow(targetConvToOpen.propertyId, targetConvToOpen.propertyTitle, targetConvToOpen.propertyImage, targetConvToOpen.propertyPrice, userId);
           }
         }
 
+        function updateNotificationBellState(unreadConvs) {
+          const hasUnread = unreadConvs.length > 0;
+          const bellIconSpan = document.getElementById('bellIconSpan');
+          const notificationListContent = document.getElementById('notificationListContent');
+
+          if (bellIconSpan) {
+            bellIconSpan.className = hasUnread ? 'bell-ringing' : '';
+          }
+
+          if (notificationListContent) {
+            notificationListContent.innerHTML = 
+              unreadConvs.length === 0 
+              ? '<div style="padding: 20px; text-align: center; color: #71717a; font-size: 12px;">No hay mensajes nuevos</div>'
+              : unreadConvs.map(c => `
+                  <div class="notification-item" onclick="window.location.href='mensajes.html?propiedadId=${c.propertyId}'">
+                    <img src="${c.propertyImage}" style="width: 32px; height: 32px; border-radius: 6px; object-fit: cover;" onerror="this.src='assets/puerto-marina.png'">
+                    <div style="overflow: hidden;">
+                      <div style="font-size: 13px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${c.propertyTitle}</div>
+                      <div style="font-size: 11px; color: #a1a1aa; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${c.lastMessage}</div>
+                    </div>
+                  </div>
+                `).join('');
+          }
+        }
+
         function renderHeaderWithNotifications(convs, userId, displayName, avatarSrc, activePropId) {
-          const unreadConvs = convs.filter(c => c.sender && c.sender !== 'user');
+          const unreadConvs = convs.filter(c => (c.sender && c.sender !== 'user') && !openedConversations.has(c.propertyId));
           const hasUnread = unreadConvs.length > 0;
 
           authContainer.innerHTML = `
             <div style="position: relative; display: inline-block;">
               <button id="notificationBellBtn" style="background: none; border: none; cursor: pointer; font-size: 20px; padding: 6px; position: relative;">
-                <span class="${hasUnread ? 'bell-ringing' : ''}">🔔</span>
+                <span id="bellIconSpan" class="${hasUnread ? 'bell-ringing' : ''}">🔔</span>
               </button>
               <div id="notificationDropdown" class="notification-dropdown">
                 <div style="padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.08); font-weight: 700; font-size: 13px; color: #fff;">
@@ -770,7 +807,6 @@
           const sendBtn = document.getElementById('chatSendBtn');
           const closeBtn = document.getElementById('chatCloseBtn');
 
-          // Botón para cerrar / minimizar el chat
           closeBtn.addEventListener('click', () => {
             document.querySelectorAll('.conversation-item').forEach(el => el.classList.remove('active'));
             chatMainArea.innerHTML = `
@@ -780,28 +816,15 @@
                 <p style="margin: 0; font-size: 14px; color: #a1a1aa;">Selecciona un chat para gestionar tus cierres y consultas.</p>
               </div>
             `;
-            // Limpiar parámetro de la URL sin recargar la página
             window.history.replaceState({}, document.title, window.location.pathname);
           });
 
-          try {
-            const qMsgs = query(
-              collection(db, "mensajes"), 
-              where("userId", "==", userId),
-              where("propertyId", "==", propertyId)
-            );
-            const snapshot = await getDocs(qMsgs);
-
+          const renderMessagesList = (mensajesList) => {
             messagesBox.innerHTML = '';
-            if (snapshot.empty) {
+            if (mensajesList.length === 0) {
               messagesBox.innerHTML = `<div style="text-align: center; color: #71717a; font-size: 13px; margin: auto;">Inicia la conversación con tu asesor inmobiliario.</div>`;
               return;
             }
-
-            const mensajesList = [];
-            snapshot.forEach(docSnap => {
-              mensajesList.push(docSnap.data());
-            });
 
             mensajesList.sort((a, b) => {
               const timeA = a.timestamp?.toMillis ? a.timestamp.toMillis() : 0;
@@ -822,10 +845,21 @@
             });
 
             messagesBox.scrollTop = messagesBox.scrollHeight;
-          } catch (error) {
-            console.error("Error cargando mensajes:", error);
-            messagesBox.innerHTML = `<div style="text-align: center; color: #ef4444; padding: 20px;">Error al cargar los mensajes.</div>`;
-          }
+          };
+
+          const qMsgs = query(
+            collection(db, "mensajes"), 
+            where("userId", "==", userId),
+            where("propertyId", "==", propertyId)
+          );
+
+          onSnapshot(qMsgs, (snapshot) => {
+            const mensajesList = [];
+            snapshot.forEach(docSnap => {
+              mensajesList.push(docSnap.data());
+            });
+            renderMessagesList(mensajesList);
+          });
 
           const enviarMensajeHandler = async () => {
             const texto = messageInput.value.trim();
@@ -846,7 +880,10 @@
                 timestamp: serverTimestamp()
               });
 
-              window.location.reload();
+              messageInput.value = '';
+              sendBtn.disabled = false;
+              sendBtn.textContent = 'Enviar';
+              messageInput.focus();
             } catch (error) {
               console.error("Error al enviar mensaje:", error);
               alert("No se pudo enviar el mensaje. Inténtalo de nuevo.");
