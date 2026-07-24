@@ -847,28 +847,22 @@
                 const data = docSnap.data();
                 const propId = data.propertyId || 'general';
                 const timeA = data.timestamp?.toMillis ? data.timestamp.toMillis() : 0;
-                
-                // Valida si el mensaje es entrante (no enviado por el usuario) y no ha sido leído
                 const isUnread = (data.sender && data.sender !== 'user') && !data.leidoPorUsuario;
-
+                
                 if (!conversationsMap.has(propId)) {
                   conversationsMap.set(propId, {
                     propertyId: propId,
                     propertyTitle: data.propertyTitle || 'Consulta Inmobiliaria',
                     propertyImage: data.propertyImage || 'assets/puerto-marina.png',
                     lastMessage: data.mensaje || data.text || '',
-                    sender: data.sender || 'user',
                     hasUnread: isUnread,
                     timestamp: timeA
                   });
                 } else {
                   const existing = conversationsMap.get(propId);
-                  if (isUnread) {
-                    existing.hasUnread = true;
-                  }
+                  if (isUnread) existing.hasUnread = true;
                   if (timeA >= existing.timestamp) {
                     existing.lastMessage = data.mensaje || data.text || '';
-                    existing.sender = data.sender || 'user';
                     existing.timestamp = timeA;
                   }
                 }
