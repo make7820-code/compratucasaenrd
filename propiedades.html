@@ -67,6 +67,11 @@
         pointer-events: none;
       }
 
+      /* Ajustes del banner superior para modo claro */
+      [data-theme="light"] .main-page-wrapper::before {
+        background: rgba(244, 244, 245, 0.75);
+      }
+
       .properties-hero {
         background: transparent !important;
         border: none !important;
@@ -81,6 +86,22 @@
       .properties-hero-overlap {
         padding-top: 50px;
         padding-bottom: 100px;
+      }
+
+      [data-theme="light"] .hero-eyebrow {
+        background: rgba(0, 0, 0, 0.05) !important;
+        color: #18181b !important;
+        border: 1px solid rgba(0, 0, 0, 0.1) !important;
+      }
+
+      [data-theme="light"] .hero-title {
+        color: #18181b !important;
+        text-shadow: none !important;
+      }
+
+      [data-theme="light"] .hero-subtitle {
+        color: #52525b !important;
+        text-shadow: none !important;
       }
 
       /* Contenedor principal de filtros y propiedades */
@@ -509,6 +530,38 @@
         padding: 60px 20px 20px 20px;
         position: relative;
         z-index: 2;
+        transition: background-color 0.3s, color 0.3s;
+      }
+
+      [data-theme="light"] .site-footer {
+        background-color: #e4e4e7;
+        color: #52525b;
+        border-top: 1px solid rgba(0, 0, 0, 0.1);
+      }
+
+      [data-theme="light"] .footer-col-title,
+      [data-theme="light"] .footer-brand-title {
+        color: #18181b !important;
+      }
+
+      [data-theme="light"] .footer-brand-desc,
+      [data-theme="light"] .footer-links a,
+      [data-theme="light"] .footer-contact-list li,
+      [data-theme="light"] .footer-bottom,
+      [data-theme="light"] .footer-bottom-links a {
+        color: #52525b !important;
+      }
+
+      [data-theme="light"] .footer-social-icon {
+        background: #ffffff;
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        color: #18181b;
+      }
+
+      [data-theme="light"] .footer-social-icon:hover {
+        background: #ef4444;
+        color: #ffffff;
+        border-color: #ef4444;
       }
 
       .footer-container {
@@ -519,6 +572,10 @@
         gap: 40px;
         padding-bottom: 40px;
         border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      [data-theme="light"] .footer-container {
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
       }
 
       .footer-col-title {
@@ -565,12 +622,6 @@
         text-decoration: none;
         font-size: 16px;
         transition: all 0.2s;
-      }
-
-      .footer-social-icon:hover {
-        background: #ef4444;
-        border-color: #ef4444;
-        opacity: 1;
       }
 
       .footer-links {
@@ -708,7 +759,7 @@
                     <button type="button" class="notification-bell-btn">🔔</button>
                   </div>
                   <div style="display: flex; align-items: center; gap: 12px; padding: 4px 8px 4px 4px;">
-                    <span style="color: #fff; font-weight: 600; font-size: 15px; white-space: nowrap;">unai bladimir</span>
+                    <span style="font-weight: 600; font-size: 15px; white-space: nowrap;">unai bladimir</span>
                   </div>
                 </div>
               `);
@@ -728,13 +779,13 @@
       <section class="hero properties-hero properties-hero-overlap">
         <div class="hero-content" style="text-align: center;">
           
-          <div class="hero-eyebrow" style="display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.08); padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; color: #fff; margin-bottom: 16px; border: 1px solid rgba(255,255,255,0.15); backdrop-filter: blur(4px);">
+          <div class="hero-eyebrow" style="display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.08); padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; margin-bottom: 16px; border: 1px solid rgba(255,255,255,0.15); backdrop-filter: blur(4px);">
             <span>🏠</span> CATÁLOGO EXCLUSIVO
           </div>
           
-          <h1 class="hero-title" style="font-size: 48px; font-weight: 800; color: #fff; margin-bottom: 12px; text-shadow: 0 2px 10px rgba(0,0,0,0.5);">Encuentra Tu Espacio Ideal</h1>
+          <h1 class="hero-title" style="font-size: 48px; font-weight: 800; margin-bottom: 12px; text-shadow: 0 2px 10px rgba(0,0,0,0.5);">Encuentra Tu Espacio Ideal</h1>
           
-          <p class="hero-subtitle" style="font-size: 16px; color: #e4e4e7; margin-bottom: 24px; text-shadow: 0 1px 5px rgba(0,0,0,0.5);">Explora nuestra selección de propiedades premium, diseñadas para elevar tu estilo de vida.</p>
+          <p class="hero-subtitle" style="font-size: 16px; margin-bottom: 24px; text-shadow: 0 1px 5px rgba(0,0,0,0.5);">Explora nuestra selección de propiedades premium, diseñadas para elevar tu estilo de vida.</p>
           
           <button type="button" id="btnVerFavoritos" class="hero-cta" style="border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; background: #ef4444; color: #fff; padding: 12px 24px; border-radius: 30px; font-weight: 700; text-decoration: none; box-shadow: 0 10px 25px rgba(239, 68, 68, 0.4);">
             <span id="favCtaIcon">❤️</span> <span id="favCtaText">Ver Mis Favoritos</span>
@@ -976,7 +1027,7 @@
                 <div class="profile-dropdown-container" style="position: relative; display: inline-block;">
                   <button id="profileBtn" style="background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 12px; padding: 4px 8px 4px 4px; border-radius: 999px;">
                     <img src="${avatarSrc}" alt="Avatar" style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 2px solid #ef4444;" onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=${user.uid}'">
-                    <span style="color: #fff; font-weight: 600; font-size: 15px; white-space: nowrap;">${displayName}</span>
+                    <span style="font-weight: 600; font-size: 15px; white-space: nowrap;">${displayName}</span>
                   </button>
                   
                   <div id="profileDropdownMenu" class="profile-dropdown-menu">
