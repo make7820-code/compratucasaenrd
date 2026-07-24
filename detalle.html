@@ -613,7 +613,7 @@
       </div>
     </footer>
 
-    <!-- SCRIPT CORREGIDO PARA MOSTRAR AMBAS ETIQUETAS FLOTANTES -->
+    <!-- SCRIPT CORREGIDO PARA COLOR DE ALQUILER Y UBICACIÓN DE EXTRANJEROS -->
     <script type="module">
       import { db, doc, getDoc } from './firebase-config.js';
 
@@ -642,7 +642,9 @@
         if (selectedProperty) {
           const offer = selectedProperty.operacion || selectedProperty.offer || 'Venta';
           const isVenta = offer.toLowerCase() === 'venta';
-          const badgeBg = isVenta ? '#10b981' : '#3b82f6';
+          
+          // Modificado: Si es Venta es verde (#10b981), si es Alquiler (o cualquier otro) es amarillo (#f59e0b)
+          const badgeBg = isVenta ? '#10b981' : '#f59e0b';
           
           const title = selectedProperty.titulo || selectedProperty.title || selectedProperty.nombre || 'Sin título';
           const location = selectedProperty.ubicacion || selectedProperty.location || selectedProperty.direccion || 'República Dominicana';
@@ -671,17 +673,20 @@
           
           const depositos = selectedProperty.depositos || selectedProperty.deposits || selectedProperty.cantidadDepositos || selectedProperty.deposito || null;
 
-          // Verificación de Extranjeros corregida para abarcar 'extranjeros' (plural) y alternativas
+          // Verificación de Extranjeros
           const rawExtranjero = selectedProperty.extranjeros !== undefined ? selectedProperty.extranjeros 
-                              : selectedProperty.extranjero !== undefined ? selectedProperty.extranjero 
+                              : selectedProperty.extranjeros !== undefined ? selectedProperty.extranjero 
                               : selectedProperty.aceptanExtranjeros !== undefined ? selectedProperty.aceptanExtranjeros 
                               : selectedProperty.permiteExtranjeros;
           
           const aceptaExtranjero = rawExtranjero === true || rawExtranjero === "true" || rawExtranjero === "si" || rawExtranjero === "sí" || rawExtranjero === 1 || rawExtranjero === "on";
 
-          // HTML de la etiqueta flotante de extranjeros (idéntica al diseño de tus tarjetas)
+          // Modificado: Etiqueta de extranjeros ubicada en el lugar inferior (donde marcaste "AQUÍ")
           const extranjeroBadgeHtml = aceptaExtranjero 
-            ? `<span class="property-tag-badge" style="background: #3b82f6;">Extranjeros</span>` 
+            ? `<div class="spec-card">
+                 <span>Estatus</span>
+                 <strong style="color: #3b82f6;">Extranjeros</strong>
+               </div>` 
             : '';
 
           const depositosHtml = depositos 
@@ -697,11 +702,10 @@
 
           container.innerHTML = `
             <div class="property-main-content">
-              <!-- Galería interactiva con las dos etiquetas flotantes -->
+              <!-- Galería interactiva con la etiqueta de operación arriba -->
               <div class="property-gallery" id="propertyGalleryBox">
                 <div style="position: absolute; top: 16px; left: 16px; z-index: 3; display: flex; gap: 8px; align-items: center;">
                   <span class="property-tag-badge" style="background: ${badgeBg};">${offer}</span>
-                  ${extranjeroBadgeHtml}
                 </div>
                 
                 <img id="activeGalleryImg" src="${imgs[0]}" alt="${title}" onerror="this.src='assets/puerto-marina.png'">
@@ -721,7 +725,7 @@
                 <div class="property-price-main" style="color: ${priceColor};">${finalPriceFormatted}</div>
               </div>
 
-              <!-- Cuadrícula de Especificaciones -->
+              <!-- Cuadrícula de Especificaciones con Extranjeros abajo -->
               <div class="property-specs-grid">
                 <div class="spec-card">
                   <span>Habitaciones</span>
@@ -743,6 +747,9 @@
                   <span>Parqueos</span>
                   <strong>🚗 ${parqueos} Parqueos</strong>
                 </div>
+
+                <!-- Insignia de Extranjeros movida a la cuadrícula inferior -->
+                ${extranjeroBadgeHtml}
 
                 <!-- Depósitos Requeridos -->
                 ${depositosHtml}
