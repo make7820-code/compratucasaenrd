@@ -784,10 +784,10 @@
     <!-- ================= SCRIPTS Y CONEXIÓN FIRESTORE / LOCAL ================= -->
     <script>
       const firebaseConfig = {
-        apiKey: "TU_API_KEY",
-        authDomain: "tu-proyecto.firebaseapp.com",
-        projectId: "tu-proyecto",
-        storageBucket: "tu-proyecto.appspot.com",
+        apiKey: "AIzaSyD...", // Mantén tu apiKey real de tu proyecto
+        authDomain: "compratucasaenrd-11e1a.firebaseapp.com",
+        projectId: "compratucasaenrd-11e1a",
+        storageBucket: "compratucasaenrd-11e1a.appspot.com", // <--- ¡Corregido aquí!
         messagingSenderId: "tu-id",
         appId: "tu-id"
       };
@@ -856,21 +856,12 @@
         if (!db) return;
         try {
           const docRef = db.collection("usuarios").doc(uid);
-          const docSnap = await docRef.get();
-          if (docSnap.exists) {
-            const data = docSnap.data();
-            // Fusionamos los datos de Firestore y forzamos a que el rol tome prioridad real
+          const doc = await docRef.get();
+          if (doc.exists) {
+            const data = doc.data();
             usuarioActualData = { ...usuarioActualData, ...data };
-            
-            if (data.rol) {
-              usuarioActualData.rol = data.rol;
-            }
-
             localStorage.setItem('usuario_activo', data.nombreUsuario || data.email || 'usuario');
             localStorage.setItem('sesion_activa', 'true');
-            if (data.rol) {
-              localStorage.setItem(`${data.nombreUsuario || 'usuario'}_perfil_rol`, data.rol);
-            }
           }
         } catch (error) {
           console.error("Error al cargar datos de Firestore:", error);
@@ -961,7 +952,7 @@
                 codigoPostal: usuarioActualData.codigoPostal,
                 idioma: usuarioActualData.idioma,
                 zonaHoraria: usuarioActualData.zonaHoraria,
-                rol: usuarioActualData.rol || 'cliente' // Mantiene el rol actual seguro
+                rol: usuarioActualData.rol || 'cliente'
               };
               if (usuarioActualData.fotoPerfil) {
                 datosParaFirestore.fotoPerfil = usuarioActualData.fotoPerfil;
@@ -1020,7 +1011,6 @@
         document.getElementById('displayNombreCompleto').innerText = nombreMostrado;
         document.getElementById('displayUsernameSub').innerText = "@" + (usuarioActualData.nombreUsuario || username);
 
-        // --- RENDERIZAR ROL Y VISIBILIDAD DEL BOTÓN DE PUBLICAR ---
         const rolUsuario = (usuarioActualData.rol || 'cliente').toLowerCase();
         const badgeRol = document.getElementById('textRolBadge');
         if (badgeRol) {
