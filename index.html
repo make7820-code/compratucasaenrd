@@ -15,6 +15,11 @@
         gap: 15px;
       }
 
+      /* OCULTAR FORZOSAMENTE EL BOTÓN DE MENSAJES DEL HEADER */
+      a[href="mensajes.html"]#navMensajes, #navMensajes {
+        display: none !important;
+      }
+
       /* Estilos para la campanita de notificaciones (igual que en comunidad.html) */
       @keyframes ringBell {
         0% { transform: rotate(0deg); }
