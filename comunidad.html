@@ -315,6 +315,21 @@
         border-color: rgba(59, 130, 246, 0.6);
       }
 
+      /* Corrección de alineación vertical exacta para la campana y contenedor de autenticación en el header */
+      #authContainer {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+      }
+      
+      /* Asegurar centrado vertical si la campana se inyecta directamente o como elemento flex */
+      #authContainer > div, 
+      #authContainer .user-menu-wrapper,
+      #authContainer a {
+        display: flex;
+        align-items: center;
+      }
+
       /* Estilos para notificaciones y menús desplegables */
       .bell-ringing {
         display: inline-block;
