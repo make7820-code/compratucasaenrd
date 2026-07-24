@@ -1,20 +1,24 @@
 import { auth, db } from './firebase-config.js';
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { collection, query, where, onSnapshot, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 document.addEventListener('DOMContentLoaded', () => {
   const authContainer = document.getElementById('authContainer');
   if (!authContainer) return;
 
   onAuthStateChanged(auth, async (user) => {
-    if (!user) return; // Si no hay sesión, se queda el botón de "Iniciar sesión" por defecto
+    if (!user) {
+      authContainer.innerHTML = `
+        <a href="login.html" style="color: #fff; text-decoration: none; font-weight: 600; font-size: 14px;">Iniciar sesión</a>
+      `;
+      return;
+    }
 
     let displayName = user.email.split('@')[0];
     let avatarSrc = 'assets/onlybladi-avatar.png';
 
-    // Opcional: Cargar datos adicionales del perfil si existen
+    // Cargar datos adicionales del perfil si existen en Firestore
     try {
-      const { doc, getDoc } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
       const docSnap = await getDoc(doc(db, "usuarios", user.uid));
       if (docSnap.exists()) {
         const data = docSnap.data();
@@ -74,7 +78,7 @@ function renderGlobalNavbar(container, userId, displayName, avatarSrc, unreadCon
       <button id="notificationBellBtn" style="background: none; border: none; cursor: pointer; font-size: 20px; padding: 6px; position: relative;">
         <span id="bellIconSpan" class="${hasUnread ? 'bell-ringing' : ''}">🔔</span>
       </button>
-      <div id="notificationDropdown" class="notification-dropdown">
+      <div id="notificationDropdown" class="notification-dropdown" style="display:none; position: absolute; right: 0; top: 45px; background: #18181b; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; width: 280px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 1000;">
         <div style="padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.08); font-weight: 700; font-size: 13px; color: #fff; display: flex; justify-content: space-between; align-items: center;">
           <span>Notificaciones de Mensajes</span>
           ${unreadConvs.length > 0 ? '<button id="markAllReadBtn" style="background:none; border:none; color:#3b82f6; font-size:11px; cursor:pointer; font-weight:600;">Marcar leídos</button>' : ''}
@@ -97,34 +101,35 @@ function renderGlobalNavbar(container, userId, displayName, avatarSrc, unreadCon
       </div>
     </div>
 
-    <div class="profile-dropdown-container" style="position: relative; display: inline-block;">
-      <button id="profileBtn" style="background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 12px; padding: 4px 8px 4px 4px; border-radius: 999px;">
-        <img src="${avatarSrc}" alt="Avatar" style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 2px solid #ef4444;" onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=${userId}'">
+    <div class="profile-dropdown-container" style="position: relative; display: inline-block; margin-left: 10px;">
+      <button id="profileBtn" style="background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 10px; padding: 4px 8px 4px 4px; border-radius: 999px;">
+        <img src="${avatarSrc}" alt="Avatar" style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 2px solid ${hasUnread ? '#10b981' : '#ef4444'};" onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=${userId}'">
         <span style="color: #fff; font-weight: 600; font-size: 15px;">${displayName}</span>
       </button>
       <div id="profileMenu" class="profile-menu" style="display:none; position: absolute; right: 0; top: 50px; background: #18181b; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 10px; width: 180px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 1000;">
-        <button class="profile-menu-item" onclick="window.location.href='perfil.html'" style="width:100%; background:none; border:none; color:#fff; text-align:left; padding:8px; cursor:pointer; border-radius:6px;">Ir al Perfil</button>
+        <button class="profile-menu-item" onclick="window.location.href='mensajes.html'" style="width:100%; background:none; border:none; color:#fff; text-align:left; padding:8px; cursor:pointer; border-radius:6px; font-size: 13px;">💬 Mensajes</button>
+        <button class="profile-menu-item" onclick="window.location.href='perfil.html'" style="width:100%; background:none; border:none; color:#fff; text-align:left; padding:8px; cursor:pointer; border-radius:6px; font-size: 13px;">👤 Ir al Perfil</button>
         <div style="height:1px; background:rgba(255,255,255,0.1); margin:6px 0;"></div>
-        <button id="cerrarSesionBtn" style="width:100%; background:none; border:none; color:#ef4444; text-align:left; padding:8px; cursor:pointer; border-radius:6px;">Cerrar Sesión</button>
+        <button id="cerrarSesionBtn" style="width:100%; background:none; border:none; color:#ef4444; text-align:left; padding:8px; cursor:pointer; border-radius:6px; font-size: 13px;">⎋ Cerrar Sesión</button>
       </div>
     </div>
   `;
 
-  // Control del menú desplegable de notificaciones al pasar el ratón o hacer clic
+  // Control del menú desplegable de notificaciones
   const notificationBellBtn = document.getElementById('notificationBellBtn');
   const notificationDropdown = document.getElementById('notificationDropdown');
   
   if (notificationBellBtn && notificationDropdown) {
-    notificationBellBtn.addEventListener('mouseenter', () => { 
-      notificationDropdown.style.display = 'block'; 
-    });
-    
-    notificationBellBtn.parentElement.addEventListener('mouseleave', () => { 
-      notificationDropdown.style.display = 'none'; 
+    notificationBellBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isVisible = notificationDropdown.style.display === 'block';
+      notificationDropdown.style.display = isVisible ? 'none' : 'block';
+      const profileMenu = document.getElementById('profileMenu');
+      if (profileMenu) profileMenu.style.display = 'none';
     });
   }
 
-  // Marcar como leídas al hacer clic en el botón interno o al hacer clic en cualquier notificación individual
+  // Marcar como leídas
   const markAllReadBtn = document.getElementById('markAllReadBtn');
   if (markAllReadBtn) {
     markAllReadBtn.addEventListener('click', (e) => {
@@ -132,17 +137,15 @@ function renderGlobalNavbar(container, userId, displayName, avatarSrc, unreadCon
       sessionStorage.setItem(`notifications_cleared_${userId}`, 'true');
       const bellIconSpan = document.getElementById('bellIconSpan');
       if (bellIconSpan) bellIconSpan.classList.remove('bell-ringing');
-      notificationDropdown.style.display = 'none';
-      // Recargamos o re-renderizamos visualmente el contenedor de la lista
+      if (notificationDropdown) notificationDropdown.style.display = 'none';
       const listContent = document.getElementById('notificationListContent');
-      if(listContent) listContent.innerHTML = '<div style="padding: 20px; text-align: center; color: #71717a; font-size: 12px;">No hay mensajes nuevos</div>';
-      if(markAllReadBtn) markAllReadBtn.style.display = 'none';
+      if (listContent) listContent.innerHTML = '<div style="padding: 20px; text-align: center; color: #71717a; font-size: 12px;">No hay mensajes nuevos</div>';
+      markAllReadBtn.style.display = 'none';
     });
   }
 
-  // Redirección y marcado automático al hacer clic en una notificación específica
-  const notificationItems = container.querySelectorAll('.notification-item');
-  notificationItems.forEach(item => {
+  // Redirección al hacer clic en notificación específica
+  container.querySelectorAll('.notification-item').forEach(item => {
     item.addEventListener('click', () => {
       sessionStorage.setItem(`notifications_cleared_${userId}`, 'true');
       const propId = item.getAttribute('data-prop');
@@ -150,28 +153,28 @@ function renderGlobalNavbar(container, userId, displayName, avatarSrc, unreadCon
     });
   });
 
-  // Evento de clic en el enlace general de "Mensajes" del menú principal para limpiar también la campana
-  const navMensajes = document.getElementById('navMensajes');
-  if (navMensajes) {
-    navMensajes.addEventListener('click', () => {
-      sessionStorage.setItem(`notifications_cleared_${userId}`, 'true');
-    });
-  }
-
+  // Control del menú de perfil
   const profileBtn = document.getElementById('profileBtn');
   const profileMenu = document.getElementById('profileMenu');
   if (profileBtn && profileMenu) {
     profileBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      profileMenu.style.display = profileMenu.style.display === 'block' ? 'none' : 'block';
+      const isVisible = profileMenu.style.display === 'block';
+      profileMenu.style.display = isVisible ? 'none' : 'block';
+      if (notificationDropdown) notificationDropdown.style.display = 'none';
     });
-    document.addEventListener('click', () => { profileMenu.style.display = 'none'; });
   }
 
+  // Cerrar menús al hacer clic fuera
+  document.addEventListener('click', () => {
+    if (notificationDropdown) notificationDropdown.style.display = 'none';
+    if (profileMenu) profileMenu.style.display = 'none';
+  });
+
+  // Botón de cerrar sesión
   const cerrarBtn = document.getElementById('cerrarSesionBtn');
   if (cerrarBtn) {
     cerrarBtn.addEventListener('click', async () => {
-      const { signOut } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js");
       await signOut(auth);
       localStorage.clear();
       sessionStorage.clear();
