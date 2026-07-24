@@ -877,10 +877,10 @@
 
       let mostrandoArchivadas = false;
       let imagenesEditandoActuales = []; 
+      let cachePropiedadesActuales = {};
 
       window.addEventListener('DOMContentLoaded', async () => {
         try {
-          // ================= CONTROL DE ACCESO ESTRICTO DESDE FIRESTORE =================
           const usuarioActivo = localStorage.getItem('usuario_activo');
           
           if (!usuarioActivo) {
@@ -889,7 +889,6 @@
             return;
           }
 
-          // Consultamos directamente en Firestore el rol del usuario conectado
           const q = query(collection(db, "usuarios"), where("email", "==", usuarioActivo));
           const querySnapshot = await getDocs(q);
           
@@ -907,7 +906,6 @@
             window.location.href = 'index.html';
             return;
           }
-          // =============================================================================
 
           const savedTheme = localStorage.getItem('site_theme') || 'dark';
           if (savedTheme === 'light') document.body.classList.add('light-mode');
@@ -1147,6 +1145,9 @@
       }
 
       function dibujarTarjetas(fuenteDatos, contenedor, esArchivada) {
+        cachePropiedadesActuales = {};
+        fuenteDatos.forEach(p => { cachePropiedadesActuales[p.id] = p; });
+
         let html = '';
         fuenteDatos.forEach(prop => {
           const imgs = (prop.imagenes && prop.imagenes.length > 0) ? prop.imagenes : ['https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=600&q=80'];
@@ -1156,7 +1157,6 @@
             carouselImgsHtml += `<img src="${imgSrc}" class="carousel-img" data-index="${idx}">`;
           });
 
-          // CORRECCIÓN: Se reemplaza btoa/encodeURIComponent por escape seguro o paso directo de ID para evitar errores de sintaxis y corrupción de cadenas por comillas
           const propIdSeguro = prop.id;
 
           html += `
@@ -1203,17 +1203,6 @@
         });
         contenedor.innerHTML = html;
       }
-
-      // CORRECCIÓN: Almacén global temporal de propiedades renderizadas para que las acciones por ID funcionen sin romper comillas
-      let cachePropiedadesActuales = {};
-
-      // Sobrescribimos la carga para almacenar en caché
-      const originalDibujarTarjetas = dibujarTarjetas;
-      window.dibujarTarjetas = function(fuenteDatos, contenedor, esArchivada) {
-        cachePropiedadesActuales = {};
-        fuenteDatos.forEach(p => { cachePropiedadesActuales[p.id] = p; });
-        originalDibujarTarjetas(fuenteDatos, contenedor, esArchivada);
-      };
 
       window.editarPublicacionPorId = function(id) {
         const prop = cachePropiedadesActuales[id];
