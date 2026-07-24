@@ -234,6 +234,28 @@
         font-weight: 600;
       }
 
+      .chat-close-btn {
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: #a1a1aa;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      .chat-close-btn:hover {
+        background: #ef4444;
+        color: #fff;
+        border-color: #ef4444;
+      }
+
       .chat-messages-box {
         flex: 1;
         padding: 24px;
@@ -730,6 +752,7 @@
                   <div class="chat-prop-price">${propertyPrice}</div>
                 </div>
               </div>
+              <button class="chat-close-btn" id="chatCloseBtn" title="Minimizar / Cerrar chat">×</button>
             </div>
             
             <div class="chat-messages-box" id="chatMessagesBox">
@@ -745,6 +768,21 @@
           const messagesBox = document.getElementById('chatMessagesBox');
           const messageInput = document.getElementById('chatMessageInput');
           const sendBtn = document.getElementById('chatSendBtn');
+          const closeBtn = document.getElementById('chatCloseBtn');
+
+          // Botón para cerrar / minimizar el chat
+          closeBtn.addEventListener('click', () => {
+            document.querySelectorAll('.conversation-item').forEach(el => el.classList.remove('active'));
+            chatMainArea.innerHTML = `
+              <div class="chat-empty-state">
+                <div class="chat-empty-icon">💬</div>
+                <div class="chat-empty-title">TU CENTRO DE NEGOCIOS</div>
+                <p style="margin: 0; font-size: 14px; color: #a1a1aa;">Selecciona un chat para gestionar tus cierres y consultas.</p>
+              </div>
+            `;
+            // Limpiar parámetro de la URL sin recargar la página
+            window.history.replaceState({}, document.title, window.location.pathname);
+          });
 
           try {
             const qMsgs = query(
