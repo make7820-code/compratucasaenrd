@@ -641,6 +641,9 @@
         const mainAgentName = document.getElementById('mainAgentName');
         const mainAgentAvatar = document.getElementById('mainAgentAvatar');
 
+        // UID FIJO ESTABLECIDO PARA EL AGENTE RECOMENDADO PRINCIPAL
+        const AGENT_FIXED_UID = "2E7tIaEfdGeVERzDtWvaXQEmPG02";
+
         onAuthStateChanged(auth, async (user) => {
           for (let i = 0; i < 5; i++) {
             const countKey = `agent_${i}_followers_count`;
@@ -659,32 +662,54 @@
             }
           }
 
+          // CARGAR SIEMPRE AL AGENTE FIJO DESDE FIRESTORE
+          try {
+            const docRef = doc(db, "usuarios", AGENT_FIXED_UID);
+            const docSnap = await getDoc(docRef);
+            if (docSnap.exists()) {
+              const data = docSnap.data();
+              let agentDisplayName = "Agente";
+              if (data.nombres) {
+                agentDisplayName = data.nombres;
+              }
+              if (data.apellidos) {
+                agentDisplayName += " " + data.apellidos;
+              }
+              let agentAvatarSrc = data.fotoPerfil || 'assets/onlybladi-avatar.png';
+
+              if (mainAgentName) mainAgentName.textContent = agentDisplayName;
+              if (mainAgentAvatar) mainAgentAvatar.src = agentAvatarSrc;
+            } else {
+              if (mainAgentName) mainAgentName.textContent = "Agente Principal";
+            }
+          } catch (error) {
+            console.error("Error al obtener datos del agente en Firestore:", error);
+            if (mainAgentName) mainAgentName.textContent = "Agente Principal";
+          }
+
+          // GESTIÓN DE SESIÓN DEL USUARIO QUE NAVEGA ACTUALMENTE
           if (user) {
             let displayName = user.email.split('@')[0];
             let avatarSrc = 'assets/onlybladi-avatar.png';
 
             try {
-              const docRef = doc(db, "usuarios", user.uid);
-              const docSnap = await getDoc(docRef);
-              if (docSnap.exists()) {
-                const data = docSnap.data();
-                if (data.nombres) {
-                  displayName = data.nombres;
+              const userDocRef = doc(db, "usuarios", user.uid);
+              const userDocSnap = await getDoc(userDocRef);
+              if (userDocSnap.exists()) {
+                const userData = userDocSnap.data();
+                if (userData.nombres) {
+                  displayName = userData.nombres;
                 }
-                if (data.apellidos) {
-                  displayName += " " + data.apellidos;
+                if (userData.apellidos) {
+                  displayName += " " + userData.apellidos;
                 }
-                if (data.fotoPerfil) {
-                  avatarSrc = data.fotoPerfil;
+                if (userData.fotoPerfil) {
+                  avatarSrc = userData.fotoPerfil;
                 }
               }
             } catch (error) {
-              console.error("Error al obtener datos de Firestore:", error);
+              console.error("Error al obtener datos del usuario actual:", error);
             }
-
-            // Actualizar la tarjeta del Agente Recomendado principal con los datos de Firestore
-            if (mainAgentName) mainAgentName.textContent = displayName;
-            if (mainAgentAvatar) mainAgentAvatar.src = avatarSrc;
 
             if (navMensajes) {
               navMensajes.style.display = 'inline-flex';
