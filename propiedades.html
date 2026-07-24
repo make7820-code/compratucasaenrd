@@ -957,9 +957,9 @@
 
                     <div style="padding: 4px 0 8px 0; font-size: 11px; font-weight: 700; color: #a1a1aa; text-transform: uppercase; letter-spacing: 0.5px;">ASPECTO FÍSICO</div>
                     <div style="display: flex; background: rgba(24, 24, 27, 0.9); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 4px; gap: 4px; margin-bottom: 8px;">
-                      <button type="button" style="flex: 1; background: none; border: none; padding: 6px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px;" title="Claro">☀️</button>
-                      <button type="button" style="flex: 1; background: none; border: none; padding: 6px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px;" title="Sistema">💻</button>
-                      <button type="button" style="flex: 1; background: rgba(255, 255, 255, 0.1); border: none; padding: 6px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px;" title="Oscuro">🌙</button>
+                      <button type="button" id="themeLightBtn" style="flex: 1; background: none; border: none; padding: 6px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px;" title="Claro">☀️</button>
+                      <button type="button" id="themeSystemBtn" style="flex: 1; background: none; border: none; padding: 6px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px;" title="Sistema">💻</button>
+                      <button type="button" id="themeDarkBtn" style="flex: 1; background: none; border: none; padding: 6px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px;" title="Oscuro">🌙</button>
                     </div>
                     
                     <div class="profile-dropdown-divider"></div>
@@ -971,6 +971,54 @@
                 </div>
               </div>
             `;
+
+            // Lógica interactiva para el cambio de Tema (Aspecto Físico)
+            const themeLightBtn = document.getElementById('themeLightBtn');
+            const themeSystemBtn = document.getElementById('themeSystemBtn');
+            const themeDarkBtn = document.getElementById('themeDarkBtn');
+
+            function updateThemeButtons(currentTheme) {
+              [themeLightBtn, themeSystemBtn, themeDarkBtn].forEach(btn => {
+                if (btn) btn.style.background = 'none';
+              });
+              if (currentTheme === 'light' && themeLightBtn) {
+                themeLightBtn.style.background = 'rgba(255, 255, 255, 0.1)';
+              } else if (currentTheme === 'system' && themeSystemBtn) {
+                themeSystemBtn.style.background = 'rgba(255, 255, 255, 0.1)';
+              } else if (currentTheme === 'dark' && themeDarkBtn) {
+                themeDarkBtn.style.background = 'rgba(255, 255, 255, 0.1)';
+              }
+            }
+
+            const savedTheme = localStorage.getItem('app_theme') || 'system';
+            updateThemeButtons(savedTheme);
+
+            if (themeLightBtn) {
+              themeLightBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                localStorage.setItem('app_theme', 'light');
+                document.documentElement.setAttribute('data-theme', 'light');
+                updateThemeButtons('light');
+              });
+            }
+
+            if (themeSystemBtn) {
+              themeSystemBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                localStorage.setItem('app_theme', 'system');
+                document.documentElement.removeAttribute('data-theme');
+                updateThemeButtons('system');
+              });
+            }
+
+            if (themeDarkBtn) {
+              themeDarkBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                localStorage.setItem('app_theme', 'dark');
+                document.documentElement.setAttribute('data-theme', 'dark');
+                updateThemeButtons('dark');
+              });
+            }
 
             try {
               const qNotif = query(collection(db, "mensajes"), where("destinatarioId", "==", user.uid), where("leido", "==", false));
