@@ -1,6 +1,6 @@
 import { auth, db } from './firebase-config.js';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { collection, query, where, onSnapshot, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { collection, query, limit, onSnapshot, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 document.addEventListener('DOMContentLoaded', () => {
   const authContainer = document.getElementById('authContainer');
@@ -17,7 +17,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let displayName = user.email.split('@')[0];
     let avatarSrc = 'assets/onlybladi-avatar.png';
 
-    // Cargar datos adicionales del perfil si existen en Firestore
     try {
       const docSnap = await getDoc(doc(db, "usuarios", user.uid));
       if (docSnap.exists()) {
@@ -29,39 +28,48 @@ document.addEventListener('DOMContentLoaded', () => {
       console.error("Error al cargar perfil en navbar:", e);
     }
 
-    // Escuchar mensajes en tiempo real para las notificaciones globales
-    const q = query(collection(db, "mensajes"), where("userId", "==", user.uid));
+    // Consulta general optimizada para capturar mensajes recientes de la base de datos
+    const q = query(collection(db, "mensajes"), limit(50));
     
     onSnapshot(q, (snapshot) => {
       const conversationsMap = new Map();
       
       snapshot.forEach(docSnap => {
         const data = docSnap.data();
-        const propId = data.propertyId || 'general';
-        const timeA = data.timestamp?.toMillis ? data.timestamp.toMillis() : 0;
+        
+        // Verificamos si el mensaje pertenece al usuario actual (ya sea como receptor o emisor)
+        const isForThisUser = data.userId === user.uid || data.receiverId === user.uid || data.agentId === user.uid || !data.userId;
+        if (!isForThisUser) return;
+
+        const propId = data.propertyId || data.propiedadId || 'general';
+        const timeA = data.timestamp?.toMillis ? data.timestamp.toMillis() : (data.creadoen ? new Date(data.creadoen).getTime() : Date.now());
+        
+        // Determinamos si el mensaje fue enviado por alguien más
+        const senderVal = data.sender || data.remitente || '';
+        const isFromMe = senderVal === 'user' || senderVal === user.uid || data.emisor === user.uid;
         
         if (!conversationsMap.has(propId)) {
           conversationsMap.set(propId, {
             propertyId: propId,
-            propertyTitle: data.propertyTitle || 'Consulta Inmobiliaria',
-            propertyImage: data.propertyImage || 'assets/puerto-marina.png',
-            lastMessage: data.mensaje || data.text || '',
-            sender: data.sender || 'user',
+            propertyTitle: data.propertyTitle || data.titulo || 'Consulta Inmobiliaria',
+            propertyImage: data.propertyImage || data.imagen || 'assets/puerto-marina.png',
+            lastMessage: data.mensaje || data.text || data.contenido || '',
+            isFromMe: isFromMe,
             timestamp: timeA
           });
         } else {
           const existing = conversationsMap.get(propId);
           if (timeA >= existing.timestamp) {
-            existing.lastMessage = data.mensaje || data.text || '';
-            existing.sender = data.sender || 'user';
+            existing.lastMessage = data.mensaje || data.text || data.contenido || '';
+            existing.isFromMe = isFromMe;
             existing.timestamp = timeA;
           }
         }
       });
 
       const convs = Array.from(conversationsMap.values());
-      // Consideramos no leídos aquellos donde el último mensaje NO sea del usuario ('user')
-      const unreadConvs = convs.filter(c => c.sender && c.sender !== 'user');
+      // Consideramos no leído si el último mensaje NO fue enviado por mí
+      const unreadConvs = convs.filter(c => !c.isFromMe);
       
       renderGlobalNavbar(authContainer, user.uid, displayName, avatarSrc, unreadConvs);
     });
@@ -69,7 +77,6 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function renderGlobalNavbar(container, userId, displayName, avatarSrc, unreadConvs) {
-  // Verificamos si el usuario ya marcó o leyó los mensajes en esta sesión actual mediante sessionStorage
   const sessionCleared = sessionStorage.getItem(`notifications_cleared_${userId}`) === 'true';
   const hasUnread = !sessionCleared && unreadConvs.length > 0;
 
@@ -77,6 +84,7 @@ function renderGlobalNavbar(container, userId, displayName, avatarSrc, unreadCon
     <div style="position: relative; display: inline-block;">
       <button id="notificationBellBtn" style="background: none; border: none; cursor: pointer; font-size: 20px; padding: 6px; position: relative;">
         <span id="bellIconSpan" class="${hasUnread ? 'bell-ringing' : ''}">🔔</span>
+        ${hasUnread ? '<span style="position: absolute; top: 2px; right: 2px; width: 8px; height: 8px; background: #10b981; border-radius: 50%;"></span>' : ''}
       </button>
       <div id="notificationDropdown" class="notification-dropdown" style="display:none; position: absolute; right: 0; top: 45px; background: #18181b; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; width: 280px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 1000;">
         <div style="padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.08); font-weight: 700; font-size: 13px; color: #fff; display: flex; justify-content: space-between; align-items: center;">
@@ -115,7 +123,6 @@ function renderGlobalNavbar(container, userId, displayName, avatarSrc, unreadCon
     </div>
   `;
 
-  // Control del menú desplegable de notificaciones
   const notificationBellBtn = document.getElementById('notificationBellBtn');
   const notificationDropdown = document.getElementById('notificationDropdown');
   
@@ -129,7 +136,6 @@ function renderGlobalNavbar(container, userId, displayName, avatarSrc, unreadCon
     });
   }
 
-  // Marcar como leídas
   const markAllReadBtn = document.getElementById('markAllReadBtn');
   if (markAllReadBtn) {
     markAllReadBtn.addEventListener('click', (e) => {
@@ -144,7 +150,6 @@ function renderGlobalNavbar(container, userId, displayName, avatarSrc, unreadCon
     });
   }
 
-  // Redirección al hacer clic en notificación específica
   container.querySelectorAll('.notification-item').forEach(item => {
     item.addEventListener('click', () => {
       sessionStorage.setItem(`notifications_cleared_${userId}`, 'true');
@@ -153,7 +158,6 @@ function renderGlobalNavbar(container, userId, displayName, avatarSrc, unreadCon
     });
   });
 
-  // Control del menú de perfil
   const profileBtn = document.getElementById('profileBtn');
   const profileMenu = document.getElementById('profileMenu');
   if (profileBtn && profileMenu) {
@@ -165,13 +169,11 @@ function renderGlobalNavbar(container, userId, displayName, avatarSrc, unreadCon
     });
   }
 
-  // Cerrar menús al hacer clic fuera
   document.addEventListener('click', () => {
     if (notificationDropdown) notificationDropdown.style.display = 'none';
     if (profileMenu) profileMenu.style.display = 'none';
   });
 
-  // Botón de cerrar sesión
   const cerrarBtn = document.getElementById('cerrarSesionBtn');
   if (cerrarBtn) {
     cerrarBtn.addEventListener('click', async () => {
