@@ -371,43 +371,6 @@
         margin: 8px 0;
       }
 
-      .profile-dropdown-section-title {
-        font-size: 11px;
-        font-weight: 700;
-        color: #71717a;
-        text-transform: uppercase;
-        letter-spacing: 0.8px;
-        padding: 6px 14px;
-        margin-top: 4px;
-      }
-
-      .theme-selector-box {
-        display: flex;
-        background: rgba(24, 24, 27, 0.9);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 12px;
-        padding: 4px;
-        margin: 6px 10px;
-        justify-content: space-between;
-      }
-
-      .theme-option {
-        background: none;
-        border: none;
-        color: #a1a1aa;
-        padding: 8px 16px;
-        border-radius: 8px;
-        cursor: pointer;
-        font-size: 15px;
-        transition: all 0.2s;
-      }
-
-      .theme-option.active {
-        background: rgba(255, 255, 255, 0.1);
-        color: #fff;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-      }
-
       .profile-dropdown-item.logout {
         color: #ef4444;
       }
@@ -698,7 +661,6 @@
           <a href="propiedades.html" class="nav-link active"><span class="nav-emoji">🏢</span> Propiedades</a>
           <a href="comunidad.html" class="nav-link"><span class="nav-emoji">👥</span> Comunidad</a>
           <a href="blog.html" class="nav-link"><span class="nav-emoji">📰</span> Blog</a>
-          <a href="mensajes.html" class="nav-link"><span class="nav-emoji">💬</span> Mensajes</a>
           <a href="nosotros.html" class="nav-link"><span class="nav-emoji">ℹ️</span> Nosotros</a>
           <a href="vender.html" class="nav-link"><span class="nav-emoji">🤝</span> Vender</a>
         </nav>
@@ -945,12 +907,6 @@
       import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
       window.addEventListener('DOMContentLoaded', async () => {
-        // Gestión de Tema guardado previamente
-        const savedTheme = localStorage.getItem('site_theme') || 'dark';
-        if (savedTheme === 'light') {
-          document.body.classList.add('light-mode');
-        }
-
         const authContainer = document.getElementById('authContainer');
 
         onAuthStateChanged(auth, async (user) => {
@@ -1009,18 +965,18 @@
                     </a>
                     
                     <div class="profile-dropdown-divider"></div>
-                    
-                    <div class="profile-dropdown-section-title">ASPECTO FÍSICO</div>
-                    <div class="theme-selector-box">
-                      <button type="button" class="theme-option" data-theme="light" title="Modo Claro">☀️</button>
-                      <button type="button" class="theme-option" data-theme="system" title="Sistema">💻</button>
-                      <button type="button" class="theme-option active" data-theme="dark" title="Modo Oscuro">🌙</button>
+
+                    <div style="padding: 4px 0 8px 0; font-size: 11px; font-weight: 700; color: #a1a1aa; text-transform: uppercase; letter-spacing: 0.5px;">Aspecto Físico</div>
+                    <div style="display: flex; background: rgba(24, 24, 27, 0.9); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 4px; gap: 4px; margin-bottom: 8px;">
+                      <button type="button" style="flex: 1; background: none; border: none; padding: 6px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; transition: background 0.2s;" title="Claro">🌞</button>
+                      <button type="button" style="flex: 1; background: none; border: none; padding: 6px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; transition: background 0.2s;" title="Sistema">💻</button>
+                      <button type="button" style="flex: 1; background: rgba(255, 255, 255, 0.1); border: none; padding: 6px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; transition: background 0.2s;" title="Oscuro">🌙</button>
                     </div>
                     
                     <div class="profile-dropdown-divider"></div>
                     
                     <button type="button" id="btnLogout" class="profile-dropdown-item logout">
-                      <span style="font-size: 16px;">🚫</span> Cerrar Sesión
+                      <span style="font-size: 16px;">🚪</span> Cerrar Sesión
                     </button>
                   </div>
                 </div>
@@ -1067,7 +1023,6 @@
             const notificationBellBtn = document.getElementById('notificationBellBtn');
             const notificationDropdown = document.getElementById('notificationDropdown');
             const btnLogout = document.getElementById('btnLogout');
-            const themeButtons = document.querySelectorAll('.theme-option');
 
             if (profileBtn && profileDropdownMenu) {
               profileBtn.addEventListener('click', (e) => {
@@ -1092,28 +1047,6 @@
 
             if (profileDropdownMenu) profileDropdownMenu.addEventListener('click', (e) => e.stopPropagation());
             if (notificationDropdown) notificationDropdown.addEventListener('click', (e) => e.stopPropagation());
-
-            themeButtons.forEach(btn => {
-              const themeMode = btn.getAttribute('data-theme');
-              if ((savedTheme === 'dark' && themeMode === 'dark') || 
-                  (savedTheme === 'light' && themeMode === 'light')) {
-                themeButtons.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-              }
-
-              btn.addEventListener('click', () => {
-                themeButtons.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-
-                if (themeMode === 'light') {
-                  localStorage.setItem('site_theme', 'light');
-                  document.body.classList.add('light-mode');
-                } else {
-                  localStorage.setItem('site_theme', 'dark');
-                  document.body.classList.remove('light-mode');
-                }
-              });
-            });
 
             if (btnLogout) {
               btnLogout.addEventListener('click', async () => {
