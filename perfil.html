@@ -45,9 +45,9 @@
         align-items: center;
       }
       .profile-action-btn-danger {
-        background: rgba(239, 68, 68, 0.15);
-        color: #ef4444;
-        border: 1px solid rgba(239, 68, 68, 0.3);
+        background: #ef4444;
+        color: #ffffff;
+        border: 1px solid #dc2626;
         padding: 12px 24px;
         border-radius: 999px;
         font-weight: 600;
@@ -58,7 +58,7 @@
         transition: all 0.2s;
       }
       .profile-action-btn-danger:hover {
-        background: #ef4444;
+        background: #dc2626;
         color: #fff;
       }
       .profile-action-btn-primary {
@@ -122,11 +122,11 @@
         transform: translateY(-1px);
       }
 
-      /* Estilo para el botón de Atrás ubicado al lado de Publicar Propiedad */
+      /* Estilo para el botón de Atrás en Color Verde */
       .profile-action-btn-back {
-        background: rgba(255, 255, 255, 0.08);
-        color: #fff;
-        border: 1px solid rgba(255, 255, 255, 0.15);
+        background: #22c55e;
+        color: #ffffff;
+        border: 1px solid #16a34a;
         padding: 12px 24px;
         border-radius: 999px;
         font-weight: 600;
@@ -136,16 +136,9 @@
         gap: 8px;
         transition: all 0.2s;
       }
-      body.light-mode .profile-action-btn-back {
-        background: rgba(0, 0, 0, 0.05);
-        color: #111827;
-        border-color: rgba(0, 0, 0, 0.15);
-      }
       .profile-action-btn-back:hover {
-        background: rgba(255, 255, 255, 0.15);
-      }
-      body.light-mode .profile-action-btn-back:hover {
-        background: rgba(0, 0, 0, 0.1);
+        background: #16a34a;
+        color: #fff;
       }
 
       .profile-grid-container {
@@ -515,12 +508,12 @@
             <span>👤</span> Ver Perfil Público
           </button>
           
-          <!-- Botón de publicar con ID y oculto por defecto para evitar parpadeos -->
+          <!-- Botón de publicar que lleva a vender.html -->
           <button type="button" class="profile-action-btn-publish" id="btnPublicarPropiedad" style="display: none;" onclick="window.location.href='vender.html'">
             <span>🏠</span> Publicar Propiedad
           </button>
 
-          <!-- Botón de Atrás colocado exactamente al lado de Publicar Propiedad -->
+          <!-- Botón de Atrás en Color Verde -->
           <button type="button" class="profile-action-btn-back" onclick="window.history.back()">
             <span>⬅️</span> Atrás
           </button>
