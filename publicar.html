@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestión de Publicaciones | Compra tu casa en RD</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
     <!-- Hoja de Estilos Principal -->
@@ -869,8 +871,11 @@
           const usuarioActivo = localStorage.getItem('usuario_activo');
           const rolUsuario = localStorage.getItem('usuario_rol') || 'cliente'; // Por defecto se asume cliente si no existe
 
-          // Si no hay sesión o el rol es 'cliente', se bloquea el acceso redirigiendo al inicio
-          if (!usuarioActivo || rolUsuario.toLowerCase() === 'cliente') {
+          // Roles permitidos para acceder a la gestión de publicaciones
+          const rolesPermitidos = ['superadmin', 'admin', 'agentepro', 'agente'];
+
+          // Si no hay sesión o el rol no está permitido, se bloquea el acceso redirigiendo al inicio
+          if (!usuarioActivo || !rolesPermitidos.includes(rolUsuario.toLowerCase())) {
             alert("Acceso denegado. No tienes permisos para ver la sección de publicaciones.");
             window.location.href = 'index.html';
             return; // Detiene la ejecución posterior
