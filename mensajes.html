@@ -412,7 +412,7 @@
           <a href="propiedades.html" class="nav-link"><span class="nav-emoji">🏢</span> Propiedades</a>
           <a href="comunidad.html" class="nav-link"><span class="nav-emoji">👥</span> Comunidad</a>
           <a href="blog.html" class="nav-link"><span class="nav-emoji">📰</span> Blog</a>
-          <a href="mensajes.html" class="nav-link active" id="navMensajes"><span class="nav-emoji">💬</span> Mensajes</a>
+          <a href="mensajes.html" class="nav-link active" id="navMensajes" style="display: inline-flex;"><span class="nav-emoji">💬</span> Mensajes</a>
           <a href="nosotros.html" class="nav-link"><span class="nav-emoji">ℹ️</span> Nosotros</a>
           <a href="vender.html" class="nav-link"><span class="nav-emoji">🤝</span> Vender</a>
         </nav>
@@ -682,6 +682,14 @@
           if (targetConvToOpen && chatMainArea.querySelector('.chat-empty-state')) {
             openedConversations.add(targetConvToOpen.propertyId);
             openChatWindow(targetConvToOpen.propertyId, targetConvToOpen.propertyTitle, targetConvToOpen.propertyImage, targetConvToOpen.propertyPrice, userId);
+            
+            const activeItemNode = Array.from(conversationsList.children).find(el => el.classList.contains('active'));
+            if (activeItemNode) {
+              const dot = activeItemNode.querySelector('.unread-dot');
+              if (dot) dot.remove();
+            }
+            const unreadConvs = convs.filter(c => (c.sender && c.sender !== 'user') && !openedConversations.has(c.propertyId));
+            updateNotificationBellState(unreadConvs);
           }
         }
 
@@ -815,15 +823,7 @@
           const closeBtn = document.getElementById('chatCloseBtn');
 
           closeBtn.addEventListener('click', () => {
-            document.querySelectorAll('.conversation-item').forEach(el => el.classList.remove('active'));
-            chatMainArea.innerHTML = `
-              <div class="chat-empty-state">
-                <div class="chat-empty-icon">💬</div>
-                <div class="chat-empty-title">TU CENTRO DE NEGOCIOS</div>
-                <p style="margin: 0; font-size: 14px; color: #a1a1aa;">Selecciona un chat para gestionar tus cierres y consultas.</p>
-              </div>
-            `;
-            window.history.replaceState({}, document.title, window.location.pathname);
+            window.location.reload();
           });
 
           const renderMessagesList = (mensajesList) => {
