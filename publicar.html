@@ -199,6 +199,7 @@
       .carousel-btn:hover { background: rgba(245, 158, 11, 0.9); color: #000; }
       .carousel-prev { left: 8px; }
       .carousel-next { right: 8px; }
+      
       .badge-operacion {
         position: absolute;
         top: 12px; left: 12px;
@@ -212,6 +213,27 @@
         text-transform: uppercase;
         z-index: 2;
         border: 1px solid rgba(245, 158, 11, 0.3);
+      }
+      /* Etiqueta de Venta en Verde */
+      .badge-operacion.venta {
+        color: #10b981 !important;
+        border-color: rgba(16, 185, 129, 0.4) !important;
+      }
+
+      /* Etiqueta de Extranjeros en la Tarjeta */
+      .badge-extranjeros {
+        position: absolute;
+        top: 12px; right: 12px;
+        background: rgba(59, 130, 246, 0.85);
+        backdrop-filter: blur(4px);
+        color: #fff;
+        padding: 4px 8px;
+        border-radius: 8px;
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        z-index: 2;
+        border: 1px solid rgba(59, 130, 246, 0.5);
       }
 
       /* Información de la Tarjeta */
@@ -236,10 +258,11 @@
         margin: 0;
         line-height: 1.3;
       }
+      /* Dinero / Precio en Venta o general */
       .card-prop-price {
         font-size: 15px;
         font-weight: 800;
-        color: #f59e0b;
+        color: #10b981; /* Verde solicitado */
       }
       .card-prop-ubicacion {
         font-size: 13px;
@@ -252,7 +275,8 @@
       }
       .card-features-grid {
         display: flex;
-        gap: 10px;
+        flex-wrap: wrap;
+        gap: 8px;
         font-size: 12px;
         color: var(--text-muted);
         margin-bottom: 12px;
@@ -414,6 +438,24 @@
       }
       .publish-submit-btn:hover { background: #d97706; color: #fff; }
 
+      /* Checkbox de Extranjeros */
+      .checkbox-container {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid var(--card-border);
+        border-radius: 10px;
+        padding: 12px 14px;
+        cursor: pointer;
+      }
+      .checkbox-container input {
+        width: 18px;
+        height: 18px;
+        accent-color: #f59e0b;
+        cursor: pointer;
+      }
+
       /* Estilos para el contenedor de miniaturas de fotos en edición */
       .thumbnails-edit-container {
         display: flex;
@@ -465,7 +507,6 @@
         margin-top: 80px;
         color: #a1a1aa;
       }
-
       .footer-container {
         max-width: 1200px;
         margin: 0 auto;
@@ -474,146 +515,53 @@
         gap: 30px;
         margin-bottom: 40px;
       }
-
       .footer-brand-title {
         font-size: 20px;
         font-weight: 800;
         color: #fff;
         margin-bottom: 12px;
       }
-
-      .highlight-red {
-        color: #ef4444;
-      }
-
+      .highlight-red { color: #ef4444; }
       .footer-brand-desc {
         font-size: 13px;
         line-height: 1.6;
         color: #a1a1aa;
         margin-bottom: 20px;
       }
-
-      .footer-social-icons {
-        display: flex;
-        gap: 12px;
-      }
-
+      .footer-social-icons { display: flex; gap: 12px; }
       .social-icon-btn {
-        width: 42px;
-        height: 42px;
+        width: 42px; height: 42px;
         background: #18181b;
         border: 1px solid rgba(255, 255, 255, 0.08);
         border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #fff;
-        text-decoration: none;
+        display: flex; align-items: center; justify-content: center;
+        color: #fff; text-decoration: none;
         transition: background 0.2s, transform 0.2s, border-color 0.2s;
       }
-
       .social-icon-btn:hover {
-        background: #ef4444;
-        border-color: #ef4444;
-        transform: translateY(-2px);
+        background: #ef4444; border-color: #ef4444; transform: translateY(-2px);
       }
-
-      .social-icon-btn svg {
-        width: 20px;
-        height: 20px;
-        fill: currentColor;
-      }
-
-      .footer-col-title {
-        font-size: 16px;
-        font-weight: 700;
-        color: #fff;
-        margin-bottom: 16px;
-      }
-
-      .footer-links-list {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-      }
-
-      .footer-links-list li a {
-        color: #a1a1aa;
-        text-decoration: none;
-        font-size: 14px;
-        transition: color 0.2s;
-      }
-
-      .footer-links-list li a:hover {
-        color: #fff;
-      }
-
-      .footer-contact-list {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-      }
-
-      .footer-contact-list li {
-        display: flex;
-        align-items: flex-start;
-        gap: 10px;
-        font-size: 13px;
-        color: #a1a1aa;
-        line-height: 1.4;
-      }
-
-      .footer-email {
-        color: #3b82f6;
-        text-decoration: none;
-      }
-
-      .footer-email:hover {
-        text-decoration: underline;
-      }
-
+      .social-icon-btn svg { width: 20px; height: 20px; fill: currentColor; }
+      .footer-col-title { font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 16px; }
+      .footer-links-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
+      .footer-links-list li a { color: #a1a1aa; text-decoration: none; font-size: 14px; transition: color 0.2s; }
+      .footer-links-list li a:hover { color: #fff; }
+      .footer-contact-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 12px; }
+      .footer-contact-list li { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: #a1a1aa; line-height: 1.4; }
+      .footer-email { color: #3b82f6; text-decoration: none; }
+      .footer-email:hover { text-decoration: underline; }
       .footer-bottom {
-        max-width: 1200px;
-        margin: 0 auto;
+        max-width: 1200px; margin: 0 auto;
         border-top: 1px solid rgba(255, 255, 255, 0.08);
-        padding-top: 20px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        font-size: 13px;
-        color: #71717a;
+        padding-top: 20px; display: flex; justify-content: space-between; align-items: center;
+        font-size: 13px; color: #71717a;
       }
-
-      .footer-bottom-links {
-        display: flex;
-        gap: 20px;
-      }
-
-      .footer-bottom-links a {
-        color: #71717a;
-        text-decoration: none;
-        transition: color 0.2s;
-      }
-
-      .footer-bottom-links a:hover {
-        color: #fff;
-      }
-
+      .footer-bottom-links { display: flex; gap: 20px; }
+      .footer-bottom-links a { color: #71717a; text-decoration: none; transition: color 0.2s; }
+      .footer-bottom-links a:hover { color: #fff; }
       @media(max-width: 900px) {
-        .footer-container {
-          grid-template-columns: 1fr;
-        }
-        .footer-bottom {
-          flex-direction: column;
-          gap: 10px;
-          text-align: center;
-        }
+        .footer-container { grid-template-columns: 1fr; }
+        .footer-bottom { flex-direction: column; gap: 10px; text-align: center; }
       }
     </style>
 </head>
@@ -714,6 +662,25 @@
               <label>Nombre del Agente</label>
               <input type="text" id="propAgente" class="publish-control" placeholder="Ej. Carlos Ruiz" required>
             </div>
+          </div>
+
+          <!-- NUEVOS APARTADOS: Depósito, Comisión y Extranjeros -->
+          <div class="form-grid-2">
+            <div class="publish-form-group">
+              <label>Número de Depósito</label>
+              <input type="text" id="propDeposito" class="publish-control" placeholder="Ej. Dep. #402 o Banco...">
+            </div>
+            <div class="publish-form-group">
+              <label>Porcentaje de Comisión (%)</label>
+              <input type="number" id="propComision" class="publish-control" placeholder="Ej. 5" min="0" max="100" step="0.1">
+            </div>
+          </div>
+
+          <div class="publish-form-group form-group-full">
+            <label class="checkbox-container">
+              <input type="checkbox" id="propExtranjeros">
+              <span style="font-size: 13px; font-weight: 600; color: var(--text-main);">Apto disponible / apto para Extranjeros</span>
+            </label>
           </div>
 
           <div class="form-section-heading" style="margin-top: 20px;"><span>📍</span> Ubicación Geográfica y Enlaces</div>
@@ -879,9 +846,8 @@
       let imagenesEditandoActuales = []; 
       let cachePropiedadesActuales = {};
 
-      // ================= UIDS AUTORIZADOS PARA ENTRAR A ESTÁ PÁGINA =================
       const UIDS_AUTORIZADOS = [
-        "2E7tIaEfdGeVERzDtWvaXQEmPG02", // Tu usuario
+        "2E7tIaEfdGeVERzDtWvaXQEmPG02", 
       ];
 
       window.addEventListener('DOMContentLoaded', () => {
@@ -1064,6 +1030,9 @@
           document.getElementById('propTitulo').value = editarObj.titulo || '';
           document.getElementById('propOperacion').value = editarObj.operacion || 'Venta';
           document.getElementById('propAgente').value = editarObj.agente || '';
+          document.getElementById('propDeposito').value = editarObj.deposito || '';
+          document.getElementById('propComision').value = editarObj.comision || '';
+          document.getElementById('propExtranjeros').checked = !!editarObj.extranjeros;
           document.getElementById('propProvincia').value = editarObj.provincia || '';
           document.getElementById('propMunicipio').value = editarObj.municipio || '';
           document.getElementById('propDistrito').value = editarObj.distrito || '';
@@ -1150,6 +1119,9 @@
             operacion: document.getElementById('propOperacion').value,
             precio: precioFmt,
             agente: document.getElementById('propAgente').value,
+            deposito: document.getElementById('propDeposito').value || '',
+            comision: document.getElementById('propComision').value || '',
+            extranjeros: document.getElementById('propExtranjeros').checked,
             ubicacion: ubicacionCompleta,
             provincia, 
             municipio, 
@@ -1244,11 +1216,13 @@
           });
 
           const propIdSeguro = prop.id;
+          const esVenta = (prop.operacion || '').toLowerCase() === 'venta';
 
           html += `
             <div class="propiedad-card-pro" id="card-${prop.id}">
               <div class="card-carousel-wrapper" id="track-wrapper-${prop.id}">
-                <span class="badge-operacion">${prop.operacion || 'Venta'}</span>
+                <span class="badge-operacion ${esVenta ? 'venta' : ''}">${prop.operacion || 'Venta'}</span>
+                ${prop.extranjeros ? `<span class="badge-extranjeros">Extranjeros</span>` : ''}
                 <div class="carousel-track" id="track-${prop.id}" style="transform: translateX(0%);">
                   ${carouselImgsHtml}
                 </div>
@@ -1263,11 +1237,16 @@
                   <span class="card-prop-price">${prop.precio}</span>
                 </div>
                 <p class="card-prop-ubicacion">📍 ${prop.ubicacion}</p>
+                
+                <!-- Detalles de Habitaciones, Baños, Metros, Nivel y Parqueos en la Tarjeta -->
                 <div class="card-features-grid">
                   <span>🛏️ ${prop.habitaciones} hab</span>
                   <span>🚿 ${prop.banos} baños</span>
+                  <span>🏢 ${prop.nivel || 'N/D'}</span>
+                  <span>🅿️ ${prop.parqueos} parq</span>
                   <span>📐 ${prop.metros}</span>
                 </div>
+
                 <p class="card-desc-text">${prop.descripcion}</p>
               </div>
               
