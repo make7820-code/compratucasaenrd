@@ -671,8 +671,9 @@
           
           const depositos = selectedProperty.depositos || selectedProperty.deposits || selectedProperty.cantidadDepositos || selectedProperty.deposito || null;
 
-          // Verificación de Extranjeros
-          const rawExtranjero = selectedProperty.extranjero !== undefined ? selectedProperty.extranjero 
+          // Verificación de Extranjeros corregida para abarcar 'extranjeros' (plural) y alternativas
+          const rawExtranjero = selectedProperty.extranjeros !== undefined ? selectedProperty.extranjeros 
+                              : selectedProperty.extranjero !== undefined ? selectedProperty.extranjero 
                               : selectedProperty.aceptanExtranjeros !== undefined ? selectedProperty.aceptanExtranjeros 
                               : selectedProperty.permiteExtranjeros;
           
