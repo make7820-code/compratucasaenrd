@@ -4,11 +4,60 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Compra tu casa en RD | Venta, Alquiler e Hipoteca</title>
-    <link rel="icon" type="image/x-icon" href="assets/icono.ico">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
     <!-- Hoja de Estilos -->
     <link rel="stylesheet" href="styles.css">
+    <style>
+      #authContainer {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+      }
+
+      /* Estilos para la campanita de notificaciones (igual que en comunidad.html) */
+      @keyframes ringBell {
+        0% { transform: rotate(0deg); }
+        20% { transform: rotate(15deg); }
+        40% { transform: rotate(-15deg); }
+        60% { transform: rotate(10deg); }
+        80% { transform: rotate(-10deg); }
+        100% { transform: rotate(0deg); }
+      }
+
+      .bell-ringing {
+        animation: ringBell 1s infinite ease-in-out;
+        display: inline-block;
+      }
+
+      .notification-dropdown {
+        display: none;
+        position: absolute;
+        right: 0;
+        top: 50px;
+        background: #18181b;
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 12px;
+        width: 300px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+        z-index: 1000;
+        overflow: hidden;
+      }
+
+      .notification-item {
+        padding: 12px 16px;
+        border-bottom: 1px solid rgba(255,255,255,0.06);
+        cursor: pointer;
+        transition: background 0.2s;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .notification-item:hover {
+        background: rgba(255,255,255,0.05);
+      }
+    </style>
 </head>
 <body>
 
@@ -326,147 +375,21 @@
       });
     </script>
 
-    <!-- SCRIPT DE FIREBASE, SESIÓN Y CAMBIO DE TEMA -->
+    <!-- SCRIPT DE FIREBASE: MOSTRAR ENLACE DE MENSAJES SI HAY SESIÓN ACTIVA -->
     <script type="module">
-      import { auth, db } from './firebase-config.js';
-      import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-      import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+      import { auth } from './firebase-config.js';
+      import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-      window.addEventListener('DOMContentLoaded', () => {
-        const savedTheme = localStorage.getItem('site_theme') || 'dark';
-        if (savedTheme === 'light') {
-          document.body.classList.add('light-mode');
-        } else if (savedTheme === 'system') {
-          if (window.matchMedia('(prefers-color-scheme: light)').matches) {
-            document.body.classList.add('light-mode');
-          }
+      const navMensajes = document.getElementById('navMensajes');
+      onAuthStateChanged(auth, (user) => {
+        if (navMensajes) {
+          navMensajes.style.display = user ? 'inline-flex' : 'none';
         }
-
-        const authContainer = document.getElementById('authContainer');
-        const navMensajes = document.getElementById('navMensajes');
-
-        onAuthStateChanged(auth, async (user) => {
-          if (user) {
-            let displayName = user.email.split('@')[0];
-            let avatarSrc = 'assets/onlybladi-avatar.png';
-
-            try {
-              const docRef = doc(db, "usuarios", user.uid);
-              const docSnap = await getDoc(docRef);
-              if (docSnap.exists()) {
-                const data = docSnap.data();
-                if (data.nombres) {
-                  displayName = data.nombres;
-                }
-                if (data.fotoPerfil) {
-                  avatarSrc = data.fotoPerfil;
-                }
-              }
-            } catch (error) {
-              console.error("Error al obtener datos de Firestore:", error);
-            }
-
-            if (navMensajes) {
-              navMensajes.style.display = 'inline-flex';
-              navMensajes.href = 'mensajes.html';
-            }
-
-            if (authContainer) {
-              authContainer.innerHTML = `
-                <div class="profile-dropdown-container" style="position: relative; display: inline-block;">
-                  <button id="profileBtn" style="background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 12px; padding: 4px 8px 4px 4px; border-radius: 999px; transition: background 0.2s;">
-                    <img src="${avatarSrc}" alt="Avatar" style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 2px solid #ef4444;" onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=${user.uid}'">
-                    <span style="color: #fff; font-weight: 600; font-size: 15px; font-family: var(--font-display, sans-serif);">${displayName}</span>
-                  </button>
-
-                  <div id="profileMenu" class="profile-menu">
-                    <button class="profile-menu-item" onclick="window.location.href='perfil.html'">
-                      <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                      Ir al Perfil
-                    </button>
-
-                    <div class="profile-menu-divider"></div>
-                    <div class="profile-menu-section-title">Aspecto físico</div>
-                    
-                    <div class="profile-theme-selector">
-                      <button class="theme-btn ${savedTheme === 'light' ? 'active' : ''}" data-theme="light" title="Claro">☀️</button>
-                      <button class="theme-btn ${savedTheme === 'system' ? 'active' : ''}" data-theme="system" title="💻">💻</button>
-                      <button class="theme-btn ${savedTheme === 'dark' ? 'active' : ''}" data-theme="dark" title="Oscuro">🌙</button>
-                    </div>
-
-                    <div class="profile-menu-divider"></div>
-                    <button class="profile-menu-item" id="cerrarSesionBtn" style="color: #ef4444;">
-                      <span style="font-size: 16px;">⎋</span> Cerrar Sesión
-                    </button>
-                  </div>
-                </div>
-              `;
-
-              const profileBtn = document.getElementById('profileBtn');
-              const profileMenu = document.getElementById('profileMenu');
-
-              if (profileBtn && profileMenu) {
-                profileBtn.addEventListener('click', (e) => {
-                  e.stopPropagation();
-                  profileMenu.classList.toggle('show');
-                });
-
-                document.addEventListener('click', (e) => {
-                  if (!profileMenu.contains(e.target) && !profileBtn.contains(e.target)) {
-                    profileMenu.classList.remove('show');
-                  }
-                });
-              }
-
-              const cerrarBtn = document.getElementById('cerrarSesionBtn');
-              if (cerrarBtn) {
-                cerrarBtn.addEventListener('click', async (event) => {
-                  event.stopPropagation();
-                  try {
-                    await signOut(auth);
-                    localStorage.removeItem('sesion_activa');
-                    localStorage.removeItem('usuario_activo');
-                    alert("Has cerrado sesión correctamente.");
-                    window.location.href = 'index.html';
-                  } catch (error) {
-                    console.error("Error al cerrar sesión:", error);
-                  }
-                });
-              }
-
-              const themeBtns = document.querySelectorAll('.theme-btn');
-              themeBtns.forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                  e.stopPropagation();
-                  const theme = btn.getAttribute('data-theme');
-                  themeBtns.forEach(b => b.classList.remove('active'));
-                  btn.classList.add('active');
-
-                  if (theme === 'light') {
-                    document.body.classList.add('light-mode');
-                    localStorage.setItem('site_theme', 'light');
-                  } else if (theme === 'dark') {
-                    document.body.classList.remove('light-mode');
-                    localStorage.setItem('site_theme', 'dark');
-                  } else if (theme === 'system') {
-                    localStorage.setItem('site_theme', 'system');
-                    if (window.matchMedia('(prefers-color-scheme: light)').matches) {
-                      document.body.classList.add('light-mode');
-                    } else {
-                      document.body.classList.remove('light-mode');
-                    }
-                  }
-                });
-              });
-            }
-          } else {
-            if (navMensajes) {
-              navMensajes.style.display = 'none';
-            }
-          }
-        });
       });
     </script>
+
+    <!-- Campanita de notificaciones y menú de perfil (compartido con comunidad.html y propiedades.html) -->
+    <script type="module" src="notifications.js"></script>
 
 </body>
 </html>
