@@ -656,11 +656,9 @@
       </div>
     </footer>
 
-    <!-- SCRIPT CON SOPORTE PARA VIDEO DE LA PROPIEDAD Y CHAT DIRECTO EN FIRESTORE -->
+    <!-- SCRIPT CON SOPORTE PARA VIDEO Y REDIRECCIÓN A MENSAJES.HTML -->
     <script type="module">
       import { db, doc, getDoc } from './firebase-config.js';
-      import { getAuth } from "https://www.gstatic.com/firebasejs/10.x.x/firebase-auth.js";
-      import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.x.x/firebase-firestore.js";
 
       window.addEventListener('DOMContentLoaded', async () => {
         const urlParams = new URLSearchParams(window.location.search);
@@ -713,7 +711,7 @@
           const parqueos = selectedProperty.parqueos || selectedProperty.parking || selectedProperty.parqueo || '1';
           const depositos = selectedProperty.depositos || selectedProperty.deposits || selectedProperty.cantidadDepositos || selectedProperty.deposito || null;
 
-          // Extracción del enlace de video (soporta varias claves del formulario)
+          // Extracción del enlace de video
           const videoUrl = selectedProperty.videoUrl || selectedProperty.video || selectedProperty.enlaceVideo || selectedProperty.linkVideo || null;
 
           // Verificación de Extranjeros
@@ -738,7 +736,6 @@
                </div>` 
             : '';
 
-          // HTML dinámico para el widget de video de la propiedad en la barra lateral
           const videoWidgetHtml = videoUrl ? `
             <div class="property-video-box">
               <div class="property-video-title">
@@ -828,9 +825,9 @@
                   </div>
                 </div>
 
-                <button id="btnEnviarMensaje" class="contact-btn">
+                <a href="#" id="btnEnviarMensaje" class="contact-btn">
                   <span>💬</span> Enviar Mensaje
-                </button>
+                </a>
                 <a href="https://wa.me/18498572321?text=${encodeURIComponent(whatsappMessage)}" target="_blank" class="contact-btn whatsapp-btn">
                   <span>📱</span> Contactar por WhatsApp
                 </a>
@@ -838,40 +835,17 @@
             </div>
           `;
 
-          // Configuración del botón Enviar Mensaje (Chat Directo)
+          // Configuración del botón Enviar Mensaje (Redirección a mensajes.html)
           const btnEnviarMensaje = document.getElementById('btnEnviarMensaje');
           if (btnEnviarMensaje) {
-            btnEnviarMensaje.addEventListener('click', async () => {
-              const auth = getAuth();
-              const currentUser = auth.currentUser;
+            btnEnviarMensaje.addEventListener('click', (e) => {
+              e.preventDefault();
               const ANFITRION_UID = "3VUuf3bJLKfAWqAlT94L1VlvaHB3";
-
-              if (!currentUser) {
-                alert("Debes iniciar sesión para enviar un mensaje directo al asesor.");
-                return;
-              }
-
-              if (currentUser.uid === ANFITRION_UID) {
-                alert("Estás conectado como el anfitrión de la empresa.");
-                return;
-              }
-
-              try {
-                await addDoc(collection(db, "chats"), {
-                  remitenteUid: currentUser.uid,
-                  destinatarioUid: ANFITRION_UID,
-                  propiedadId: propertyId,
-                  propiedadTitulo: title,
-                  mensaje: `Hola, estoy interesado(a) en esta propiedad: ${title} (${window.location.href})`,
-                  timestamp: serverTimestamp(),
-                  leido: false
-                });
-
-                alert("¡Mensaje enviado con éxito al anfitrión! Pronto se pondrá en contacto contigo.");
-              } catch (error) {
-                console.error("Error al enviar mensaje:", error);
-                alert("Hubo un error al enviar el mensaje. Inténtalo de nuevo.");
-              }
+              
+              const propertyTitleEncoded = encodeURIComponent(title);
+              const propertyUrlEncoded = encodeURIComponent(window.location.href);
+              
+              window.location.href = `mensajes.html?destinatario=${ANFITRION_UID}&propiedadId=${propertyId}&titulo=${propertyTitleEncoded}&url=${propertyUrlEncoded}`;
             });
           }
 
