@@ -10,10 +10,10 @@
     <!-- Hoja de Estilos Principal -->
     <link rel="stylesheet" href="styles.css">
     <style>
-      /* Estilos específicos para la mensajería empresarial con fondo mi-zona.png */
+      /* Estilos específicos para la mensajería empresarial con fondo assets/mi-zona.png */
       body {
         background-color: #0b0b0e;
-        background-image: linear-gradient(rgba(11, 11, 14, 0.85), rgba(11, 11, 14, 0.92)), url('assets/mi-zona.png');
+        background-image: linear-gradient(rgba(11, 11, 14, 0.82), rgba(11, 11, 14, 0.90)), url('assets/mi-zona.png');
         background-size: cover;
         background-position: center;
         background-attachment: fixed;
@@ -27,8 +27,8 @@
       }
 
       .messaging-wrapper {
-        max-width: 1300px;
-        margin: 120px auto 40px auto;
+        max-width: 1350px;
+        margin: 140px auto 50px auto;
         padding: 0 20px;
         width: 100%;
         box-sizing: border-box;
@@ -37,14 +37,15 @@
 
       .messaging-container {
         display: grid;
-        grid-template-columns: 350px 1fr;
-        background: rgba(18, 18, 20, 0.90);
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.08);
+        grid-template-columns: 360px 1fr;
+        background: rgba(18, 18, 22, 0.88);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
         border-radius: 20px;
         overflow: hidden;
-        height: 650px;
-        box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+        height: 700px;
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.7);
       }
 
       /* Columna Izquierda: Lista de Clientes / Conversaciones */
@@ -52,7 +53,7 @@
         border-right: 1px solid rgba(255, 255, 255, 0.08);
         display: flex;
         flex-direction: column;
-        background: rgba(18, 18, 20, 0.95);
+        background: rgba(18, 18, 22, 0.95);
       }
 
       .sidebar-header {
@@ -61,11 +62,12 @@
       }
 
       .sidebar-title {
-        font-size: 20px;
+        font-size: 18px;
         font-weight: 800;
         color: #fff;
         margin: 0 0 14px 0;
         letter-spacing: 0.5px;
+        font-family: 'Poppins', sans-serif;
       }
 
       .search-box-wrap {
@@ -105,10 +107,10 @@
       }
 
       .conversation-item {
-        padding: 14px;
+        padding: 12px 14px;
         border-radius: 12px;
         cursor: pointer;
-        transition: background 0.2s;
+        transition: background 0.2s, border-color 0.2s;
         display: flex;
         gap: 12px;
         align-items: center;
@@ -117,17 +119,17 @@
       }
 
       .conversation-item:hover {
-        background: rgba(255, 255, 255, 0.03);
+        background: rgba(255, 255, 255, 0.04);
       }
 
       .conversation-item.active {
-        background: rgba(239, 68, 68, 0.1);
-        border-color: rgba(239, 68, 68, 0.3);
+        background: rgba(239, 68, 68, 0.12);
+        border-color: rgba(239, 68, 68, 0.35);
       }
 
       .conv-thumb {
-        width: 45px;
-        height: 45px;
+        width: 46px;
+        height: 46px;
         border-radius: 10px;
         object-fit: cover;
         background: #27272a;
@@ -161,8 +163,10 @@
       .chat-main-area {
         display: flex;
         flex-direction: column;
-        background: rgba(14, 14, 17, 0.90);
+        background: rgba(14, 14, 17, 0.85);
         position: relative;
+        height: 100%;
+        overflow: hidden;
       }
 
       .chat-empty-state {
@@ -180,7 +184,7 @@
         font-size: 48px;
         margin-bottom: 16px;
         color: #ef4444;
-        opacity: 0.8;
+        opacity: 0.9;
       }
 
       .chat-empty-title {
@@ -188,11 +192,12 @@
         font-weight: 700;
         color: #fff;
         margin-bottom: 8px;
+        font-family: 'Poppins', sans-serif;
       }
 
       .chat-header {
         padding: 16px 24px;
-        background: rgba(18, 18, 20, 0.95);
+        background: rgba(18, 18, 22, 0.95);
         border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         display: flex;
         align-items: center;
@@ -206,8 +211,8 @@
       }
 
       .chat-prop-img {
-        width: 40px;
-        height: 40px;
+        width: 42px;
+        height: 42px;
         border-radius: 8px;
         object-fit: cover;
       }
@@ -265,7 +270,7 @@
 
       .chat-input-area {
         padding: 16px 24px;
-        background: rgba(18, 18, 20, 0.95);
+        background: rgba(18, 18, 22, 0.95);
         border-top: 1px solid rgba(255, 255, 255, 0.08);
         display: flex;
         gap: 12px;
@@ -291,7 +296,7 @@
         background: #ef4444;
         color: #fff;
         border: none;
-        padding: 0 20px;
+        padding: 0 22px;
         border-radius: 12px;
         font-weight: 700;
         cursor: pointer;
@@ -308,7 +313,10 @@
           height: auto;
         }
         .conversations-sidebar {
-          max-height: 250px;
+          max-height: 280px;
+        }
+        .chat-main-area {
+          height: 500px;
         }
       }
     </style>
@@ -459,7 +467,7 @@
     <script type="module">
       import { auth, db } from './firebase-config.js';
       import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-      import { doc, getDoc, collection, query, getDocs, addDoc, onSnapshot, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+      import { doc, getDoc, collection, query, getDocs, addDoc, onSnapshot, orderBy, serverTimestamp, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
       // UIDs autorizados para acceder al panel de empresa (puedes añadir más separándolos por comas)
       const ALLOWED_UIDS = ["3VUuf3bJLKfAWqAlT94L1VlvaHB3"];
@@ -575,7 +583,6 @@
 
         async function loadCompanyConversations() {
           try {
-            // Como empresa, escuchamos todos los mensajes de la colección 'mensajes'
             const q = query(collection(db, "mensajes"));
             
             onSnapshot(q, async (snapshot) => {
@@ -700,7 +707,6 @@
 
             snapshot.forEach(docSnap => {
               const msgData = docSnap.data();
-              // Como agente, los mensajes salientes son los del agente y los entrantes los del cliente
               const isOutgoing = msgData.sender === 'agent' || msgData.sender === 'company';
               
               const bubble = document.createElement('div');
