@@ -777,6 +777,9 @@
         renderAgents(currentUser);
       }
 
+      // La campanita de notificaciones y el menú de perfil ahora los maneja
+      // notifications.js (compartido con el resto de páginas del sitio).
+      // Este script solo se encarga de la lista de "Agentes Recomendados".
       window.addEventListener('DOMContentLoaded', () => {
         onAuthStateChanged(auth, async (user) => {
           try {
