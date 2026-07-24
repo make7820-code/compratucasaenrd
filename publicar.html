@@ -858,12 +858,14 @@
 
     <!-- SCRIPTS CON CONTROL DE ACCESO ESTRICTO DESDE FIRESTORE -->
     <script type="module">
-      import { db, storage } from './firebase-config.js';
+      import { auth, db, storage } from './firebase-config.js';
+      import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
       import { 
         collection, 
         addDoc, 
         getDocs, 
         doc, 
+        getDoc,
         updateDoc, 
         deleteDoc, 
         query, 
@@ -879,57 +881,63 @@
       let imagenesEditandoActuales = []; 
       let cachePropiedadesActuales = {};
 
-      window.addEventListener('DOMContentLoaded', async () => {
-        try {
-          const usuarioActivo = localStorage.getItem('usuario_activo');
-          
-          if (!usuarioActivo) {
-            alert("Acceso denegado. Debes iniciar sesión.");
+      // ================= UIDS AUTORIZADOS PARA ENTRAR A ESTA PÁGINA =================
+      const UIDS_AUTORIZADOS = [
+        "2E7tIaEfdGeVERzDtWvaXQEmPG02", // Tu usuario
+      ];
+
+      window.addEventListener('DOMContentLoaded', () => {
+        onAuthStateChanged(auth, async (user) => {
+          try {
+            if (!user) {
+              alert("Acceso denegado. Debes iniciar sesión.");
+              window.location.href = 'index.html';
+              return;
+            }
+
+            if (!UIDS_AUTORIZADOS.includes(user.uid)) {
+              alert("Acceso denegado. No tienes permiso para publicar propiedades.");
+              window.location.href = 'index.html';
+              return;
+            }
+
+            const savedTheme = localStorage.getItem('site_theme') || 'dark';
+            if (savedTheme === 'light') document.body.classList.add('light-mode');
+
+            let nombreCompleto = user.email.split('@')[0];
+            let fotoGuardada = null;
+
+            try {
+              const docRef = doc(db, "usuarios", user.uid);
+              const docSnap = await getDoc(docRef);
+              if (docSnap.exists()) {
+                const userData = docSnap.data();
+                nombreCompleto = userData.nombres || userData.nombre || nombreCompleto;
+                fotoGuardada = userData.fotoPerfil || userData.foto || null;
+              }
+            } catch (error) {
+              console.error("Error al obtener datos de Firestore:", error);
+            }
+
+            const authContainer = document.getElementById('authContainer');
+            
+            if (authContainer) {
+              authContainer.innerHTML = `
+                <a href="perfil.html" style="display: flex; align-items: center; gap: 10px; text-decoration: none;">
+                  <img src="${fotoGuardada || 'assets/onlybladi-avatar.png'}" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 2px solid #f59e0b;" onerror="this.src='https://picsum.photos/36'">
+                  <span style="color: var(--text-main); font-weight: 600; font-size: 14px;">${nombreCompleto}</span>
+                </a>
+              `;
+            }
+
+            actualizarContadorArchivadas();
+            renderizarPublicaciones();
+          } catch (e) {
+            console.error("Error al verificar permisos:", e);
+            alert("Error de seguridad al verificar el acceso.");
             window.location.href = 'index.html';
-            return;
           }
-
-          const q = query(collection(db, "usuarios"), where("email", "==", usuarioActivo));
-          const querySnapshot = await getDocs(q);
-          
-          if (querySnapshot.empty) {
-            alert("Acceso denegado. Tu cuenta no está registrada en la base de datos de usuarios.");
-            window.location.href = 'index.html';
-            return;
-          }
-
-          const userData = querySnapshot.docs[0].data();
-          const rolUsuario = (userData.rol || 'cliente').toLowerCase();
-
-          if (rolUsuario === 'cliente') {
-            alert("Acceso denegado. No tienes permisos de agente o administrador.");
-            window.location.href = 'index.html';
-            return;
-          }
-
-          const savedTheme = localStorage.getItem('site_theme') || 'dark';
-          if (savedTheme === 'light') document.body.classList.add('light-mode');
-
-          const nombreCompleto = userData.nombre || localStorage.getItem('perfil_nombre') || usuarioActivo;
-          const fotoGuardada = userData.foto || localStorage.getItem('perfil_foto');
-          const authContainer = document.getElementById('authContainer');
-          
-          if (authContainer) {
-            authContainer.innerHTML = `
-              <a href="perfil.html" style="display: flex; align-items: center; gap: 10px; text-decoration: none;">
-                <img src="${fotoGuardada || 'assets/onlybladi-avatar.png'}" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 2px solid #f59e0b;" onerror="this.src='https://picsum.photos/36'">
-                <span style="color: var(--text-main); font-weight: 600; font-size: 14px;">${nombreCompleto}</span>
-              </a>
-            `;
-          }
-
-          actualizarContadorArchivadas();
-          renderizarPublicaciones();
-        } catch (e) {
-          console.error("Error al verificar permisos en Firestore:", e);
-          alert("Error de seguridad al verificar el acceso.");
-          window.location.href = 'index.html';
-        }
+        });
       });
 
       function actualizarContadorArchivadas() {
