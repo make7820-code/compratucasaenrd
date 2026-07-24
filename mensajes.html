@@ -509,19 +509,18 @@
         const chatMainArea = document.getElementById('chatMainArea');
         const searchInput = document.getElementById('searchPropertyInput');
 
-        // Función para marcar todos los mensajes de una propiedad como leídos por el usuario en Firestore
+        // Función corregida para evitar el error de índice compuesto en Firestore mediante filtrado en memoria
         async function marcarChatComoLeidoEnFirestore(userId, propertyId) {
           try {
             const q = query(
               collection(db, "mensajes"), 
               where("userId", "==", userId),
-              where("propertyId", "==", propertyId),
-              where("sender", "!=", "user")
+              where("propertyId", "==", propertyId)
             );
             const snapshot = await getDocs(q);
             snapshot.forEach(async (docSnap) => {
               const data = docSnap.data();
-              if (!data.leidoPorUsuario) {
+              if (data.sender !== "user" && !data.leidoPorUsuario) {
                 await updateDoc(docSnap.ref, { leidoPorUsuario: true });
               }
             });
@@ -708,31 +707,6 @@
               const dot = activeItemNode.querySelector('.unread-dot');
               if (dot) dot.remove();
             }
-          }
-        }
-
-        function updateNotificationBellState(unreadConvs) {
-          const hasUnread = unreadConvs.length > 0;
-          const bellIconSpan = document.getElementById('bellIconSpan');
-          const notificationListContent = document.getElementById('notificationListContent');
-
-          if (bellIconSpan) {
-            bellIconSpan.className = hasUnread ? 'bell-ringing' : '';
-          }
-
-          if (notificationListContent) {
-            notificationListContent.innerHTML = 
-              unreadConvs.length === 0 
-              ? '<div style="padding: 20px; text-align: center; color: #71717a; font-size: 12px;">No hay mensajes nuevos</div>'
-              : unreadConvs.map(c => `
-                  <div class="notification-item" onclick="window.location.href='mensajes.html?propiedadId=${c.propertyId}'">
-                    <img src="${c.propertyImage}" style="width: 32px; height: 32px; border-radius: 6px; object-fit: cover;" onerror="this.src='assets/puerto-marina.png'">
-                    <div style="overflow: hidden;">
-                      <div style="font-size: 13px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${c.propertyTitle}</div>
-                      <div style="font-size: 11px; color: #a1a1aa; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${c.lastMessage}</div>
-                    </div>
-                  </div>
-                `).join('');
           }
         }
 
