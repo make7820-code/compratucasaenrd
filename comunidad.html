@@ -315,22 +315,14 @@
         border-color: rgba(59, 130, 246, 0.6);
       }
 
-      /* Corrección de alineación vertical exacta para la campana y contenedor de autenticación en el header */
+      /* Alineación exacta del header y líneas divisorias del menú de perfil */
       #authContainer {
         display: flex;
         align-items: center;
         gap: 15px;
       }
-      
-      /* Asegurar centrado vertical si la campana se inyecta directamente o como elemento flex */
-      #authContainer > div, 
-      #authContainer .user-menu-wrapper,
-      #authContainer a {
-        display: flex;
-        align-items: center;
-      }
 
-      /* Estilos para notificaciones y menús desplegables */
+      /* Animación de la campana y menús desplegables con sus líneas divisorias */
       .bell-ringing {
         display: inline-block;
         animation: ring 1.5s ease infinite;
@@ -350,17 +342,10 @@
         100% { transform: rotate(0); }
       }
 
-      /* Animación para la luz verde parpadeante en la foto de perfil */
       @keyframes greenPulse {
-        0% {
-          box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
-        }
-        70% {
-          box-shadow: 0 0 0 10px rgba(34, 197, 94, 0);
-        }
-        100% {
-          box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
-        }
+        0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
+        70% { box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
       }
 
       .profile-avatar-active {
@@ -419,9 +404,10 @@
         background: rgba(255,255,255,0.08);
       }
 
+      /* Líneas divisorias del menú desplegable */
       .profile-menu-divider {
         height: 1px;
-        background: rgba(255,255,255,0.1);
+        background: rgba(255, 255, 255, 0.1);
         margin: 6px 0;
       }
 
