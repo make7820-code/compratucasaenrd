@@ -27,10 +27,9 @@
         background-attachment: fixed;
         min-height: 100vh;
         width: 100%;
-        padding-bottom: 40px;
       }
 
-      /* Capa oscura translúcida idéntica a comunidad.html */
+      /* Capa oscura translúcida única para todo el contenedor principal */
       .main-page-wrapper::before {
         content: '';
         position: absolute;
@@ -38,7 +37,7 @@
         left: 0;
         width: 100%;
         height: 100%;
-        background: rgba(0, 0, 0, 0.55);
+        background: rgba(0, 0, 0, 0.65);
         z-index: 1;
         pointer-events: none;
       }
@@ -54,21 +53,20 @@
       }
 
       .properties-hero-overlap {
-        padding-top: 110px;
-        padding-bottom: 120px;
+        padding-top: 50px;
+        padding-bottom: 100px;
       }
 
-      /* Contenedor principal de filtros y propiedades alineado con comunidad */
+      /* Contenedor principal de filtros y propiedades */
       .properties-layout-overlap {
         display: flex;
         gap: 30px;
         max-width: 1400px;
-        margin: -90px auto 60px auto;
+        margin: -70px auto 60px auto;
         padding: 0 20px;
-        align-items: flex-start;
       }
 
-      /* Franja lateral translúcida idéntica al diseño de comunidad */
+      /* Franja lateral gris translúcida para los filtros */
       .filters-sidebar {
         width: 320px;
         flex-shrink: 0;
@@ -79,13 +77,6 @@
         padding: 24px;
         height: fit-content;
         box-shadow: 0 20px 40px rgba(0,0,0,0.6);
-        transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
-      }
-
-      .filters-sidebar:hover {
-        transform: translateY(-4px);
-        border-color: rgba(59, 130, 246, 0.4);
-        box-shadow: 0 25px 50px rgba(59, 130, 246, 0.15), 0 20px 40px rgba(0,0,0,0.6);
       }
 
       .properties-content-area {
@@ -119,7 +110,7 @@
       }
 
       .filter-group input:focus, .filter-group select:focus {
-        border-color: #3b82f6;
+        border-color: #ef4444;
       }
 
       .filter-row {
@@ -134,19 +125,17 @@
       }
 
       .property-card {
-        background: rgba(18, 18, 20, 0.85);
-        backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: #121214;
+        border: 1px solid rgba(255, 255, 255, 0.08);
         border-radius: 20px;
         overflow: hidden;
-        transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
-        box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+        transition: transform 0.2s, box-shadow 0.2s;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.4);
       }
 
       .property-card:hover {
         transform: translateY(-4px);
-        border-color: rgba(59, 130, 246, 0.4);
-        box-shadow: 0 25px 50px rgba(59, 130, 246, 0.15), 0 20px 40px rgba(0,0,0,0.6);
+        box-shadow: 0 15px 35px rgba(0,0,0,0.6);
       }
 
       /* ================= ESTILOS DEL CARRUSEL DE LA TARJETA ================= */
@@ -176,6 +165,7 @@
         object-fit: cover;
       }
 
+      /* Botones de navegación del carrusel (Flechas) */
       .property-carousel-btn {
         position: absolute;
         top: 50%;
@@ -201,7 +191,7 @@
       }
 
       .property-carousel-btn:hover {
-        background: rgba(59, 130, 246, 0.9);
+        background: rgba(239, 68, 68, 0.8);
       }
 
       .property-carousel-prev {
@@ -212,6 +202,7 @@
         right: 10px;
       }
 
+      /* Indicadores de puntos (Dots) en la parte inferior de la imagen */
       .property-carousel-dots {
         position: absolute;
         bottom: 12px;
@@ -304,7 +295,7 @@
       }
 
       .property-title a:hover {
-        color: #3b82f6;
+        color: #ef4444;
       }
 
       .property-location {
@@ -332,41 +323,8 @@
         color: #a1a1aa;
       }
 
-      /* Estilos generales de navegación acordes con comunidad.html */
-      .nav-link {
-        position: relative;
-        color: #d4d4d8;
-        text-decoration: none;
-        padding: 8px 16px;
-        border-radius: 999px;
-        transition: all 0.3s ease;
-      }
-
-      .nav-link:hover {
-        color: #ffffff !important;
-        background: rgba(255, 255, 255, 0.08);
-        transform: translateY(-1px);
-      }
-
-      .nav-link.active {
-        background: rgba(239, 68, 68, 0.15);
-        color: #ef4444 !important;
-        border: 1px solid rgba(239, 68, 68, 0.3);
-        box-shadow: 0 0 15px rgba(239, 68, 68, 0.2);
-      }
-
-      .login-btn {
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      }
-
-      .login-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
-        border-color: rgba(59, 130, 246, 0.6);
-      }
-
-      /* Menús desplegables de perfil y notificaciones */
-      .profile-dropdown-menu, .notification-dropdown {
+      /* Estilos para el menú flotante del perfil y notificaciones */
+      .profile-dropdown-menu {
         display: none;
         position: absolute;
         right: 0;
@@ -375,13 +333,13 @@
         border: 1px solid rgba(255, 255, 255, 0.1);
         border-radius: 16px;
         box-shadow: 0 20px 40px rgba(0,0,0,0.7);
-        width: 280px;
+        width: 260px;
         z-index: 1000;
         padding: 12px;
         overflow: hidden;
       }
 
-      .profile-dropdown-menu.show, .notification-dropdown.show {
+      .profile-dropdown-menu.show {
         display: block;
       }
 
@@ -453,10 +411,12 @@
       .profile-dropdown-item.logout {
         color: #ef4444;
       }
+
       .profile-dropdown-item.logout:hover {
         background: rgba(239, 68, 68, 0.1);
       }
 
+      /* Campanita y contenedor de notificaciones en el header */
       .header-right-actions {
         display: flex;
         align-items: center;
@@ -503,30 +463,222 @@
         border: 2px solid #121214;
       }
 
-      @keyframes fadeInUp {
-        from {
-          opacity: 0;
-          transform: translateY(20px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
+      .notification-dropdown {
+        display: none;
+        position: absolute;
+        right: 0;
+        top: 50px;
+        background: #18181b;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.7);
+        width: 320px;
+        z-index: 1000;
+        overflow: hidden;
       }
 
-      .properties-layout-overlap {
-        animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.2s forwards;
-        opacity: 0;
-        animation-fill-mode: forwards;
+      .notification-dropdown.show {
+        display: block;
+      }
+
+      .notification-header {
+        padding: 14px 16px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .notification-header h4 {
+        margin: 0;
+        color: #fff;
+        font-size: 14px;
+        font-weight: 700;
+      }
+
+      .notification-list {
+        max-height: 280px;
+        overflow-y: auto;
+      }
+
+      .notification-item {
+        padding: 12px 16px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        color: #a1a1aa;
+        font-size: 13px;
+        text-decoration: none;
+        display: block;
+        transition: background 0.2s;
+      }
+
+      .notification-item:hover {
+        background: rgba(255, 255, 255, 0.04);
+        color: #fff;
+      }
+
+      /* ================= FOOTER / BANNER INFERIOR ================= */
+      .site-footer {
+        background-color: #000000;
+        color: #a1a1aa;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        padding: 60px 20px 20px 20px;
+        position: relative;
+        z-index: 2;
+      }
+
+      .footer-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr 1.5fr;
+        gap: 40px;
+        padding-bottom: 40px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .footer-col-title {
+        color: #fff;
+        font-size: 16px;
+        font-weight: 700;
+        margin-bottom: 20px;
+        letter-spacing: 0.5px;
+      }
+
+      .footer-brand-title {
+        color: #fff;
+        font-size: 24px;
+        font-weight: 800;
+        margin-bottom: 14px;
+      }
+
+      .footer-brand-title .highlight-red {
+        color: #ef4444;
+      }
+
+      .footer-brand-desc {
+        font-size: 14px;
+        line-height: 1.6;
+        color: #a1a1aa;
+        margin-bottom: 20px;
+      }
+
+      .footer-socials {
+        display: flex;
+        gap: 12px;
+      }
+
+      .footer-social-icon {
+        background: #121214;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        color: #fff;
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        font-size: 16px;
+        transition: all 0.2s;
+      }
+
+      .footer-social-icon:hover {
+        background: #ef4444;
+        border-color: #ef4444;
+        opacity: 1;
+      }
+
+      .footer-links {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+
+      .footer-links li {
+        margin-bottom: 12px;
+      }
+
+      .footer-links a {
+        color: #a1a1aa;
+        text-decoration: none;
+        font-size: 14px;
+        transition: color 0.2s;
+      }
+
+      .footer-links a:hover {
+        color: #ef4444;
+      }
+
+      .footer-contact-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+
+      .footer-contact-list li {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        font-size: 14px;
+        color: #a1a1aa;
+        margin-bottom: 14px;
+      }
+
+      .footer-contact-list .contact-icon {
+        font-size: 16px;
+        flex-shrink: 0;
+      }
+
+      .footer-email {
+        color: #3b82f6;
+        text-decoration: none;
+      }
+
+      .footer-email:hover {
+        text-decoration: underline;
+      }
+
+      .footer-bottom {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding-top: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 13px;
+        color: #71717a;
+      }
+
+      .footer-bottom-links {
+        display: flex;
+        gap: 20px;
+      }
+
+      .footer-bottom-links a {
+        color: #71717a;
+        text-decoration: none;
+        transition: color 0.2s;
+      }
+
+      .footer-bottom-links a:hover {
+        color: #fff;
       }
 
       @media(max-width: 900px) {
         .properties-layout-overlap {
           flex-direction: column;
-          margin-top: -40px;
         }
         .filters-sidebar {
           width: 100%;
+        }
+        .footer-container {
+          grid-template-columns: 1fr;
+          gap: 30px;
+        }
+        .footer-bottom {
+          flex-direction: column;
+          gap: 10px;
+          text-align: center;
         }
       }
     </style>
@@ -546,12 +698,30 @@
           <a href="propiedades.html" class="nav-link active"><span class="nav-emoji">🏢</span> Propiedades</a>
           <a href="comunidad.html" class="nav-link"><span class="nav-emoji">👥</span> Comunidad</a>
           <a href="blog.html" class="nav-link"><span class="nav-emoji">📰</span> Blog</a>
+          <a href="mensajes.html" class="nav-link"><span class="nav-emoji">💬</span> Mensajes</a>
           <a href="nosotros.html" class="nav-link"><span class="nav-emoji">ℹ️</span> Nosotros</a>
           <a href="vender.html" class="nav-link"><span class="nav-emoji">🤝</span> Vender</a>
         </nav>
 
+        <!-- CONTENEDOR DE SESIÓN / PERFIL + CAMPANITA (RENDERIZADO INICIAL RÁPIDO) -->
         <div id="authContainer">
-          <a href="login.html" class="login-btn"><span>🔐</span> Iniciar sesión</a>
+          <!-- Si hay datos guardados en localStorage para evitar parpadeo -->
+          <script>
+            if (localStorage.getItem('user_logged') === 'true') {
+              document.write(`
+                <div class="header-right-actions">
+                  <div class="notification-bell-wrapper">
+                    <button type="button" class="notification-bell-btn"><span>🔔</span></button>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 12px; padding: 4px 8px 4px 4px;">
+                    <span style="color: #fff; font-weight: 600; font-size: 15px;">unai bladimir</span>
+                  </div>
+                </div>
+              `);
+            } else {
+              document.write(`<a href="login.html" class="login-btn"><span>🔐</span> Iniciar sesión</a>`);
+            }
+          </script>
         </div>
 
       </div>
@@ -560,21 +730,21 @@
     <!-- ================= CONTENEDOR GENERAL ================= -->
     <div class="main-page-wrapper" id="pageWrapper">
 
-      <!-- CABECERA DE TEXTO SUPERIOR IDÉNTICA A COMUNIDAD -->
-      <section class="hero properties-hero properties-hero-overlap" style="min-height: 45vh; text-align: center;">
-        <div class="hero-content">
+      <!-- CABECERA DE TEXTO SUPERIOR -->
+      <section class="hero properties-hero properties-hero-overlap">
+        <div class="hero-content" style="text-align: center;">
           
-          <h1 class="hero-title" style="font-size: 52px; font-weight: 800; color: #fff; margin-bottom: 12px; font-family: var(--font-display, sans-serif);">Catálogo Exclusivo</h1>
-          
-          <p class="hero-subtitle" style="font-size: 16px; color: #d4d4d8; background: rgba(18, 18, 20, 0.7); display: inline-block; padding: 10px 24px; border-radius: 30px; backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.08); margin-bottom: 24px;">
-            Explora nuestra selección de propiedades premium, diseñadas para elevar tu estilo de vida.
-          </p>
-          
-          <div>
-            <button type="button" id="btnVerFavoritos" class="hero-cta" style="border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; background: #ef4444; color: #fff; padding: 12px 24px; border-radius: 30px; font-weight: 700; text-decoration: none; box-shadow: 0 10px 25px rgba(239, 68, 68, 0.4); transition: all 0.3s ease;">
-              <span id="favCtaIcon">❤️</span> <span id="favCtaText">Ver Mis Favoritos</span>
-            </button>
+          <div class="hero-eyebrow" style="display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.08); padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; color: #fff; margin-bottom: 16px; border: 1px solid rgba(255,255,255,0.15); backdrop-filter: blur(4px);">
+            <span>🏠</span> CATÁLOGO EXCLUSIVO
           </div>
+          
+          <h1 class="hero-title" style="font-size: 48px; font-weight: 800; color: #fff; margin-bottom: 12px; text-shadow: 0 2px 10px rgba(0,0,0,0.5);">Encuentra Tu Espacio Ideal</h1>
+          
+          <p class="hero-subtitle" style="font-size: 16px; color: #e4e4e7; margin-bottom: 24px; text-shadow: 0 1px 5px rgba(0,0,0,0.5);">Explora nuestra selección de propiedades premium, diseñadas para elevar tu estilo de vida.</p>
+          
+          <button type="button" id="btnVerFavoritos" class="hero-cta" style="border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; background: #ef4444; color: #fff; padding: 12px 24px; border-radius: 30px; font-weight: 700; text-decoration: none; box-shadow: 0 10px 25px rgba(239, 68, 68, 0.4);">
+            <span id="favCtaIcon">❤️</span> <span id="favCtaText">Ver Mis Favoritos</span>
+          </button>
 
         </div>
       </section>
@@ -582,7 +752,7 @@
       <!-- CONTENEDOR DE FILTROS + PROPIEDADES -->
       <div class="properties-layout-overlap">
         
-        <!-- BARRA LATERAL DE FILTROS (DISEÑO UNIFICADO) -->
+        <!-- BARRA LATERAL DE FILTROS -->
         <aside class="filters-sidebar">
           <h3 style="color: #fff; font-size: 18px; font-weight: 700; margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
             <span>🔍</span> Filtros de Búsqueda
@@ -608,18 +778,48 @@
               <option value="Azua">Azua</option>
               <option value="Bahoruco">Bahoruco</option>
               <option value="Barahona">Barahona</option>
+              <option value="Dajabón">Dajabón</option>
               <option value="Distrito Nacional">Distrito Nacional</option>
-              <option value="Santo Domingo">Santo Domingo</option>
-              <option value="Santiago">Santiago</option>
+              <option value="Duarte">Duarte</option>
+              <option value="Elías Piña">Elías Piña</option>
+              <option value="El Seibo">El Seibo</option>
+              <option value="Espaillat">Espaillat</option>
+              <option value="Hato Mayor">Hato Mayor</option>
+              <option value="Hermanas Mirabal">Hermanas Mirabal</option>
+              <option value="Independencia">Independencia</option>
               <option value="La Altagracia">La Altagracia</option>
               <option value="La Romana">La Romana</option>
+              <option value="La Vega">La Vega</option>
+              <option value="María Trinidad Sánchez">María Trinidad Sánchez</option>
+              <option value="Monseñor Nouel">Monseñor Nouel</option>
+              <option value="Monte Cristi">Monte Cristi</option>
+              <option value="Monte Plata">Monte Plata</option>
+              <option value="Pedernales">Pedernales</option>
+              <option value="Peravia">Peravia</option>
               <option value="Puerto Plata">Puerto Plata</option>
+              <option value="Samaná">Samaná</option>
+              <option value="San Cristóbal">San Cristóbal</option>
+              <option value="San José de Ocoa">San José de Ocoa</option>
+              <option value="San Juan">San Juan</option>
+              <option value="San Pedro de Macorís">San Pedro de Macorís</option>
+              <option value="Sánchez Ramírez">Sánchez Ramírez</option>
+              <option value="Santiago">Santiago</option>
+              <option value="Santiago Rodríguez">Santiago Rodríguez</option>
+              <option value="Santo Domingo">Santo Domingo</option>
+              <option value="Valverde">Valverde</option>
             </select>
           </div>
 
           <div class="filter-group">
             <label>Municipio</label>
             <select id="filterMunicipio">
+              <option value="">Todos</option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <label>Distrito</label>
+            <select id="filterDistrito">
               <option value="">Todos</option>
             </select>
           </div>
@@ -652,7 +852,7 @@
             </select>
           </div>
 
-          <button id="btnAplicarFiltros" style="width: 100%; background: #3b82f6; color: #fff; border: none; padding: 12px; border-radius: 10px; font-weight: 600; cursor: pointer; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; transition: background 0.2s;">
+          <button id="btnAplicarFiltros" style="width: 100%; background: #3b82f6; color: #fff; border: none; padding: 12px; border-radius: 10px; font-weight: 600; cursor: pointer; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px;">
             <span>🔍</span> Aplicar Filtros
           </button>
 
@@ -661,6 +861,7 @@
         <!-- LISTADO DE PROPIEDADES -->
         <main class="properties-content-area">
           <div class="properties-grid" id="propertiesGrid">
+            <!-- Las propiedades de Firebase con sus carruseles automáticos se inyectarán aquí -->
             <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #a1a1aa;">
               Cargando propiedades desde la base de datos...
             </div>
@@ -669,12 +870,13 @@
 
       </div>
 
-    </div>
+    </div> <!-- FIN DEL CONTENEDOR GENERAL -->
 
     <!-- ================= FOOTER / BANNER INFERIOR ================= -->
     <footer class="site-footer">
       <div class="footer-container">
         
+        <!-- Columna 1: Marca y descripción -->
         <div class="footer-col footer-brand-col">
           <h2 class="footer-brand-title">Compra tu casa en <span class="highlight-red">RD</span></h2>
           <p class="footer-brand-desc">
@@ -688,6 +890,7 @@
           </div>
         </div>
 
+        <!-- Columna 2: Navegación Rápida -->
         <div class="footer-col">
           <h3 class="footer-col-title">Navegación Rápida</h3>
           <ul class="footer-links">
@@ -697,6 +900,7 @@
           </ul>
         </div>
 
+        <!-- Columna 3: Nuestros Servicios -->
         <div class="footer-col">
           <h3 class="footer-col-title">Nuestros Servicios</h3>
           <ul class="footer-links">
@@ -704,26 +908,28 @@
           </ul>
         </div>
 
+        <!-- Columna 4: Contacto Directo -->
         <div class="footer-col">
           <h3 class="footer-col-title">Contacto Directo</h3>
           <ul class="footer-contact-list">
             <li>
               <span class="contact-icon">📍</span>
-              <span>Ubicación:[cite: 2, 3] República Dominicana, Santo Domingo Este, La Ureña, C. El Sol</span>
+              <span>Ubicación: República Dominicana, Santo Domingo Este, La Ureña, C. El Sol</span>
             </li>
             <li>
               <span class="contact-icon">📞</span>
-              <span>Teléfono:[cite: 2, 3] +1 (849) 857-2321</span>
+              <span>Teléfono: +1 (849) 857-2321</span>
             </li>
             <li>
               <span class="contact-icon">✉️</span>
-              <span>Correo electrónico:<br><a href="mailto:Danieldecena63@gmail.com" class="footer-email">[cite: 2, 3] Danieldecena63@gmail.com</a></span>
+              <span>Correo electrónico:<br><a href="mailto:Danieldecena63@gmail.com" class="footer-email">Danieldecena63@gmail.com</a></span>
             </li>
           </ul>
         </div>
 
       </div>
 
+      <!-- Franja final con copyright y enlaces legales -->
       <div class="footer-bottom">
         <p>© 2026 Compra tu casa en RD. Todos los derechos reservados.</p>
         <div class="footer-bottom-links">
@@ -733,13 +939,13 @@
       </div>
     </footer>
 
-    <!-- SCRIPT DE FIREBASE Y FUNCIONALIDADES -->
+    <!-- SCRIPT MÓDULO CONECTADO A FIREBASE + CARRUSEL + FAVORITOS + NOTIFICACIONES + MENSAJES -->
     <script type="module">
-      import { auth, db } from './firebase-config.js';
+      import { auth, db, collection, getDocs, doc, getDoc, query, where, onSnapshot } from './firebase-config.js';
       import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-      import { collection, getDocs, doc, getDoc, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
       window.addEventListener('DOMContentLoaded', async () => {
+        // Gestión de Tema guardado previamente
         const savedTheme = localStorage.getItem('site_theme') || 'dark';
         if (savedTheme === 'light') {
           document.body.classList.add('light-mode');
@@ -749,11 +955,13 @@
 
         onAuthStateChanged(auth, async (user) => {
           if (user) {
+            localStorage.setItem('user_logged', 'true');
             let displayName = user.email ? user.email.split('@')[0] : 'unai bladimir';
             let avatarSrc = 'assets/onlybladi-avatar.png';
 
             try {
-              const docSnap = await getDoc(doc(db, "usuarios", user.uid));
+              const docRef = doc(db, "usuarios", user.uid);
+              const docSnap = await getDoc(docRef);
               if (docSnap.exists()) {
                 const data = docSnap.data();
                 if (data.nombres) displayName = data.nombres;
@@ -765,21 +973,24 @@
 
             authContainer.innerHTML = `
               <div class="header-right-actions">
+                <!-- CAMPANITA DE NOTIFICACIONES -->
                 <div class="notification-bell-wrapper">
                   <button type="button" id="notificationBellBtn" class="notification-bell-btn" title="Notificaciones">
                     <span>🔔</span>
                     <span id="notificationBadge" class="notification-badge" style="display: none;">0</span>
                   </button>
                   <div id="notificationDropdown" class="notification-dropdown">
-                    <div style="padding: 14px 16px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); display: flex; justify-content: space-between; align-items: center;">
-                      <h4 style="margin: 0; color: #fff; font-size: 14px;">Notificaciones</h4>
+                    <div class="notification-header">
+                      <h4>Notificaciones</h4>
+                      <span style="font-size: 11px; color: #71717a;">Tiempo real</span>
                     </div>
-                    <div id="notificationList" style="max-height: 280px; overflow-y: auto;">
+                    <div id="notificationList" class="notification-list">
                       <div style="padding: 16px; text-align: center; color: #71717a; font-size: 13px;">No hay notificaciones nuevas</div>
                     </div>
                   </div>
                 </div>
 
+                <!-- MENÚ FLOTANTE DE PERFIL -->
                 <div class="profile-dropdown-container" style="position: relative; display: inline-block;">
                   <button id="profileBtn" style="background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 12px; padding: 4px 8px 4px 4px; border-radius: 999px;">
                     <img src="${avatarSrc}" alt="Avatar" style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 2px solid #ef4444;" onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=${user.uid}'">
@@ -788,21 +999,26 @@
                   
                   <div id="profileDropdownMenu" class="profile-dropdown-menu">
                     <a href="perfil.html" class="profile-dropdown-item">
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #fff; flex-shrink: 0;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
                       <span>Ir al Perfil</span>
                     </a>
+
                     <a href="mensajes.html" class="profile-dropdown-item">
                       <span style="font-size: 16px;">💬</span>
                       <span>Mensajes</span>
                     </a>
+                    
                     <div class="profile-dropdown-divider"></div>
+                    
                     <div class="profile-dropdown-section-title">ASPECTO FÍSICO</div>
                     <div class="theme-selector-box">
-                      <button type="button" class="theme-option" data-theme="light">☀️</button>
-                      <button type="button" class="theme-option" data-theme="system">💻</button>
-                      <button type="button" class="theme-option active" data-theme="dark">🌙</button>
+                      <button type="button" class="theme-option" data-theme="light" title="Modo Claro">☀️</button>
+                      <button type="button" class="theme-option" data-theme="system" title="Sistema">💻</button>
+                      <button type="button" class="theme-option active" data-theme="dark" title="Modo Oscuro">🌙</button>
                     </div>
+                    
                     <div class="profile-dropdown-divider"></div>
+                    
                     <button type="button" id="btnLogout" class="profile-dropdown-item logout">
                       <span style="font-size: 16px;">🚫</span> Cerrar Sesión
                     </button>
@@ -811,11 +1027,45 @@
               </div>
             `;
 
+            // Escuchar notificaciones y mensajes en tiempo real con Firestore
+            try {
+              const qNotif = query(collection(db, "mensajes"), where("destinatarioId", "==", user.uid), where("leido", "==", false));
+              onSnapshot(qNotif, (snapshot) => {
+                const badge = document.getElementById('notificationBadge');
+                const list = document.getElementById('notificationList');
+                if (!badge || !list) return;
+
+                const count = snapshot.size;
+                if (count > 0) {
+                  badge.textContent = count;
+                  badge.style.display = 'flex';
+                  
+                  let htmlNotifs = '';
+                  snapshot.forEach((docMsg) => {
+                    const mData = docMsg.data();
+                    htmlNotifs += `
+                      <a href="mensajes.html?chat=${mData.remitenteId || ''}" class="notification-item">
+                        <strong>Nuevo mensaje</strong>
+                        <p style="margin: 4px 0 0 0; font-size: 12px; color: #a1a1aa; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${mData.texto || 'Has recibido una interacción'}</p>
+                      </a>
+                    `;
+                  });
+                  list.innerHTML = htmlNotifs;
+                } else {
+                  badge.style.display = 'none';
+                  list.innerHTML = '<div style="padding: 16px; text-align: center; color: #71717a; font-size: 13px;">No hay notificaciones nuevas</div>';
+                }
+              });
+            } catch (e) {
+              console.warn("No se pudo iniciar el listener de notificaciones:", e);
+            }
+
             const profileBtn = document.getElementById('profileBtn');
             const profileDropdownMenu = document.getElementById('profileDropdownMenu');
             const notificationBellBtn = document.getElementById('notificationBellBtn');
             const notificationDropdown = document.getElementById('notificationDropdown');
             const btnLogout = document.getElementById('btnLogout');
+            const themeButtons = document.querySelectorAll('.theme-option');
 
             if (profileBtn && profileDropdownMenu) {
               profileBtn.addEventListener('click', (e) => {
@@ -838,20 +1088,51 @@
               if (notificationDropdown) notificationDropdown.classList.remove('show');
             });
 
+            if (profileDropdownMenu) profileDropdownMenu.addEventListener('click', (e) => e.stopPropagation());
+            if (notificationDropdown) notificationDropdown.addEventListener('click', (e) => e.stopPropagation());
+
+            themeButtons.forEach(btn => {
+              const themeMode = btn.getAttribute('data-theme');
+              if ((savedTheme === 'dark' && themeMode === 'dark') || 
+                  (savedTheme === 'light' && themeMode === 'light')) {
+                themeButtons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+              }
+
+              btn.addEventListener('click', () => {
+                themeButtons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                if (themeMode === 'light') {
+                  localStorage.setItem('site_theme', 'light');
+                  document.body.classList.add('light-mode');
+                } else {
+                  localStorage.setItem('site_theme', 'dark');
+                  document.body.classList.remove('light-mode');
+                }
+              });
+            });
+
             if (btnLogout) {
               btnLogout.addEventListener('click', async () => {
-                await signOut(auth);
+                try {
+                  localStorage.removeItem('user_logged');
+                  await signOut(auth);
+                } catch (error) {
+                  console.error("Error al cerrar sesión:", error);
+                }
                 window.location.reload();
               });
             }
           } else {
+            localStorage.removeItem('user_logged');
             if (authContainer) {
               authContainer.innerHTML = `<a href="login.html" class="login-btn"><span>🔐</span> Iniciar sesión</a>`;
             }
           }
         });
 
-        // Carga de propiedades y carruseles
+        // ================= CARGA ROBUSTA DESDE FIREBASE =================
         const propertiesGrid = document.getElementById('propertiesGrid');
         let querySnapshot = null;
         const posiblesColecciones = ["propiedades", "properties", "inmuebles"];
@@ -863,7 +1144,9 @@
               querySnapshot = snapshotTemp;
               break;
             }
-          } catch (err) {}
+          } catch (err) {
+            console.warn(`No se pudo leer la colección: ${nombreCol}`);
+          }
         }
 
         propertiesGrid.innerHTML = '';
@@ -883,46 +1166,86 @@
           const prop = docSnap.data();
           const propId = docSnap.id;
           const ownerId = prop.usuarioId || prop.ownerId || '';
+
           const propTitle = prop.titulo || prop.title || 'Propiedad sin título';
           const propLocation = prop.ubicacion || prop.location || 'República Dominicana';
           const propType = prop.tipo || prop.type || 'Casa';
-          const rawOffer = prop.oferta || prop.offer || 'Venta';
+          
+          const rawOffer = prop.oferta || prop.offer || prop.tipoOferta || prop.status || 'Venta';
           const propOffer = rawOffer.charAt(0).toUpperCase() + rawOffer.slice(1).toLowerCase();
+
           const propPrice = prop.precio || '0';
           const propHabs = prop.habitaciones || prop.habs || '1';
           const propBanos = prop.banos || '2';
           
-          let listaImagenes = prop.imagenes && Array.isArray(prop.imagenes) && prop.imagenes.length > 0 ? prop.imagenes : (prop.image ? [prop.image] : ['assets/puerto-marina.png']);
+          let listaImagenes = [];
+          if (prop.imagenes && Array.isArray(prop.imagenes) && prop.imagenes.length > 0) {
+            listaImagenes = prop.imagenes;
+          } else if (prop.image) {
+            listaImagenes = [prop.image];
+          } else {
+            listaImagenes = ['assets/puerto-marina.png'];
+          }
+
           const badgeBg = propOffer === 'Venta' ? '#10b981' : '#3b82f6';
           const esFavorito = favoritos.includes(propId);
 
-          let slidesHtml = '', dotsHtml = '';
+          let slidesHtml = '';
+          let dotsHtml = '';
+
           listaImagenes.forEach((imgUrl, index) => {
-            slidesHtml += `<div class="property-carousel-slide"><img src="${imgUrl}" alt="${propTitle}" onerror="this.src='assets/puerto-marina.png'"></div>`;
-            dotsHtml += `<span class="property-dot ${index === 0 ? 'active' : ''}" data-index="${index}"></span>`;
+            slidesHtml += `
+              <div class="property-carousel-slide">
+                <img src="${imgUrl}" alt="${propTitle}" onerror="this.src='assets/puerto-marina.png'">
+              </div>
+            `;
+            dotsHtml += `
+              <span class="property-dot ${index === 0 ? 'active' : ''}" data-index="${index}"></span>
+            `;
           });
 
+          const showControls = listaImagenes.length > 1;
+
           const cardHtml = `
-            <div class="property-card" data-id="${propId}" data-title="${propTitle.toLowerCase()}" data-location="${propLocation.toLowerCase()}" data-type="${propType}" data-offer="${propOffer}" data-price="${parseFloat(propPrice.toString().replace(/[^0-9.]/g, '')) || 0}" data-habs="${propHabs}">
-              <div class="property-img-container">
+            <div class="property-card" 
+                 data-id="${propId}"
+                 data-title="${propTitle.toLowerCase()}" 
+                 data-location="${propLocation.toLowerCase()}" 
+                 data-type="${propType}" 
+                 data-offer="${propOffer}" 
+                 data-price="${parseFloat(propPrice.toString().replace(/[^0-9.]/g, '')) || 0}" 
+                 data-habs="${propHabs}">
+              
+              <div class="property-img-container" data-current-slide="0" data-total-slides="${listaImagenes.length}">
                 <span class="property-badge-top" style="background: ${badgeBg};">${propOffer}</span>
-                <div class="property-carousel-track">${slidesHtml}</div>
-                ${listaImagenes.length > 1 ? `
-                  <button class="property-carousel-btn property-carousel-prev">❮</button>
-                  <button class="property-carousel-btn property-carousel-next">❯</button>
-                  <div class="property-carousel-dots">${dotsHtml}</div>
+                
+                <div class="property-carousel-track">
+                  ${slidesHtml}
+                </div>
+
+                ${showControls ? `
+                  <button class="property-carousel-btn property-carousel-prev" title="Anterior">❮</button>
+                  <button class="property-carousel-btn property-carousel-next" title="Siguiente">❯</button>
+                  <div class="property-carousel-dots">
+                    ${dotsHtml}
+                  </div>
                 ` : ''}
+
                 <div class="property-actions-top">
-                  <button class="property-action-icon btn-favorito-card" data-id="${propId}">${esFavorito ? '❤️' : '🤍'}</button>
-                  <button class="property-action-icon btn-mensaje-card" data-owner="${ownerId}" data-prop="${propId}">💬</button>
+                  <button class="property-action-icon btn-favorito-card" data-id="${propId}" title="Guardar en Favoritos">
+                    ${esFavorito ? '❤️' : '🤍'}
+                  </button>
+                  <!-- Botón de mensaje integrado para cada apartado de propiedad -->
+                  <button class="property-action-icon btn-mensaje-card" data-owner="${ownerId}" data-prop="${propId}" title="Enviar Mensaje">💬</button>
                 </div>
               </div>
+
               <div class="property-body">
                 <div class="property-type">${propType}</div>
                 <h3 class="property-title"><a href="detalle.html?id=${propId}">${propTitle}</a></h3>
                 <p class="property-location">📍 ${propLocation}</p>
                 <div class="property-price">${propPrice}</div>
-                <div class="property-footer-info">
+                <div class="footer-info property-footer-info">
                   <span>🛏️ ${propHabs} Hab</span>
                   <span>🛁 ${propBanos} Baños</span>
                   <span>📅 Firebase</span>
@@ -933,31 +1256,14 @@
           propertiesGrid.insertAdjacentHTML('beforeend', cardHtml);
         });
 
-        // Configuración de Carruseles y Favoritos
-        document.querySelectorAll('.property-img-container').forEach(container => {
-          const track = container.querySelector('.property-carousel-track');
-          const slides = container.querySelectorAll('.property-carousel-slide');
-          if (!track || slides.length <= 1) return;
-          let currentIndex = 0;
-
-          container.querySelector('.property-carousel-next')?.addEventListener('click', (e) => {
-            e.preventDefault();
-            currentIndex = (currentIndex + 1) % slides.length;
-            track.style.transform = `translateX(-${currentIndex * 100}%)`;
-          });
-
-          container.querySelector('.property-carousel-prev')?.addEventListener('click', (e) => {
-            e.preventDefault();
-            currentIndex = (currentIndex - 1 + slides.length) % slides.length;
-            track.style.transform = `translateX(-${currentIndex * 100}%)`;
-          });
-        });
-
+        // ================= ACTIVAR EVENTOS DE MENSAJES Y FAVORITOS =================
         document.querySelectorAll('.btn-favorito-card').forEach(btn => {
           btn.addEventListener('click', (e) => {
             e.preventDefault();
+            e.stopPropagation();
             const pId = btn.getAttribute('data-id');
             let favs = JSON.parse(localStorage.getItem('mis_favoritos') || '[]');
+
             if (favs.includes(pId)) {
               favs = favs.filter(id => id !== pId);
               btn.textContent = '🤍';
@@ -972,32 +1278,176 @@
         document.querySelectorAll('.btn-mensaje-card').forEach(btn => {
           btn.addEventListener('click', (e) => {
             e.preventDefault();
+            e.stopPropagation();
             const ownerId = btn.getAttribute('data-owner');
             const propId = btn.getAttribute('data-prop');
-            window.location.href = ownerId ? `mensajes.html?chat=${ownerId}&prop=${propId}` : `mensajes.html?prop=${propId}`;
+            if (ownerId) {
+              window.location.href = `mensajes.html?chat=${ownerId}&prop=${propId}`;
+            } else {
+              window.location.href = `mensajes.html?prop=${propId}`;
+            }
           });
         });
 
-        // Filtros dinámicos
+        // ================= ACTIVAR EVENTOS + CARRUSEL AUTOMÁTICO DE TARJETAS =================
+        document.querySelectorAll('.property-img-container').forEach(container => {
+          const track = container.querySelector('.property-carousel-track');
+          const slides = container.querySelectorAll('.property-carousel-slide');
+          const prevBtn = container.querySelector('.property-carousel-prev');
+          const nextBtn = container.querySelector('.property-carousel-next');
+          const dots = container.querySelectorAll('.property-dot');
+          
+          if (!track || slides.length <= 1) return;
+
+          let currentIndex = 0;
+          const totalSlides = slides.length;
+          let autoSlideInterval;
+
+          function updateCarousel(index) {
+            if (index < 0) {
+              currentIndex = totalSlides - 1;
+            } else if (index >= totalSlides) {
+              currentIndex = 0;
+            } else {
+              currentIndex = index;
+            }
+
+            track.style.transform = `translateX(-${currentIndex * 100}%)`;
+
+            dots.forEach((dot, idx) => {
+              if (idx === currentIndex) {
+                dot.classList.add('active');
+              } else {
+                dot.classList.remove('active');
+              }
+            });
+          }
+
+          function nextSlide() {
+            updateCarousel(currentIndex + 1);
+          }
+
+          function startAutoSlide() {
+            autoSlideInterval = setInterval(nextSlide, 4000);
+          }
+
+          function stopAutoSlide() {
+            clearInterval(autoSlideInterval);
+          }
+
+          startAutoSlide();
+          container.addEventListener('mouseenter', stopAutoSlide);
+          container.addEventListener('mouseleave', startAutoSlide);
+
+          if (nextBtn) {
+            nextBtn.addEventListener('click', (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              updateCarousel(currentIndex + 1);
+            });
+          }
+
+          if (prevBtn) {
+            prevBtn.addEventListener('click', (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              updateCarousel(currentIndex - 1);
+            });
+          }
+
+          dots.forEach((dot, idx) => {
+            dot.addEventListener('click', (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              updateCarousel(idx);
+            });
+          });
+        });
+
+        // ================= SELECTORES DINÁMICOS DE MUNICIPIOS =================
+        const municipiosPorProvincia = {
+          "Azua": ["Azua de Compostela", "Estebanía", "Guayabal", "Las Charcas", "Las Yayas de Viajama", "Padre Las Casas", "Peralta", "Pueblo Viejo", "Sabana Yegua", "Tábara Arriba"],
+          "Bahoruco": ["Neiba", "Galván", "Los Ríos", "Tamayo", "Villa Jaragua"],
+          "Barahona": ["Santa Cruz de Barahona", "Cabral", "El Peñón", "Enriquillo", "Fundación", "Jaquimeyes", "La Ciénaga", "Las Salinas", "Paraíso", "Polo", "Vicente Noble"],
+          "Santo Domingo": ["Santo Domingo Este", "Santo Domingo Norte", "Santo Domingo Oeste", "Los Alcarrizos", "Pedro Brand", "Boca Chica", "San Antonio de Guerra"]
+        };
+
+        const distritosPorMunicipio = {
+          "Santo Domingo Este": ["San Luis"],
+          "Santo Domingo Norte": ["La Victoria"],
+          "Boca Chica": ["La Caleta"],
+          "San Antonio de Guerra": ["Hato Viejo"]
+        };
+
+        const filterProvincia = document.getElementById('filterProvincia');
+        const filterMunicipio = document.getElementById('filterMunicipio');
+        const filterDistrito = document.getElementById('filterDistrito');
+
+        if (filterProvincia && filterMunicipio) {
+          filterProvincia.addEventListener('change', () => {
+            const provinciaSeleccionada = filterProvincia.value;
+            filterMunicipio.innerHTML = '<option value="">Todos</option>';
+            if (filterDistrito) filterDistrito.innerHTML = '<option value="">Todos</option>';
+
+            if (municipiosPorProvincia[provinciaSeleccionada]) {
+              municipiosPorProvincia[provinciaSeleccionada].forEach(mun => {
+                const opt = document.createElement('option');
+                opt.value = mun;
+                opt.textContent = mun;
+                filterMunicipio.appendChild(opt);
+              });
+            }
+          });
+        }
+
+        if (filterMunicipio && filterDistrito) {
+          filterMunicipio.addEventListener('change', () => {
+            const municipioSeleccionado = filterMunicipio.value;
+            filterDistrito.innerHTML = '<option value="">Todos</option>';
+
+            if (distritosPorMunicipio[municipioSeleccionado]) {
+              distritosPorMunicipio[municipioSeleccionado].forEach(dis => {
+                const opt = document.createElement('option');
+                opt.value = dis;
+                opt.textContent = dis;
+                filterDistrito.appendChild(opt);
+              });
+            }
+          });
+        }
+
+        // ================= MOTOR DE FILTRADO Y FAVORITOS =================
         const btnAplicarFiltros = document.getElementById('btnAplicarFiltros');
+        const btnVerFavoritos = document.getElementById('btnVerFavoritos');
         const filterSearch = document.getElementById('filterSearch');
         const filterPrecioMin = document.getElementById('filterPrecioMin');
         const filterPrecioMax = document.getElementById('filterPrecioMax');
-        const filterProvincia = document.getElementById('filterProvincia');
         const filterTipo = document.getElementById('filterTipo');
         const filterOferta = document.getElementById('filterOferta');
         const filterHabs = document.getElementById('filterHabs');
+        
+        let soloFavoritosActivo = false;
+        let noResultsMsg = document.createElement('div');
+        noResultsMsg.style.cssText = 'grid-column: 1 / -1; text-align: center; padding: 40px; color: #a1a1aa; font-size: 16px; display: none;';
+        noResultsMsg.innerHTML = '❌ No se encontraron propiedades con los filtros seleccionados.';
+        propertiesGrid.appendChild(noResultsMsg);
 
         function ejecutarFiltros() {
+          const propertyCards = document.querySelectorAll('.property-card');
           const texto = filterSearch ? filterSearch.value.toLowerCase().trim() : '';
           const pMin = filterPrecioMin && filterPrecioMin.value ? parseFloat(filterPrecioMin.value) : 0;
           const pMax = filterPrecioMax && filterPrecioMax.value ? parseFloat(filterPrecioMax.value) : Infinity;
           const provVal = filterProvincia ? filterProvincia.value.toLowerCase() : '';
+          const munVal = filterMunicipio ? filterMunicipio.value.toLowerCase() : '';
           const tipoVal = filterTipo ? filterTipo.value : '';
           const ofertaVal = filterOferta ? filterOferta.value : '';
           const habsVal = filterHabs ? filterHabs.value : '';
 
-          document.querySelectorAll('.property-card').forEach(card => {
+          let favoritos = JSON.parse(localStorage.getItem('mis_favoritos') || '[]');
+          let visibles = 0;
+
+          propertyCards.forEach(card => {
+            const cardId = card.getAttribute('data-id');
             const title = card.getAttribute('data-title');
             const location = card.getAttribute('data-location');
             const type = card.getAttribute('data-type');
@@ -1005,20 +1455,59 @@
             const price = parseFloat(card.getAttribute('data-price')) || 0;
             const habs = card.getAttribute('data-habs');
 
-            let cumple = (texto === '' || title.includes(texto) || location.includes(texto)) &&
-                         (price >= pMin && price <= pMax) &&
-                         (provVal === '' || location.includes(provVal)) &&
-                         (tipoVal === '' || type === tipoVal) &&
-                         (ofertaVal === '' || offer === ofertaVal) &&
-                         (habsVal === '' || habs === habsVal);
+            let cumpleFavoritos = !soloFavoritosActivo || favoritos.includes(cardId);
+            let cumpleTexto = texto === '' || title.includes(texto) || location.includes(texto);
+            let cumplePrecio = price >= pMin && price <= pMax;
+            let cumpleProv = provVal === '' || location.includes(provVal);
+            let cumpleMun = munVal === '' || location.includes(munVal);
+            let cumpleTipo = tipoVal === '' || type === tipoVal;
+            let cumpleOferta = ofertaVal === '' || offer === ofertaVal;
+            let cumpleHabs = habsVal === '' || (habsVal === '3' ? parseInt(habs) >= 3 : habs === habsVal);
 
-            card.style.display = cumple ? 'block' : 'none';
+            if (cumpleFavoritos && cumpleTexto && cumplePrecio && cumpleProv && cumpleMun && cumpleTipo && cumpleOferta && cumpleHabs) {
+              card.style.display = 'block';
+              visibles++;
+            } else {
+              card.style.display = 'none';
+            }
+          });
+
+          noResultsMsg.style.display = (visibles === 0) ? 'block' : 'none';
+        }
+
+        if (btnAplicarFiltros) {
+          btnAplicarFiltros.addEventListener('click', (e) => {
+            e.preventDefault();
+            ejecutarFiltros();
           });
         }
 
-        btnAplicarFiltros?.addEventListener('click', (e) => { e.preventDefault(); ejecutarFiltros(); });
-        filterSearch?.addEventListener('input', ejecutarFiltros);
+        if (filterSearch) {
+          filterSearch.addEventListener('input', ejecutarFiltros);
+        }
+
+        if (btnVerFavoritos) {
+          btnVerFavoritos.addEventListener('click', (e) => {
+            e.preventDefault();
+            soloFavoritosActivo = !soloFavoritosActivo;
+            const ctaIcon = document.getElementById('favCtaIcon');
+            const ctaText = document.getElementById('favCtaText');
+
+            if (soloFavoritosActivo) {
+              btnVerFavoritos.style.background = '#10b981';
+              if (ctaIcon) ctaIcon.textContent = '🏠';
+              if (ctaText) ctaText.textContent = 'Ver Todas las Propiedades';
+            } else {
+              btnVerFavoritos.style.background = '#ef4444';
+              if (ctaIcon) ctaIcon.textContent = '❤️';
+              if (ctaText) ctaText.textContent = 'Ver Mis Favoritos';
+            }
+
+            ejecutarFiltros();
+          });
+        }
       });
     </script>
+
 </body>
 </html>
