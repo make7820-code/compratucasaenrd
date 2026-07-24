@@ -663,8 +663,8 @@
     <!-- SCRIPT DE FIREBASE, SESIÓN Y SEGUIDORES -->
     <script type="module">
       import { auth, db } from './firebase-config.js';
-      import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-      import { doc, getDoc, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+      import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+      import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
       window.cambiarPestana = function(pestana) {
         const btnPub = document.getElementById('btnPublicaciones');
@@ -778,17 +778,6 @@
       }
 
       window.addEventListener('DOMContentLoaded', () => {
-        const savedTheme = localStorage.getItem('site_theme') || 'dark';
-        if (savedTheme === 'light') {
-          document.body.classList.add('light-mode');
-        } else if (savedTheme === 'system') {
-          if (window.matchMedia('(prefers-color-scheme: light)').matches) {
-            document.body.classList.add('light-mode');
-          }
-        }
-
-        const authContainer = document.getElementById('authContainer');
-
         onAuthStateChanged(auth, async (user) => {
           try {
             const docRef = doc(db, "usuarios", AGENT_FIXED_UID);
@@ -814,250 +803,12 @@
           }
 
           renderAgents(user);
-
-          if (user) {
-            let displayName = user.email.split('@')[0];
-            let avatarSrc = 'assets/onlybladi-avatar.png';
-
-            try {
-              const userDocRef = doc(db, "usuarios", user.uid);
-              const userDocSnap = await getDoc(userDocRef);
-              if (userDocSnap.exists()) {
-                const userData = userDocSnap.data();
-                if (userData.nombres) {
-                  displayName = userData.nombres.trim();
-                } else if (userData.nombre) {
-                  displayName = userData.nombre.trim();
-                }
-
-                if (userData.fotoPerfil) {
-                  avatarSrc = userData.fotoPerfil;
-                }
-              }
-            } catch (error) {
-              console.error("Error al obtener datos del usuario actual:", error);
-            }
-
-            const q = query(collection(db, "mensajes"), where("userId", "==", user.uid));
-            
-            onSnapshot(q, (snapshot) => {
-              const conversationsMap = new Map();
-              
-              snapshot.forEach(docSnap => {
-                const data = docSnap.data();
-                const propId = data.propertyId || 'general';
-                const timeA = data.timestamp?.toMillis ? data.timestamp.toMillis() : 0;
-                
-                if (!conversationsMap.has(propId)) {
-                  conversationsMap.set(propId, {
-                    propertyId: propId,
-                    propertyTitle: data.propertyTitle || 'Consulta Inmobiliaria',
-                    propertyImage: data.propertyImage || 'assets/puerto-marina.png',
-                    lastMessage: data.mensaje || data.text || '',
-                    sender: data.sender || 'user',
-                    leido: data.leidoPorUsuario || false,
-                    timestamp: timeA
-                  });
-                } else {
-                  const existing = conversationsMap.get(propId);
-                  if (timeA >= existing.timestamp) {
-                    existing.lastMessage = data.mensaje || data.text || '';
-                    existing.sender = data.sender || 'user';
-                    existing.leido = data.leidoPorUsuario || false;
-                    existing.timestamp = timeA;
-                  }
-                }
-              });
-
-              const convs = Array.from(conversationsMap.values());
-              const unreadConvs = convs.filter(c => c.sender && c.sender !== 'user' && !c.leido);
-              
-              updateNavbarUI(user, displayName, avatarSrc, unreadConvs, savedTheme);
-            });
-          } else {
-            if (authContainer) {
-              authContainer.innerHTML = `
-                <a href="login.html" class="login-btn">
-                  <span>🔐</span> Iniciar sesión
-                </a>
-              `;
-            }
-          }
         });
       });
-
-      function updateNavbarUI(user, displayName, avatarSrc, unreadConvs, savedTheme) {
-        const authContainer = document.getElementById('authContainer');
-        if (!authContainer) return;
-
-        const sessionCleared = sessionStorage.getItem(`notifications_cleared_${user.uid}`) === 'true';
-        const hasUnread = !sessionCleared && unreadConvs.length > 0;
-
-        const existingProfileMenu = document.getElementById('profileMenu');
-        const wasProfileMenuOpen = existingProfileMenu ? existingProfileMenu.classList.contains('show') : false;
-
-        const avatarBorderClass = hasUnread ? 'profile-avatar-active' : '';
-
-        authContainer.innerHTML = `
-          <div style="display: flex; align-items: center; gap: 12px;">
-            <!-- Campana de Notificaciones -->
-            <div style="position: relative; display: inline-block;">
-              <button id="notificationBellBtn" style="background: none; border: none; cursor: pointer; font-size: 20px; padding: 6px; position: relative;">
-                <span id="bellIconSpan" class="${hasUnread ? 'bell-ringing' : ''}">🔔</span>
-              </button>
-              <div id="notificationDropdown" class="notification-dropdown">
-                <div style="padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.08); font-weight: 700; font-size: 13px; color: #fff; display: flex; justify-content: space-between; align-items: center;">
-                  <span>Notificaciones de Mensajes</span>
-                  ${unreadConvs.length > 0 ? '<button id="markAllReadBtn" style="background:none; border:none; color:#3b82f6; font-size:11px; cursor:pointer; font-weight:600;">Marcar leídos</button>' : ''}
-                </div>
-                <div id="notificationListContent" style="max-height: 250px; overflow-y: auto;">
-                  ${
-                    unreadConvs.length === 0 || sessionCleared
-                    ? '<div style="padding: 20px; text-align: center; color: #71717a; font-size: 12px;">No hay mensajes nuevos</div>'
-                    : unreadConvs.map(c => `
-                        <div class="notification-item" data-prop="${c.propertyId}" style="display: flex; align-items: center; gap: 10px; padding: 10px 16px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.04);">
-                          <img src="${c.propertyImage}" style="width: 32px; height: 32px; border-radius: 6px; object-fit: cover;" onerror="this.src='assets/puerto-marina.png'">
-                          <div style="overflow: hidden;">
-                            <div style="font-size: 13px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${c.propertyTitle}</div>
-                            <div style="font-size: 11px; color: #a1a1aa; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${c.lastMessage}</div>
-                          </div>
-                        </div>
-                      `).join('')
-                  }
-                </div>
-              </div>
-            </div>
-
-            <!-- Perfil Desplegable -->
-            <div class="profile-dropdown-container" style="position: relative; display: inline-block;">
-              <button id="profileBtn" style="background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 12px; padding: 4px 8px 4px 4px; border-radius: 999px; transition: background 0.2s;">
-                <img src="${avatarSrc}" alt="Avatar" class="${avatarBorderClass}" style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover;" onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=${user.uid}'">
-                <span style="color: #fff; font-weight: 600; font-size: 15px; font-family: var(--font-display, sans-serif);">${displayName}</span>
-              </button>
-
-              <div id="profileMenu" class="profile-menu ${wasProfileMenuOpen ? 'show' : ''}">
-                <button class="profile-menu-item" onclick="window.location.href='mensajes.html'">
-                  <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-                  Mensajes
-                </button>
-                <button class="profile-menu-item" onclick="window.location.href='perfil.html'">
-                  <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                  Ir al Perfil
-                </button>
-
-                <div class="profile-menu-divider"></div>
-                <div class="profile-menu-section-title">Aspecto físico</div>
-                
-                <div class="profile-theme-selector">
-                  <button class="theme-btn ${savedTheme === 'light' ? 'active' : ''}" data-theme="light" title="Claro">☀️</button>
-                  <button class="theme-btn ${savedTheme === 'system' ? 'active' : ''}" data-theme="system" title="Sistema">💻</button>
-                  <button class="theme-btn ${savedTheme === 'dark' ? 'active' : ''}" data-theme="dark" title="Oscuro">🌙</button>
-                </div>
-
-                <div class="profile-menu-divider"></div>
-                <button class="profile-menu-item" id="cerrarSesionBtn" style="color: #ef4444;">
-                  <span style="font-size: 16px;">⎋</span> Cerrar Sesión
-                </button>
-              </div>
-            </div>
-          </div>
-        `;
-
-        const notificationBellBtn = document.getElementById('notificationBellBtn');
-        const notificationDropdown = document.getElementById('notificationDropdown');
-        
-        if (notificationBellBtn && notificationDropdown) {
-          notificationBellBtn.addEventListener('mouseenter', () => { 
-            notificationDropdown.style.display = 'block'; 
-          });
-          
-          notificationBellBtn.parentElement.addEventListener('mouseleave', () => { 
-            notificationDropdown.style.display = 'none'; 
-          });
-        }
-
-        const markAllReadBtn = document.getElementById('markAllReadBtn');
-        if (markAllReadBtn) {
-          markAllReadBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            sessionStorage.setItem(`notifications_cleared_${user.uid}`, 'true');
-            const bellIconSpan = document.getElementById('bellIconSpan');
-            if (bellIconSpan) bellIconSpan.classList.remove('bell-ringing');
-            notificationDropdown.style.display = 'none';
-            const listContent = document.getElementById('notificationListContent');
-            if(listContent) listContent.innerHTML = '<div style="padding: 20px; text-align: center; color: #71717a; font-size: 12px;">No hay mensajes nuevos</div>';
-            markAllReadBtn.style.display = 'none';
-          });
-        }
-
-        const notificationItems = authContainer.querySelectorAll('.notification-item');
-        notificationItems.forEach(item => {
-          item.addEventListener('click', () => {
-            sessionStorage.setItem(`notifications_cleared_${user.uid}`, 'true');
-            const propId = item.getAttribute('data-prop');
-            window.location.href = `mensajes.html?propiedadId=${propId}`;
-          });
-        });
-
-        const profileBtn = document.getElementById('profileBtn');
-        const profileMenu = document.getElementById('profileMenu');
-
-        if (profileBtn && profileMenu) {
-          profileBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            profileMenu.classList.toggle('show');
-          });
-
-          document.addEventListener('click', (e) => {
-            if (!profileMenu.contains(e.target) && !profileBtn.contains(e.target)) {
-              profileMenu.classList.remove('show');
-            }
-          });
-        }
-
-        const cerrarBtn = document.getElementById('cerrarSesionBtn');
-        if (cerrarBtn) {
-          cerrarBtn.addEventListener('click', async (event) => {
-            event.stopPropagation();
-            try {
-              await signOut(auth);
-              localStorage.removeItem('sesion_activa');
-              localStorage.removeItem('usuario_activo');
-              sessionStorage.clear();
-              alert("Has cerrado sesión correctamente.");
-              window.location.href = 'index.html';
-            } catch (error) {
-              console.error("Error al cerrar sesión:", error);
-            }
-          });
-        }
-
-        const themeBtns = authContainer.querySelectorAll('.theme-btn');
-        themeBtns.forEach(btn => {
-          btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const theme = btn.getAttribute('data-theme');
-            themeBtns.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-
-            if (theme === 'light') {
-              document.body.classList.add('light-mode');
-              localStorage.setItem('site_theme', 'light');
-            } else if (theme === 'dark') {
-              document.body.classList.remove('light-mode');
-              localStorage.setItem('site_theme', 'dark');
-            } else if (theme === 'system') {
-              localStorage.setItem('site_theme', 'system');
-              if (window.matchMedia('(prefers-color-scheme: light)').matches) {
-                document.body.classList.add('light-mode');
-              } else {
-                document.body.classList.remove('light-mode');
-              }
-            }
-          });
-        });
-      }
     </script>
+
+    <!-- Campanita de notificaciones y menú de perfil, compartidos con el resto del sitio -->
+    <script type="module" src="notifications.js"></script>
 
 </body>
 </html>
