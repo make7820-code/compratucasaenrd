@@ -352,6 +352,49 @@
         background: #059669;
       }
 
+      /* Widget de Video de la Propiedad en la barra lateral */
+      .property-video-box {
+        background: rgba(24, 24, 27, 0.9);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 16px;
+        padding: 20px;
+        text-align: center;
+      }
+
+      .property-video-title {
+        font-size: 15px;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+      }
+
+      .video-link-btn {
+        width: 100%;
+        background: #ef4444;
+        color: #fff;
+        border: none;
+        padding: 12px;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 15px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        text-decoration: none;
+        transition: background 0.2s, transform 0.2s;
+      }
+
+      .video-link-btn:hover {
+        background: #dc2626;
+        transform: translateY(-1px);
+      }
+
       /* Footer Estilo 4 Columnas con Redes SVG */
       .site-footer {
         background: #0b0b0e;
@@ -613,7 +656,7 @@
       </div>
     </footer>
 
-    <!-- SCRIPT CORREGIDO PARA COLOR DE ALQUILER Y UBICACIÓN DE EXTRANJEROS -->
+    <!-- SCRIPT CON SOPORTE PARA VIDEO DE LA PROPIEDAD -->
     <script type="module">
       import { db, doc, getDoc } from './firebase-config.js';
 
@@ -642,14 +685,11 @@
         if (selectedProperty) {
           const offer = selectedProperty.operacion || selectedProperty.offer || 'Venta';
           const isVenta = offer.toLowerCase() === 'venta';
-          
-          // Modificado: Si es Venta es verde (#10b981), si es Alquiler (o cualquier otro) es amarillo (#f59e0b)
           const badgeBg = isVenta ? '#10b981' : '#f59e0b';
           
           const title = selectedProperty.titulo || selectedProperty.title || selectedProperty.nombre || 'Sin título';
           const location = selectedProperty.ubicacion || selectedProperty.location || selectedProperty.direccion || 'República Dominicana';
           
-          // Lógica de moneda
           const rawPrice = selectedProperty.precio || selectedProperty.price || '0';
           const moneda = (selectedProperty.moneda || selectedProperty.currency || '').toUpperCase();
           
@@ -667,21 +707,21 @@
           const habs = selectedProperty.habitaciones || selectedProperty.habs || selectedProperty.habitacion || '1';
           const banos = selectedProperty.banos || selectedProperty.bathrooms || selectedProperty.bano || '2';
           const metros = selectedProperty.metros || selectedProperty.superficie || selectedProperty.area || 'N/D';
-          
           const nivel = selectedProperty.nivel || selectedProperty.altura || selectedProperty.piso || 'N/D';
           const parqueos = selectedProperty.parqueos || selectedProperty.parking || selectedProperty.parqueo || '1';
-          
           const depositos = selectedProperty.depositos || selectedProperty.deposits || selectedProperty.cantidadDepositos || selectedProperty.deposito || null;
+
+          // Extracción del enlace de video (soporta varias claves del formulario)
+          const videoUrl = selectedProperty.videoUrl || selectedProperty.video || selectedProperty.enlaceVideo || selectedProperty.linkVideo || null;
 
           // Verificación de Extranjeros
           const rawExtranjero = selectedProperty.extranjeros !== undefined ? selectedProperty.extranjeros 
-                              : selectedProperty.extranjeros !== undefined ? selectedProperty.extranjero 
+                              : selectedProperty.extranjero !== undefined ? selectedProperty.extranjero 
                               : selectedProperty.aceptanExtranjeros !== undefined ? selectedProperty.aceptanExtranjeros 
                               : selectedProperty.permiteExtranjeros;
           
           const aceptaExtranjero = rawExtranjero === true || rawExtranjero === "true" || rawExtranjero === "si" || rawExtranjero === "sí" || rawExtranjero === 1 || rawExtranjero === "on";
 
-          // Modificado: Etiqueta de extranjeros ubicada en el lugar inferior (donde marcaste "AQUÍ")
           const extranjeroBadgeHtml = aceptaExtranjero 
             ? `<div class="spec-card">
                  <span>Estatus</span>
@@ -696,13 +736,25 @@
                </div>` 
             : '';
 
+          // HTML dinámico para el widget de video de la propiedad en la barra lateral
+          const videoWidgetHtml = videoUrl ? `
+            <div class="property-video-box">
+              <div class="property-video-title">
+                <span>🎥</span> Video de la propiedad
+              </div>
+              <a href="${videoUrl}" target="_blank" class="video-link-btn">
+                <span>▶</span> Ver Video
+              </a>
+            </div>
+          ` : '';
+
           const imgs = (selectedProperty.imagenes && selectedProperty.imagenes.length > 0) ? selectedProperty.imagenes : [selectedProperty.image || 'assets/puerto-marina.png'];
           const description = selectedProperty.descripcion || selectedProperty.description || selectedProperty.detalles || 'Sin descripción detallada.';
           const agente = "Daniel Decena";
 
           container.innerHTML = `
             <div class="property-main-content">
-              <!-- Galería interactiva con la etiqueta de operación arriba -->
+              <!-- Galería interactiva con etiqueta de operación -->
               <div class="property-gallery" id="propertyGalleryBox">
                 <div style="position: absolute; top: 16px; left: 16px; z-index: 3; display: flex; gap: 8px; align-items: center;">
                   <span class="property-tag-badge" style="background: ${badgeBg};">${offer}</span>
@@ -725,7 +777,7 @@
                 <div class="property-price-main" style="color: ${priceColor};">${finalPriceFormatted}</div>
               </div>
 
-              <!-- Cuadrícula de Especificaciones con Extranjeros abajo -->
+              <!-- Cuadrícula de Especificaciones -->
               <div class="property-specs-grid">
                 <div class="spec-card">
                   <span>Habitaciones</span>
@@ -748,10 +800,7 @@
                   <strong>🚗 ${parqueos} Parqueos</strong>
                 </div>
 
-                <!-- Insignia de Extranjeros movida a la cuadrícula inferior -->
                 ${extranjeroBadgeHtml}
-
-                <!-- Depósitos Requeridos -->
                 ${depositosHtml}
               </div>
 
@@ -762,6 +811,9 @@
             </div>
 
             <div class="property-sidebar">
+              <!-- Widget de Video de la Propiedad -->
+              ${videoWidgetHtml}
+
               <div class="property-sidebar-box">
                 <h3>Contactar Asesor</h3>
                 <div class="agent-profile">
