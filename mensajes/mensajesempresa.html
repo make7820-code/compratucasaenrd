@@ -539,7 +539,7 @@
     <script type="module">
       import { auth, db } from '../firebase-config.js';
       import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-      import { doc, getDoc, collection, query, getDocs, addDoc, onSnapshot, orderBy, serverTimestamp, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+      import { doc, getDoc, setDoc, deleteDoc, collection, query, getDocs, addDoc, onSnapshot, orderBy, serverTimestamp, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
       const ALLOWED_UIDS = ["3VUuf3bJLKfAWqAlT94L1VlvaHB3"];
 
@@ -616,8 +616,46 @@
           loadCompanyConversations();
         });
 
+        // Borra conversaciones finalizadas hace más de 7 días (junto con sus mensajes)
+        async function limpiarConversacionesViejas() {
+          try {
+            const q = query(collection(db, "conversaciones"), where("estado", "==", "finalizada"));
+            const snap = await getDocs(q);
+            const ahora = Date.now();
+            const unaSemanaMs = 7 * 24 * 60 * 60 * 1000;
+
+            for (const docSnap of snap.docs) {
+              const data = docSnap.data();
+              const finalizadaEn = data.finalizadaEn?.toMillis ? data.finalizadaEn.toMillis() : 0;
+              if (finalizadaEn && (ahora - finalizadaEn) > unaSemanaMs) {
+                const qMsgs = query(collection(db, "mensajes"), where("userId", "==", data.userId), where("propertyId", "==", data.propertyId));
+                const msgsSnap = await getDocs(qMsgs);
+                await Promise.all(msgsSnap.docs.map(m => deleteDoc(m.ref)));
+                await deleteDoc(docSnap.ref);
+              }
+            }
+          } catch (error) {
+            console.error("Error limpiando conversaciones viejas:", error);
+          }
+        }
+
+        // Consulta el estado (activa/finalizada) de cada conversación
+        async function cargarEstadosConversaciones(convs) {
+          const estados = {};
+          await Promise.all(convs.map(async (c) => {
+            const key = `${c.clientId}_${c.propertyId}`;
+            try {
+              const snap = await getDoc(doc(db, "conversaciones", key));
+              if (snap.exists()) estados[key] = snap.data().estado;
+            } catch (e) { /* ignorar */ }
+          }));
+          return estados;
+        }
+
         async function loadCompanyConversations() {
           try {
+            await limpiarConversacionesViejas();
+
             const q = query(collection(db, "mensajes"));
             onSnapshot(q, async (snapshot) => {
               if (snapshot.empty) {
@@ -646,12 +684,19 @@
               });
 
               const convs = Array.from(conversationsMap.values());
-              renderConversations(convs);
+              const estados = await cargarEstadosConversaciones(convs);
+              convs.forEach(c => { c.estado = estados[`${c.clientId}_${c.propertyId}`] || 'activa'; });
+
+              const activas = convs.filter(c => c.estado !== 'finalizada');
+              const finalizadas = convs.filter(c => c.estado === 'finalizada');
+
+              renderConversations(activas, finalizadas);
 
               searchInput.addEventListener('input', (e) => {
                 const term = e.target.value.toLowerCase();
-                const filtered = convs.filter(c => c.propertyTitle.toLowerCase().includes(term) || c.clientId.toLowerCase().includes(term));
-                renderConversations(filtered);
+                const filtroActivas = activas.filter(c => c.propertyTitle.toLowerCase().includes(term) || c.clientId.toLowerCase().includes(term));
+                const filtroFinalizadas = finalizadas.filter(c => c.propertyTitle.toLowerCase().includes(term) || c.clientId.toLowerCase().includes(term));
+                renderConversations(filtroActivas, filtroFinalizadas);
               });
             });
           } catch (error) {
@@ -659,33 +704,45 @@
           }
         }
 
-        function renderConversations(convs) {
-          if (convs.length === 0) {
+        function renderConversations(activas, finalizadas) {
+          if (activas.length === 0 && finalizadas.length === 0) {
             conversationsList.innerHTML = `<div style="padding: 20px; text-align: center; color: #a1a1aa; font-size: 13px;">No se encontraron resultados.</div>`;
             return;
           }
 
           conversationsList.innerHTML = '';
-          convs.forEach(conv => {
+
+          const crearItem = (conv, finalizada) => {
             const item = document.createElement('div');
             item.className = 'conversation-item';
+            item.style.opacity = finalizada ? '0.6' : '1';
             item.innerHTML = `
               <img src="${conv.propertyImage}" alt="Propiedad" class="conv-thumb" onerror="this.src='../assets/puerto-marina.png'">
               <div class="conv-info">
                 <div class="conv-property-title">${conv.propertyTitle}</div>
-                <div class="conv-last-msg">Cliente: ${conv.clientId.substring(0, 8)}...</div>
+                <div class="conv-last-msg">${finalizada ? '✅ Conversación finalizada' : 'Cliente: ' + conv.clientId.substring(0, 8) + '...'}</div>
               </div>
             `;
             item.addEventListener('click', () => {
               document.querySelectorAll('.conversation-item').forEach(el => el.classList.remove('active'));
               item.classList.add('active');
-              openCompanyChatWindow(conv.clientId, conv.propertyId, conv.propertyTitle, conv.propertyImage, conv.propertyPrice);
+              openCompanyChatWindow(conv.clientId, conv.propertyId, conv.propertyTitle, conv.propertyImage, conv.propertyPrice, finalizada);
             });
-            conversationsList.appendChild(item);
-          });
+            return item;
+          };
+
+          activas.forEach(conv => conversationsList.appendChild(crearItem(conv, false)));
+
+          if (finalizadas.length > 0) {
+            const divider = document.createElement('div');
+            divider.style.cssText = 'padding: 10px 16px; font-size: 11px; font-weight: 700; color: #71717a; text-transform: uppercase; letter-spacing: 0.5px; border-top: 1px solid rgba(255,255,255,0.08); margin-top: 8px;';
+            divider.textContent = 'Conversaciones finalizadas';
+            conversationsList.appendChild(divider);
+            finalizadas.forEach(conv => conversationsList.appendChild(crearItem(conv, true)));
+          }
         }
 
-        function openCompanyChatWindow(clientId, propertyId, propertyTitle, propertyImage, propertyPrice) {
+        function openCompanyChatWindow(clientId, propertyId, propertyTitle, propertyImage, propertyPrice, finalizada = false) {
           chatMainArea.innerHTML = `
             <div class="chat-header">
               <div class="chat-property-meta">
@@ -695,19 +752,36 @@
                   <div class="chat-prop-price">Cliente UID: ${clientId}</div>
                 </div>
               </div>
+              <div style="display:flex; align-items:center; gap:8px;">
+                ${!finalizada ? `<button id="chatFinalizarBtn" style="background:rgba(239,68,68,0.15); color:#ef4444; border:1px solid rgba(239,68,68,0.3); border-radius:8px; padding:6px 12px; font-size:12px; font-weight:600; cursor:pointer; white-space:nowrap;">Finalizar conversación</button>` : ''}
+                <button class="chat-close-btn" id="chatCloseBtn" title="Minimizar chat">×</button>
+              </div>
             </div>
             <div class="chat-messages-box" id="chatMessagesBox">
               <div style="text-align: center; color: #71717a; padding: 20px;">Cargando chat...</div>
             </div>
-            <div class="chat-input-area">
-              <input type="text" id="chatMessageInput" placeholder="Escribe tu respuesta como agente inmobiliario...">
-              <button class="chat-send-btn" id="chatSendBtn">Responder</button>
-            </div>
+            ${finalizada
+              ? `<div style="padding: 14px; text-align: center; color: #71717a; font-size: 13px; border-top: 1px solid rgba(255,255,255,0.08);">✅ Conversación finalizada — ya no se pueden enviar mensajes. Se eliminará automáticamente en unos días.</div>`
+              : `<div class="chat-input-area">
+                  <input type="text" id="chatMessageInput" placeholder="Escribe tu respuesta como agente inmobiliario...">
+                  <button class="chat-send-btn" id="chatSendBtn">Responder</button>
+                </div>`
+            }
           `;
 
           const messagesBox = document.getElementById('chatMessagesBox');
-          const messageInput = document.getElementById('chatMessageInput');
-          const sendBtn = document.getElementById('chatSendBtn');
+          const closeBtn = document.getElementById('chatCloseBtn');
+
+          closeBtn.addEventListener('click', () => {
+            document.querySelectorAll('.conversation-item').forEach(el => el.classList.remove('active'));
+            chatMainArea.innerHTML = `
+              <div class="chat-empty-state">
+                <div class="chat-empty-icon">💬</div>
+                <div class="chat-empty-title">PANEL DE MENSAJES</div>
+                <p style="margin: 0; font-size: 14px; color: #a1a1aa;">Selecciona una conversación para responder.</p>
+              </div>
+            `;
+          });
 
           const qMsgs = query(
             collection(db, "mensajes"), 
@@ -725,6 +799,15 @@
 
             snapshot.forEach(docSnap => {
               const msgData = docSnap.data();
+
+              if (msgData.tipo === 'sistema') {
+                const aviso = document.createElement('div');
+                aviso.style.cssText = 'text-align:center; color:#a1a1aa; font-size:12px; margin:14px auto; padding:6px 14px; background:rgba(255,255,255,0.05); border-radius:999px; display:table;';
+                aviso.textContent = msgData.mensaje;
+                messagesBox.appendChild(aviso);
+                return;
+              }
+
               // Identifica si el mensaje es saliente (enviado por el admin/agente) o entrante (cliente)
               const isOutgoing = msgData.sender === 'agent' || msgData.sender === 'company' || msgData.sender === 'admin';
               const bubble = document.createElement('div');
@@ -737,6 +820,11 @@
             });
             messagesBox.scrollTop = messagesBox.scrollHeight;
           });
+
+          if (finalizada) return; // No se puede responder ni finalizar de nuevo
+
+          const messageInput = document.getElementById('chatMessageInput');
+          const sendBtn = document.getElementById('chatSendBtn');
 
           const enviarRespuesta = async () => {
             const texto = messageInput.value.trim();
@@ -755,6 +843,7 @@
               });
             } catch (error) {
               console.error("Error al enviar respuesta:", error);
+              alert("No se pudo enviar el mensaje: " + error.message);
             }
           };
 
@@ -762,6 +851,44 @@
           messageInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') enviarRespuesta();
           });
+
+          const finalizarBtn = document.getElementById('chatFinalizarBtn');
+          if (finalizarBtn) {
+            finalizarBtn.addEventListener('click', async () => {
+              const confirmar = confirm('¿Finalizar esta conversación? Tú y el cliente podrán seguir viéndola, pero no se podrán enviar más mensajes. Se eliminará automáticamente en 7 días.');
+              if (!confirmar) return;
+              try {
+                // Avisar al cliente en el propio chat de que la conversación se finalizó
+                await addDoc(collection(db, "mensajes"), {
+                  userId: clientId,
+                  propertyId: propertyId,
+                  propertyTitle: propertyTitle,
+                  propertyImage: propertyImage,
+                  propertyPrice: propertyPrice,
+                  mensaje: "🔒 Esta conversación ha sido finalizada.",
+                  tipo: "sistema",
+                  sender: 'agent',
+                  timestamp: serverTimestamp()
+                });
+
+                await setDoc(doc(db, "conversaciones", `${clientId}_${propertyId}`), {
+                  userId: clientId,
+                  propertyId: propertyId,
+                  propertyTitle: propertyTitle,
+                  propertyImage: propertyImage,
+                  propertyPrice: propertyPrice,
+                  estado: 'finalizada',
+                  finalizadaEn: serverTimestamp()
+                });
+                alert('Conversación finalizada.');
+                closeBtn.click();
+                loadCompanyConversations();
+              } catch (error) {
+                console.error('Error al finalizar conversación:', error);
+                alert('No se pudo finalizar la conversación: ' + error.message);
+              }
+            });
+          }
         }
       });
     </script>
