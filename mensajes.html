@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mensajes | Compra tu casa en RD</title>
-    <link rel="icon" type="image/x-icon" href="assets/icono.ico">
+    <link rel="icon" type="image/x-icon" href="assets/mi-logo.ico">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
     <!-- Hoja de Estilos Principal -->
@@ -370,7 +370,6 @@
         background: #dc2626;
       }
 
-      /* Animación de la campanita */
       @keyframes ringBell {
         0% { transform: rotate(0deg); }
         20% { transform: rotate(15deg); }
@@ -429,7 +428,7 @@
     <header class="site-header">
       <div class="header-inner">
         <a href="index.html" class="brand">
-          <img src="assets/mi-logo.png" alt="Compra tu casa en RD" class="brand-logo">
+          <img src="assets/mi-logo.ico" alt="Compra tu casa en RD" class="brand-logo">
           <img src="assets/demo.png" alt="DEMO" class="brand-demo-badge">
         </a>
 
@@ -635,7 +634,6 @@
 
               const conversationsMap = new Map();
               
-              // Recopilar IDs de usuarios únicos que escribieron en los chats para buscar sus perfiles reales si es necesario
               const senderIdsSet = new Set();
               snapshot.forEach(docSnap => {
                 const data = docSnap.data();
@@ -644,7 +642,6 @@
                 }
               });
 
-              // Mapeo para guardar la info del remitente (nombre y foto de quien escribió)
               const sendersInfoMap = {};
               for (const sId of senderIdsSet) {
                 try {
@@ -654,7 +651,7 @@
                     const sData = sDocSnap.data();
                     sendersInfoMap[sId] = {
                       name: sData.nombres || sData.nombre || 'Asesor Inmobiliario',
-                      avatar: sData.fotoPerfil || 'assets/onlybladi-avatar.png'
+                      avatar: sData.fotoPerfil || 'assets/mi-logo.ico'
                     };
                   }
                 } catch (err) {
@@ -669,7 +666,6 @@
                 const timeA = data.timestamp?.toMillis ? data.timestamp.toMillis() : 0;
                 const isUnread = (data.sender && data.sender !== 'user') && !data.leidoPorUsuario;
                 
-                // Determinamos el nombre y avatar de la persona que escribió (si el mensaje no es del usuario actual)
                 let currentSenderName = currentUserDisplayName;
                 let currentSenderAvatar = currentUserAvatar;
 
@@ -682,7 +678,7 @@
                     if (data.senderAvatar) currentSenderAvatar = data.senderAvatar;
                   } else {
                     currentSenderName = "Asesor Inmobiliario";
-                    currentSenderAvatar = "assets/onlybladi-avatar.png";
+                    currentSenderAvatar = "assets/mi-logo.ico";
                   }
                 }
 
@@ -708,7 +704,6 @@
                     existing.lastMessage = data.mensaje || data.text || '';
                     existing.sender = data.sender || 'user';
                     existing.timestamp = timeA;
-                    // Actualizamos con los datos más recientes del remitente si el último mensaje fue suyo
                     if (data.sender && data.sender !== 'user') {
                       existing.displayName = currentSenderName;
                       existing.displayAvatar = currentSenderAvatar;
@@ -751,9 +746,8 @@
               targetConvToOpen = conv;
             }
 
-            // Muestra la foto y el nombre de la persona que escribió en ese momento (remitente o asesor), junto al título de la propiedad enlazado
             item.innerHTML = `
-              <img src="${conv.displayAvatar}" alt="Remitente" class="conv-thumb" onerror="this.src='assets/onlybladi-avatar.png'">
+              <img src="${conv.displayAvatar}" alt="Remitente" class="conv-thumb" onerror="this.src='assets/mi-logo.ico'">
               <div class="conv-info">
                 <div class="conv-client-name">${conv.displayName}</div>
                 <a href="detalle-propiedad.html?id=${conv.propertyId}" class="conv-property-title" onclick="event.stopPropagation();">${conv.propertyTitle}</a>
@@ -849,7 +843,7 @@
           if (profileBtn && profileMenu) {
             profileBtn.addEventListener('click', (e) => {
               e.stopPropagation();
-              profileMenu.style.display = profileMenu.style.display === 'block' ? 'none' : 'block';
+              profileMenu.style.display = profileMenu.style.display === 'block' ? 'none' : 'fallback';
             });
             document.addEventListener('click', () => { profileMenu.style.display = 'none'; });
           }
