@@ -229,6 +229,16 @@
         flex: 1;
       }
 
+      .conv-client-name {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--accent-red);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin-bottom: 2px;
+      }
+
       .conv-property-title {
         font-size: 14px;
         font-weight: 700;
@@ -237,6 +247,12 @@
         overflow: hidden;
         text-overflow: ellipsis;
         margin-bottom: 4px;
+        text-decoration: none;
+        display: block;
+      }
+
+      .conv-property-title:hover {
+        text-decoration: underline;
       }
 
       .conv-last-msg {
@@ -639,17 +655,34 @@
           }
         }
 
-        // Consulta el estado (activa/finalizada) de cada conversación
-        async function cargarEstadosConversaciones(convs) {
-          const estados = {};
+        // Consulta el perfil y estado de cada conversación
+        async function cargarDatosAdicionalesConvs(convs) {
+          const resultados = {};
           await Promise.all(convs.map(async (c) => {
             const key = `${c.clientId}_${c.propertyId}`;
+            let estado = 'activa';
+            let clientName = c.clientId.substring(0, 8) + '...';
+            let clientPhoto = '../assets/onlybladi-avatar.png';
+
             try {
-              const snap = await getDoc(doc(db, "conversaciones", key));
-              if (snap.exists()) estados[key] = snap.data().estado;
+              const snapConv = await getDoc(doc(db, "conversaciones", key));
+              if (snapConv.exists()) {
+                estado = snapConv.data().estado || 'activa';
+              }
             } catch (e) { /* ignorar */ }
+
+            try {
+              const snapUser = await getDoc(doc(db, "usuarios", c.clientId));
+              if (snapUser.exists()) {
+                const uData = snapUser.data();
+                if (uData.nombres) clientName = uData.nombres;
+                if (uData.fotoPerfil) clientPhoto = uData.fotoPerfil;
+              }
+            } catch (e) { /* ignorar */ }
+
+            resultados[key] = { estado, clientName, clientPhoto };
           }));
-          return estados;
+          return resultados;
         }
 
         async function loadCompanyConversations() {
@@ -673,19 +706,31 @@
                 if (!clientId) return;
 
                 if (!conversationsMap.has(compositeKey)) {
+                  let propertyLink = data.propertyLink || `../detalle-propiedad.html?id=${propId}`;
+                  if (propId === 'general') {
+                    propertyLink = '../propiedades.html';
+                  }
+
                   conversationsMap.set(compositeKey, {
                     clientId: clientId,
                     propertyId: propId,
                     propertyTitle: data.propertyTitle || 'Consulta Inmobiliaria General',
                     propertyImage: data.propertyImage || '../assets/puerto-marina.png',
-                    propertyPrice: data.propertyPrice || ''
+                    propertyPrice: data.propertyPrice || '',
+                    propertyLink: propertyLink
                   });
                 }
               });
 
               const convs = Array.from(conversationsMap.values());
-              const estados = await cargarEstadosConversaciones(convs);
-              convs.forEach(c => { c.estado = estados[`${c.clientId}_${c.propertyId}`] || 'activa'; });
+              const datosAdicionales = await cargarDatosAdicionalesConvs(convs);
+              
+              convs.forEach(c => {
+                const info = datosAdicionales[`${c.clientId}_${c.propertyId}`] || {};
+                c.estado = info.estado || 'activa';
+                c.clientName = info.clientName || c.clientId.substring(0, 8) + '...';
+                c.clientPhoto = info.clientPhoto || '../assets/onlybladi-avatar.png';
+              });
 
               const activas = convs.filter(c => c.estado !== 'finalizada');
               const finalizadas = convs.filter(c => c.estado === 'finalizada');
@@ -694,8 +739,8 @@
 
               searchInput.addEventListener('input', (e) => {
                 const term = e.target.value.toLowerCase();
-                const filtroActivas = activas.filter(c => c.propertyTitle.toLowerCase().includes(term) || c.clientId.toLowerCase().includes(term));
-                const filtroFinalizadas = finalizadas.filter(c => c.propertyTitle.toLowerCase().includes(term) || c.clientId.toLowerCase().includes(term));
+                const filtroActivas = activas.filter(c => c.propertyTitle.toLowerCase().includes(term) || c.clientName.toLowerCase().includes(term));
+                const filtroFinalizadas = finalizadas.filter(c => c.propertyTitle.toLowerCase().includes(term) || c.clientName.toLowerCase().includes(term));
                 renderConversations(filtroActivas, filtroFinalizadas);
               });
             });
@@ -717,16 +762,17 @@
             item.className = 'conversation-item';
             item.style.opacity = finalizada ? '0.6' : '1';
             item.innerHTML = `
-              <img src="${conv.propertyImage}" alt="Propiedad" class="conv-thumb" onerror="this.src='../assets/puerto-marina.png'">
+              <img src="${conv.clientPhoto}" alt="Perfil Cliente" class="conv-thumb" onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=${conv.clientId}'">
               <div class="conv-info">
-                <div class="conv-property-title">${conv.propertyTitle}</div>
-                <div class="conv-last-msg">${finalizada ? '✅ Conversación finalizada' : 'Cliente: ' + conv.clientId.substring(0, 8) + '...'}</div>
+                <div class="conv-client-name">${conv.clientName}</div>
+                <a href="${conv.propertyLink}" target="_blank" class="conv-property-title" onclick="event.stopPropagation();">${conv.propertyTitle}</a>
+                <div class="conv-last-msg">${finalizada ? '✅ Conversación finalizada' : 'Chat activo'}</div>
               </div>
             `;
             item.addEventListener('click', () => {
               document.querySelectorAll('.conversation-item').forEach(el => el.classList.remove('active'));
               item.classList.add('active');
-              openCompanyChatWindow(conv.clientId, conv.propertyId, conv.propertyTitle, conv.propertyImage, conv.propertyPrice, finalizada);
+              openCompanyChatWindow(conv.clientId, conv.propertyId, conv.propertyTitle, conv.propertyImage, conv.propertyPrice, finalizada, conv.clientName, conv.clientPhoto);
             });
             return item;
           };
@@ -742,14 +788,14 @@
           }
         }
 
-        function openCompanyChatWindow(clientId, propertyId, propertyTitle, propertyImage, propertyPrice, finalizada = false) {
+        function openCompanyChatWindow(clientId, propertyId, propertyTitle, propertyImage, propertyPrice, finalizada = false, clientName = '', clientPhoto = '../assets/onlybladi-avatar.png') {
           chatMainArea.innerHTML = `
             <div class="chat-header">
               <div class="chat-property-meta">
-                <img src="${propertyImage}" alt="Propiedad" class="chat-prop-img" onerror="this.src='../assets/puerto-marina.png'">
+                <img src="${clientPhoto}" alt="Cliente" class="chat-prop-img" onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=${clientId}'">
                 <div>
-                  <div class="chat-prop-name">${propertyTitle}</div>
-                  <div class="chat-prop-price">Cliente UID: ${clientId}</div>
+                  <div class="chat-prop-name">${clientName}</div>
+                  <div class="chat-prop-price">${propertyTitle}</div>
                 </div>
               </div>
               <div style="display:flex; align-items:center; gap:8px;">
