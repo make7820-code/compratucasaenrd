@@ -619,21 +619,6 @@
 
         async function loadUserConversationsAndNotifications(userId, activePropId, currentUserDisplayName, currentUserAvatar) {
           try {
-            let clientName = currentUserDisplayName;
-            let clientAvatar = currentUserAvatar;
-
-            try {
-              const userDocRef = doc(db, "usuarios", userId);
-              const userDocSnap = await getDoc(userDocRef);
-              if (userDocSnap.exists()) {
-                const uData = userDocSnap.data();
-                if (uData.nombres) clientName = uData.nombres;
-                if (uData.fotoPerfil) clientAvatar = uData.fotoPerfil;
-              }
-            } catch (e) {
-              console.error("Error al obtener datos del cliente:", e);
-            }
-
             const q = query(collection(db, "mensajes"), where("userId", "==", userId));
             
             onSnapshot(q, async (snapshot) => {
@@ -650,6 +635,33 @@
 
               const conversationsMap = new Map();
               
+              // Recopilar IDs de usuarios únicos que escribieron en los chats para buscar sus perfiles reales si es necesario
+              const senderIdsSet = new Set();
+              snapshot.forEach(docSnap => {
+                const data = docSnap.data();
+                if (data.senderId && data.senderId !== userId) {
+                  senderIdsSet.add(data.senderId);
+                }
+              });
+
+              // Mapeo para guardar la info del remitente (nombre y foto de quien escribió)
+              const sendersInfoMap = {};
+              for (const sId of senderIdsSet) {
+                try {
+                  const sDocRef = doc(db, "usuarios", sId);
+                  const sDocSnap = await getDoc(sDocRef);
+                  if (sDocSnap.exists()) {
+                    const sData = sDocSnap.data();
+                    sendersInfoMap[sId] = {
+                      name: sData.nombres || sData.nombre || 'Asesor Inmobiliario',
+                      avatar: sData.fotoPerfil || 'assets/onlybladi-avatar.png'
+                    };
+                  }
+                } catch (err) {
+                  console.error("Error al obtener datos del remitente:", err);
+                }
+              }
+              
               snapshot.forEach(docSnap => {
                 const data = docSnap.data();
                 const propId = data.propertyId || 'general';
@@ -657,6 +669,23 @@
                 const timeA = data.timestamp?.toMillis ? data.timestamp.toMillis() : 0;
                 const isUnread = (data.sender && data.sender !== 'user') && !data.leidoPorUsuario;
                 
+                // Determinamos el nombre y avatar de la persona que escribió (si el mensaje no es del usuario actual)
+                let currentSenderName = currentUserDisplayName;
+                let currentSenderAvatar = currentUserAvatar;
+
+                if (data.sender && data.sender !== 'user') {
+                  if (data.senderId && sendersInfoMap[data.senderId]) {
+                    currentSenderName = sendersInfoMap[data.senderId].name;
+                    currentSenderAvatar = sendersInfoMap[data.senderId].avatar;
+                  } else if (data.senderName) {
+                    currentSenderName = data.senderName;
+                    if (data.senderAvatar) currentSenderAvatar = data.senderAvatar;
+                  } else {
+                    currentSenderName = "Asesor Inmobiliario";
+                    currentSenderAvatar = "assets/onlybladi-avatar.png";
+                  }
+                }
+
                 if (!conversationsMap.has(propId)) {
                   conversationsMap.set(propId, {
                     propertyId: propId,
@@ -667,8 +696,8 @@
                     sender: data.sender || 'user',
                     hasUnread: isUnread,
                     timestamp: timeA,
-                    clientName: clientName,
-                    clientAvatar: clientAvatar
+                    displayName: currentSenderName,
+                    displayAvatar: currentSenderAvatar
                   });
                 } else {
                   const existing = conversationsMap.get(propId);
@@ -679,6 +708,11 @@
                     existing.lastMessage = data.mensaje || data.text || '';
                     existing.sender = data.sender || 'user';
                     existing.timestamp = timeA;
+                    // Actualizamos con los datos más recientes del remitente si el último mensaje fue suyo
+                    if (data.sender && data.sender !== 'user') {
+                      existing.displayName = currentSenderName;
+                      existing.displayAvatar = currentSenderAvatar;
+                    }
                   }
                 }
               });
@@ -689,7 +723,7 @@
 
               searchInput.addEventListener('input', (e) => {
                 const term = e.target.value.toLowerCase();
-                const filtered = convs.filter(c => c.propertyTitle.toLowerCase().includes(term) || c.clientName.toLowerCase().includes(term));
+                const filtered = convs.filter(c => c.propertyTitle.toLowerCase().includes(term) || c.displayName.toLowerCase().includes(term));
                 renderConversations(filtered, userId, null);
               });
 
@@ -717,11 +751,11 @@
               targetConvToOpen = conv;
             }
 
-            // Se muestra la foto de perfil del usuario (cliente) como miniatura y su nombre de usuario encima del título de la propiedad, el cual es un enlace clicable que lleva a detalle-propiedad.html?id=...
+            // Muestra la foto y el nombre de la persona que escribió en ese momento (remitente o asesor), junto al título de la propiedad enlazado
             item.innerHTML = `
-              <img src="${conv.clientAvatar}" alt="Perfil Cliente" class="conv-thumb" onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=${userId}'">
+              <img src="${conv.displayAvatar}" alt="Remitente" class="conv-thumb" onerror="this.src='assets/onlybladi-avatar.png'">
               <div class="conv-info">
-                <div class="conv-client-name">${conv.clientName}</div>
+                <div class="conv-client-name">${conv.displayName}</div>
                 <a href="detalle-propiedad.html?id=${conv.propertyId}" class="conv-property-title" onclick="event.stopPropagation();">${conv.propertyTitle}</a>
                 <div class="conv-last-msg">${conv.lastMessage}</div>
               </div>
@@ -848,7 +882,7 @@
             </div>
 
             <div class="chat-input-area">
-              <input type="text" id="chatMessageInput" placeholder="Escribe tu mensaje al asesor...">
+              <input type="text" id="chatMessageInput" placeholder="Escribe tu mensaje...">
               <button class="chat-send-btn" id="chatSendBtn">Enviar</button>
             </div>
           `;
@@ -873,7 +907,7 @@
           const renderMessagesList = (mensajesList) => {
             messagesBox.innerHTML = '';
             if (mensajesList.length === 0) {
-              messagesBox.innerHTML = `<div style="text-align: center; color: #71717a; font-size: 13px; margin: auto;">Inicia la conversación con tu asesor inmobiliario.</div>`;
+              messagesBox.innerHTML = `<div style="text-align: center; color: #71717a; font-size: 13px; margin: auto;">Inicia la conversación.</div>`;
               return;
             }
 
@@ -949,10 +983,6 @@
             if (e.key === 'Enter') enviarMensajeHandler();
           });
         }
-      });
-    </script>
-</body>
-</html>
       });
     </script>
 </body>
