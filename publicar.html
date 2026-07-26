@@ -436,7 +436,7 @@
         flex: 1;
       }
 
-      /* Botones de Gestión (Estructura de 4 botones uniforme) */
+      /* Botones de Gestión (Estructura de botones uniforme) */
       .card-actions-row {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
@@ -465,6 +465,9 @@
       .action-btn.archive:hover { border-color: #f59e0b; color: #f59e0b; }
       .action-btn.delete:hover { border-color: #ef4444; color: #ef4444; background: rgba(239, 68, 68, 0.1); }
       .action-btn.unarchive:hover { border-color: #10b981; color: #10b981; }
+      .action-btn.location:hover { border-color: #38bdf8; color: #38bdf8; background: rgba(56, 189, 248, 0.1); }
+      .action-btn.video:hover { border-color: #ec4899; color: #ec4899; background: rgba(236, 72, 153, 0.1); }
+      .action-btn.copiado-card { border-color: #10b981 !important; color: #10b981 !important; background: rgba(16, 185, 129, 0.15) !important; }
 
       /* Ventana Flotante (Modal) */
       .modal-overlay {
@@ -648,12 +651,6 @@
       .publish-control:focus { border-color: #f59e0b; }
       textarea.publish-control { resize: vertical; min-height: 90px; }
 
-      /* ===== CORRECCIÓN: Legibilidad de los desplegables (selects) =====
-         Por defecto, el navegador pintaba las opciones del <select> en
-         fondo blanco con letras claras, haciéndolas invisibles sobre el
-         modal oscuro. Forzamos el esquema de color según el tema activo
-         para que el propio navegador dibuje el menú desplegable nativo
-         en oscuro (o claro) con buen contraste. */
       select.publish-control {
         color-scheme: dark;
       }
@@ -687,7 +684,6 @@
       }
       .publish-submit-btn:hover { background: #d97706; color: #fff; }
 
-      /* Campo con botón de copiar (Link de Ubicación / Link de Video) */
       .input-with-copy-btn {
         display: flex;
         gap: 8px;
@@ -720,7 +716,6 @@
         color: #10b981;
       }
 
-      /* Checkbox de Extranjeros */
       .checkbox-container {
         display: flex;
         align-items: center;
@@ -738,7 +733,6 @@
         cursor: pointer;
       }
 
-      /* Estilos para el contenedor de miniaturas de fotos en edición */
       .thumbnails-edit-container {
         display: flex;
         gap: 10px;
@@ -1341,9 +1335,54 @@
         });
       }
 
+      /* Función global para copiar enlaces desde los botones rápidos de la tarjeta */
+      window.copiarLinkDirecto = function(idProp, tipoEnlace, btnEl) {
+        const prop = cachePropiedadesActuales[idProp];
+        if (!prop) {
+          alert("Propiedad no encontrada.");
+          return;
+        }
+
+        const urlACopiar = tipoEnlace === 'ubicacion' ? (prop.linkUbicacion || '') : (prop.linkVideo || '');
+        if (!urlACopiar.trim()) {
+          alert(`Esta propiedad no tiene configurado ningún link de ${tipoEnlace}.`);
+          return;
+        }
+
+        const textoOriginal = btnEl.innerHTML;
+        const marcarCopiadoCard = () => {
+          btnEl.innerHTML = tipoEnlace === 'ubicacion' ? '📍 ¡Ubicación Copiada!' : '🎥 ¡Video Copiado!';
+          btnEl.classList.add('copiado-card');
+          setTimeout(() => {
+            btnEl.innerHTML = textoOriginal;
+            btnEl.classList.remove('copiado-card');
+          }, 1800);
+        };
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(urlACopiar.trim())
+            .then(marcarCopiadoCard)
+            .catch(() => {
+              const tempInput = document.createElement('input');
+              tempInput.value = urlACopiar.trim();
+              document.body.appendChild(tempInput);
+              tempInput.select();
+              document.execCommand('copy');
+              document.body.removeChild(tempInput);
+              marcarCopiadoCard();
+            });
+        } else {
+          const tempInput = document.createElement('input');
+          tempInput.value = urlACopiar.trim();
+          document.body.appendChild(tempInput);
+          tempInput.select();
+          document.execCommand('copy');
+          document.body.removeChild(tempInput);
+          marcarCopiadoCard();
+        }
+      }
+
       /* Cascada Provincia -> Municipio -> Distrito para el formulario de publicar */
-      /* Copia al portapapeles el valor de un campo de link (Ubicación o Video)
-         y muestra una confirmación visual temporal en el botón */
       window.copiarLinkCampo = function(idCampo, btnEl) {
         const campo = document.getElementById(idCampo);
         if (!campo || !campo.value.trim()) {
@@ -1494,7 +1533,6 @@
         }
       }
 
-      /* Vista previa de la primera foto seleccionada */
       function inicializarPreviewFoto() {
         const archivosInput = document.getElementById('propArchivos');
         if (!archivosInput) return;
@@ -1508,7 +1546,6 @@
         });
       }
 
-      /* Enlazar todos los campos relevantes a la actualización de la vista previa */
       function inicializarVistaPreviaListeners() {
         const idsInputEvent = ['propTitulo', 'propPrecio', 'propHabitaciones', 'propBanos', 'propNivel', 'propParqueos', 'propDescripcion'];
         const idsChangeEvent = ['propTipoPropiedad', 'propOperacion', 'propMoneda', 'propExtranjeros', 'propAmueblado', 'propPremium'];
@@ -1707,10 +1744,8 @@
         previewImgUrl = '';
         renderizarMiniaturasEdicion();
 
-        // Reinicia los checkboxes de Extras
         document.querySelectorAll('.extra-checkbox').forEach(chk => { chk.checked = false; });
 
-        // Reinicia los selects de ubicación en cascada
         document.getElementById('propMunicipio').innerHTML = '<option value="">Selecciona</option>';
         document.getElementById('propMunicipio').disabled = true;
         document.getElementById('propDistrito').innerHTML = '<option value="">Selecciona</option>';
@@ -1726,7 +1761,6 @@
           document.getElementById('propDeposito').value = editarObj.deposito || '';
           document.getElementById('propComision').value = editarObj.comision || '';
           
-          // Corrección: Extracción limpia del precio y moneda guardados previamente
           if (editarObj.precio) {
             const precioStr = String(editarObj.precio);
             if (precioStr.includes('USD') || precioStr.includes('$')) {
@@ -1742,14 +1776,12 @@
           document.getElementById('propAmueblado').checked = !!editarObj.amueblado;
           document.getElementById('propPremium').checked = !!editarObj.premium;
 
-          // Marcar los checkboxes de Extras que ya tenía guardados esta propiedad
           if (editarObj.extras && Array.isArray(editarObj.extras)) {
             document.querySelectorAll('.extra-checkbox').forEach(chk => {
               chk.checked = editarObj.extras.includes(chk.value);
             });
           }
 
-          // Cascada: provincia -> municipio -> distrito
           document.getElementById('propProvincia').value = editarObj.provincia || '';
           cascadeUbicacion(true);
           document.getElementById('propMunicipio').value = editarObj.municipio || '';
@@ -1945,7 +1977,6 @@
         }
       }
 
-      /* Dibuja solo la página actual (16 tarjetas máx, estilo 4x4) */
       function renderizarPaginaGestion() {
         const contenedor = document.getElementById('listaPublicacionesGuardadas');
         if (!contenedor) return;
@@ -1958,8 +1989,6 @@
         renderizarControlesPaginacionGestion();
       }
 
-      /* Pinta los botones Anterior / Siguiente, solo habilitando "Siguiente"
-         si realmente existen más propiedades en la próxima página */
       function renderizarControlesPaginacionGestion() {
         let controles = document.getElementById('paginacionGestionWrap');
         const contenedorPadre = document.querySelector('.publicaciones-container');
@@ -2055,7 +2084,6 @@
                 </div>
                 <p class="card-prop-ubicacion">📍 ${prop.ubicacion}</p>
                 
-                <!-- Detalles de Habitaciones, Baños, Metros, Nivel y Parqueos en la Tarjeta -->
                 <div class="card-features-grid">
                   <span>🛏️ ${prop.habitaciones} hab</span>
                   <span>🚿 ${prop.banos} baños</span>
@@ -2077,6 +2105,8 @@
                     <button class="action-btn duplicate" onclick="duplicarPublicacionPorId('${propIdSeguro}')">📋 Duplicar</button>
                     <button class="action-btn archive" onclick="archivarPublicacionPorId('${propIdSeguro}')">🗄️ Archivar</button>
                     <button class="action-btn delete" onclick="eliminarPublicacionActiva('${prop.id}')">🗑️ Borrar</button>
+                    <button class="action-btn location" onclick="copiarLinkDirecto('${propIdSeguro}', 'ubicacion', this)">📍 Ubicación</button>
+                    <button class="action-btn video" onclick="copiarLinkDirecto('${propIdSeguro}', 'video', this)">🎥 Video</button>
                   `}
                 </div>
               </div>
