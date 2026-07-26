@@ -1023,9 +1023,9 @@
 
           <div class="form-grid-2">
             <div class="publish-form-group form-group-full">
-              <label class="checkbox-container" style="border-color: rgba(245, 158, 11, 0.4);">
+              <label class="checkbox-container" style="border-color: rgba(245, 158, 11, 0.8); background: rgba(245, 158, 11, 0.08);">
                 <input type="checkbox" id="propPremium">
-                <span style="font-size: 13px; font-weight: 700; color: #f59e0b;">⭐ Marcar como Propiedad Premium (aparecerá en el Catálogo Premium)</span>
+                <span style="font-size: 13px; font-weight: 800; color: #f59e0b; text-transform: uppercase; letter-spacing: 0.5px;">⭐ [PROPIEDAD PREMIUM] - Destacar en Catálogo Principal ⭐</span>
               </label>
             </div>
           </div>
@@ -1215,7 +1215,6 @@
 
       const UIDS_AUTORIZADOS = [
         "2E7tIaEfdGeVERzDtWvaXQEmPG02", 
-          "OVrYtJMq2kMKnd1r2keuajsA4zy2",
       ];
 
       /* =========================================================
@@ -1726,6 +1725,19 @@
           document.getElementById('propAgente').value = editarObj.agente || '';
           document.getElementById('propDeposito').value = editarObj.deposito || '';
           document.getElementById('propComision').value = editarObj.comision || '';
+          
+          // Corrección: Extracción limpia del precio y moneda guardados previamente
+          if (editarObj.precio) {
+            const precioStr = String(editarObj.precio);
+            if (precioStr.includes('USD') || precioStr.includes('$')) {
+              document.getElementById('propMoneda').value = 'USD';
+            } else if (precioStr.includes('RD') || precioStr.includes('DOP')) {
+              document.getElementById('propMoneda').value = 'DOP';
+            }
+            const soloNumeros = precioStr.replace(/[^0-9.]/g, '');
+            document.getElementById('propPrecio').value = soloNumeros;
+          }
+
           document.getElementById('propExtranjeros').checked = !!editarObj.extranjeros;
           document.getElementById('propAmueblado').checked = !!editarObj.amueblado;
           document.getElementById('propPremium').checked = !!editarObj.premium;
@@ -1835,6 +1847,7 @@
             comision: document.getElementById('propComision').value || '',
             extranjeros: document.getElementById('propExtranjeros').checked,
             amueblado: document.getElementById('propAmueblado').checked,
+            premium: document.getElementById('propPremium').checked,
             extras: Array.from(document.querySelectorAll('.extra-checkbox:checked')).map(chk => chk.value),
             ubicacion: ubicacionCompleta,
             provincia, 
@@ -2026,6 +2039,7 @@
                 <span class="badge-tipo-propiedad">${prop.tipo || 'Casa'}</span>
                 ${prop.extranjeros ? `<span class="badge-extranjeros">Extranjeros</span>` : ''}
                 ${prop.amueblado ? `<span class="badge-amueblado">🛋️ Amueblado</span>` : ''}
+                ${prop.premium ? `<span class="badge-premium">⭐ Premium</span>` : ''}
                 <div class="carousel-track" id="track-${prop.id}" style="transform: translateX(0%);">
                   ${carouselImgsHtml}
                 </div>
