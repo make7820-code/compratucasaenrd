@@ -426,11 +426,12 @@
         border-bottom: 1px solid var(--card-border);
       }
       .card-desc-text {
-        font-size: 13px;
+        font-size: 14.5px;
+        line-height: 1.5;
         color: var(--text-muted);
         margin-bottom: 16px;
         display: -webkit-box;
-        -webkit-line-clamp: 2;
+        -webkit-line-clamp: 4;
         -webkit-box-orient: vertical;
         overflow: hidden;
         flex: 1;
@@ -1763,10 +1764,15 @@
           
           if (editarObj.precio) {
             const precioStr = String(editarObj.precio);
-            if (precioStr.includes('USD') || precioStr.includes('$')) {
-              document.getElementById('propMoneda').value = 'USD';
+            if (editarObj.moneda) {
+              // Preferimos el campo "moneda" guardado explícitamente (más confiable).
+              document.getElementById('propMoneda').value = editarObj.moneda;
             } else if (precioStr.includes('RD') || precioStr.includes('DOP')) {
+              // Se revisa RD/DOP antes que "$" porque "RD$" también contiene ese símbolo,
+              // lo que antes hacía que siempre se seleccionara USD por error.
               document.getElementById('propMoneda').value = 'DOP';
+            } else if (precioStr.includes('USD') || precioStr.includes('$')) {
+              document.getElementById('propMoneda').value = 'USD';
             }
             const soloNumeros = precioStr.replace(/[^0-9.]/g, '');
             document.getElementById('propPrecio').value = soloNumeros;
@@ -1874,6 +1880,7 @@
             tipo: document.getElementById('propTipoPropiedad').value || 'Casa',
             operacion: document.getElementById('propOperacion').value,
             precio: precioFmt,
+            moneda: monedaVal,
             agente: document.getElementById('propAgente').value,
             deposito: document.getElementById('propDeposito').value || '',
             comision: document.getElementById('propComision').value || '',
