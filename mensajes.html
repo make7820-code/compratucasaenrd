@@ -751,7 +751,7 @@
               <img src="${conv.displayAvatar}" alt="Remitente" class="conv-thumb" onerror="this.src='assets/mi-mensaje.png'">
               <div class="conv-info">
                 <div class="conv-client-name">${conv.displayName}</div>
-                <a href="detalle-propiedad.html?id=${conv.propertyId}" class="conv-property-title" onclick="event.stopPropagation();">${conv.propertyTitle}</a>
+                <a href="detalle.html?id=${conv.propertyId}" class="conv-property-title" onclick="event.stopPropagation();">${conv.propertyTitle}</a>
                 <div class="conv-last-msg">${conv.lastMessage}</div>
               </div>
               ${conv.hasUnread ? '<div class="unread-dot" title="Nuevo mensaje"></div>' : ''}
@@ -865,7 +865,7 @@
               <div class="chat-property-meta">
                 <img src="${propertyImage}" alt="Propiedad" class="chat-prop-img" onerror="this.src='assets/puerto-marina.png'">
                 <div>
-                  <a href="detalle-propiedad.html?id=${propertyId}" class="chat-prop-name">${propertyTitle}</a>
+                  <a href="detalle.html?id=${propertyId}" class="chat-prop-name">${propertyTitle}</a>
                   <div class="chat-prop-price">${propertyPrice}</div>
                 </div>
               </div>
