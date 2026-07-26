@@ -4,8 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mensajes | Compra tu casa en RD</title>
-    <!-- Corrección de ruta del favicon asegurando que cargue el logotipo -->
-    <link rel="icon" type="image/x-icon" href="assets/mi-logo.ico">
+    <link rel="icon" type="image/x-icon" href="assets/mi-logo.ico" onerror="this.href='assets/demo.png'">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
     <!-- Hoja de Estilos Principal -->
@@ -429,7 +428,7 @@
     <header class="site-header">
       <div class="header-inner">
         <a href="index.html" class="brand">
-          <img src="assets/mi-logo.ico" alt="Compra tu casa en RD" class="brand-logo">
+          <img src="assets/mi-logo.ico" alt="Compra tu casa en RD" class="brand-logo" onerror="this.src='assets/demo.png'">
           <img src="assets/demo.png" alt="DEMO" class="brand-demo-badge">
         </a>
 
@@ -652,7 +651,7 @@
                     const sData = sDocSnap.data();
                     sendersInfoMap[sId] = {
                       name: sData.nombres || sData.nombre || 'Asesor Inmobiliario',
-                      avatar: sData.fotoPerfil || 'assets/mi-logo.ico'
+                      avatar: sData.fotoPerfil || 'assets/demo.png'
                     };
                   }
                 } catch (err) {
@@ -679,7 +678,7 @@
                     if (data.senderAvatar) currentSenderAvatar = data.senderAvatar;
                   } else {
                     currentSenderName = "Asesor Inmobiliario";
-                    currentSenderAvatar = "assets/mi-logo.ico";
+                    currentSenderAvatar = "assets/demo.png";
                   }
                 }
 
@@ -748,7 +747,7 @@
             }
 
             item.innerHTML = `
-              <img src="${conv.displayAvatar}" alt="Remitente" class="conv-thumb" onerror="this.src='assets/mi-mensaje.png'">
+              <img src="${conv.displayAvatar}" alt="Remitente" class="conv-thumb" onerror="this.src='assets/demo.png'">
               <div class="conv-info">
                 <div class="conv-client-name">${conv.displayName}</div>
                 <a href="detalle-propiedad.html?id=${conv.propertyId}" class="conv-property-title" onclick="event.stopPropagation();">${conv.propertyTitle}</a>
