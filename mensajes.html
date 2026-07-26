@@ -162,6 +162,14 @@
         overflow: hidden;
         text-overflow: ellipsis;
         margin-bottom: 4px;
+        text-decoration: none;
+        display: block;
+        transition: color 0.2s;
+      }
+
+      .conv-property-title:hover {
+        color: #ef4444;
+        text-decoration: underline;
       }
 
       .conv-last-msg {
@@ -245,6 +253,13 @@
         font-size: 15px;
         font-weight: 700;
         color: #fff;
+        text-decoration: none;
+        transition: color 0.2s;
+      }
+
+      .chat-prop-name:hover {
+        color: #ef4444;
+        text-decoration: underline;
       }
 
       .chat-prop-price {
@@ -604,7 +619,6 @@
 
         async function loadUserConversationsAndNotifications(userId, activePropId, currentUserDisplayName, currentUserAvatar) {
           try {
-            // Buscamos también los datos del documento de perfil del usuario actual para asegurar obtener su foto de perfil y nombre al momento
             let clientName = currentUserDisplayName;
             let clientAvatar = currentUserAvatar;
 
@@ -703,13 +717,12 @@
               targetConvToOpen = conv;
             }
 
-            // Mostramos la foto de perfil del usuario (cliente) en lugar de la foto de la propiedad,
-            // y el nombre del usuario encima del nombre de la propiedad.
+            // Se muestra la foto de perfil del usuario (cliente) como miniatura y su nombre de usuario encima del título de la propiedad, el cual es un enlace clicable que lleva a detalle-propiedad.html?id=...
             item.innerHTML = `
               <img src="${conv.clientAvatar}" alt="Perfil Cliente" class="conv-thumb" onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=${userId}'">
               <div class="conv-info">
                 <div class="conv-client-name">${conv.clientName}</div>
-                <div class="conv-property-title">${conv.propertyTitle}</div>
+                <a href="detalle-propiedad.html?id=${conv.propertyId}" class="conv-property-title" onclick="event.stopPropagation();">${conv.propertyTitle}</a>
                 <div class="conv-last-msg">${conv.lastMessage}</div>
               </div>
               ${conv.hasUnread ? '<div class="unread-dot" title="Nuevo mensaje"></div>' : ''}
@@ -823,7 +836,7 @@
               <div class="chat-property-meta">
                 <img src="${propertyImage}" alt="Propiedad" class="chat-prop-img" onerror="this.src='assets/puerto-marina.png'">
                 <div>
-                  <div class="chat-prop-name">${propertyTitle}</div>
+                  <a href="detalle-propiedad.html?id=${propertyId}" class="chat-prop-name">${propertyTitle}</a>
                   <div class="chat-prop-price">${propertyPrice}</div>
                 </div>
               </div>
@@ -936,6 +949,10 @@
             if (e.key === 'Enter') enviarMensajeHandler();
           });
         }
+      });
+    </script>
+</body>
+</html>
       });
     </script>
 </body>
