@@ -566,6 +566,10 @@
         const conversationsList = document.getElementById('conversationsList');
         const chatMainArea = document.getElementById('chatMainArea');
         const searchInput = document.getElementById('searchClientInput');
+        const urlParams = new URLSearchParams(window.location.search);
+        const paramClientId = urlParams.get('cliente');
+        const paramPropId = urlParams.get('propiedad');
+        let autoAbierto = false;
 
         onAuthStateChanged(auth, async (user) => {
           if (!user) {
@@ -762,6 +766,8 @@
             const item = document.createElement('div');
             item.className = 'conversation-item';
             item.style.opacity = finalizada ? '0.6' : '1';
+            item.dataset.clientId = conv.clientId;
+            item.dataset.propertyId = conv.propertyId;
             item.innerHTML = `
               <img src="${conv.clientPhoto}" alt="Perfil Cliente" class="conv-thumb" onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=${conv.clientId}'">
               <div class="conv-info">
@@ -786,6 +792,19 @@
             divider.textContent = 'Conversaciones finalizadas';
             conversationsList.appendChild(divider);
             finalizadas.forEach(conv => conversationsList.appendChild(crearItem(conv, true)));
+          }
+
+          if (!autoAbierto && paramClientId && paramPropId) {
+            const todas = [...activas, ...finalizadas];
+            const match = todas.find(c => c.clientId === paramClientId && c.propertyId === paramPropId);
+            if (match) {
+              autoAbierto = true;
+              const finalizadaMatch = finalizadas.includes(match);
+              document.querySelectorAll('.conversation-item').forEach(el => el.classList.remove('active'));
+              const itemEl = conversationsList.querySelector(`[data-client-id="${match.clientId}"][data-property-id="${match.propertyId}"]`);
+              if (itemEl) itemEl.classList.add('active');
+              openCompanyChatWindow(match.clientId, match.propertyId, match.propertyTitle, match.propertyImage, match.propertyPrice, finalizadaMatch, match.clientName, match.clientPhoto);
+            }
           }
         }
 
@@ -903,7 +922,6 @@
             const texto = messageInput.value.trim();
             if (!texto) return;
             try {
-              messageInput.value = '';
               await addDoc(collection(db, "mensajes"), {
                 userId: clientId,
                 propertyId: propertyId,
@@ -914,6 +932,7 @@
                 sender: 'agent',
                 timestamp: serverTimestamp()
               });
+              window.location.href = `mensajesempresa.html?cliente=${encodeURIComponent(clientId)}&propiedad=${encodeURIComponent(propertyId)}`;
             } catch (error) {
               console.error("Error al enviar respuesta:", error);
               alert("No se pudo enviar el mensaje: " + error.message);
