@@ -20,6 +20,7 @@
         --text-muted: #9ca3af;
       }
       body {
+        color-scheme: dark;
         background-image: linear-gradient(rgba(11, 11, 14, 0.88), rgba(11, 11, 14, 0.88)), url('assets/mi-gestion.jpeg');
         background-size: cover;
         background-position: center;
@@ -31,6 +32,7 @@
         --card-border: rgba(0, 0, 0, 0.08);
         --text-main: #111827;
         --text-muted: #6b7280;
+        color-scheme: light;
         background-image: linear-gradient(rgba(255, 255, 255, 0.88), rgba(255, 255, 255, 0.88)), url('assets/mi-gestion.jpeg');
       }
 
@@ -109,6 +111,20 @@
       }
       body.light-mode .agent-control { background: rgba(0,0,0,0.03); }
       .agent-control:focus { border-color: #f59e0b; }
+      select.agent-control {
+        color-scheme: dark;
+      }
+      body.light-mode select.agent-control {
+        color-scheme: light;
+      }
+      select.agent-control option {
+        background: #1a1a1a;
+        color: #ffffff;
+      }
+      body.light-mode select.agent-control option {
+        background: #ffffff;
+        color: #111827;
+      }
       .agent-form-grid-2 {
         display: grid;
         grid-template-columns: 1fr 1fr;
