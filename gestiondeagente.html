@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Agente | Compra tu casa en RD</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+    <!-- Hoja de Estilos Principal (compartida con el resto del sitio) -->
+    <link rel="stylesheet" href="styles.css">
+    <!-- Librería para generar archivos Excel (.xlsx) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- Estilos propios de esta página -->
+    <style>
+      :root {
+        --primary-glow: #f59e0b;
+        --card-bg: rgba(255, 255, 255, 0.02);
+        --card-border: rgba(255, 255, 255, 0.08);
+        --text-main: #ffffff;
+        --text-muted: #9ca3af;
+      }
+      body.light-mode {
+        --card-bg: rgba(0, 0, 0, 0.02);
+        --card-border: rgba(0, 0, 0, 0.08);
+        --text-main: #111827;
+        --text-muted: #6b7280;
+      }
+
+      .agent-page-hero {
+        padding: 140px 20px 30px 20px;
+        max-width: 1200px;
+        margin: 0 auto;
+        text-align: center;
+      }
+      .agent-page-title {
+        font-family: var(--font-display, 'Poppins', sans-serif);
+        font-size: 36px;
+        font-weight: 800;
+        margin-bottom: 8px;
+        color: var(--text-main);
+      }
+      .agent-page-subtitle {
+        font-size: 15px;
+        color: var(--text-muted);
+      }
+
+      .agent-container {
+        max-width: 1200px;
+        margin: 0 auto 50px auto;
+        padding: 0 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+      }
+
+      .agent-row-2col {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+      }
+      @media (max-width: 900px) {
+        .agent-row-2col { grid-template-columns: 1fr; }
+      }
+
+      .agent-card {
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        border-radius: 20px;
+        padding: 24px;
+      }
+      .agent-card-title {
+        font-family: var(--font-display, 'Poppins', sans-serif);
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--text-main);
+        margin-bottom: 18px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .agent-form-group { margin-bottom: 14px; }
+      .agent-form-group label {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-muted);
+        margin-bottom: 6px;
+      }
+      .agent-control {
+        width: 100%;
+        background: rgba(255,255,255,0.04);
+        border: 1px solid var(--card-border);
+        border-radius: 10px;
+        padding: 11px 14px;
+        color: var(--text-main);
+        font-size: 14px;
+        font-family: 'Inter', sans-serif;
+        outline: none;
+        transition: border-color 0.2s;
+      }
+      body.light-mode .agent-control { background: rgba(0,0,0,0.03); }
+      .agent-control:focus { border-color: #f59e0b; }
+      .agent-form-grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+
+      .agent-btn-primary {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        color: #111827;
+        border: none;
+        padding: 12px 22px;
+        border-radius: 999px;
+        font-weight: 700;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.25s ease;
+        width: 100%;
+      }
+      .agent-btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4); }
+
+      .agent-btn-secondary {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--card-border);
+        color: var(--text-main);
+        padding: 12px 22px;
+        border-radius: 999px;
+        font-weight: 700;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+      .agent-btn-secondary:hover { border-color: #f59e0b; }
+
+      /* Calculadora hipotecaria */
+      .calc-result-box {
+        margin-top: 16px;
+        background: rgba(245, 158, 11, 0.08);
+        border: 1px solid rgba(245, 158, 11, 0.3);
+        border-radius: 14px;
+        padding: 16px;
+        display: none;
+      }
+      .calc-result-box.show { display: block; }
+      .calc-result-row {
+        display: flex;
+        justify-content: space-between;
+        font-size: 14px;
+        color: var(--text-main);
+        padding: 6px 0;
+        border-bottom: 1px dashed var(--card-border);
+      }
+      .calc-result-row:last-child { border-bottom: none; }
+      .calc-result-row strong { color: #f59e0b; }
+
+      /* Mini mapa */
+      .mini-map-frame {
+        width: 100%;
+        height: 220px;
+        border: 0;
+        border-radius: 14px;
+        margin-top: 10px;
+        filter: grayscale(0.15);
+      }
+
+      /* Calendario */
+      .calendar-nav-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+      }
+      .calendar-month-label {
+        font-family: var(--font-display, 'Poppins', sans-serif);
+        font-weight: 700;
+        font-size: 17px;
+        color: var(--text-main);
+        text-transform: capitalize;
+      }
+      .calendar-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 6px;
+      }
+      .calendar-weekday {
+        text-align: center;
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--text-muted);
+        padding-bottom: 6px;
+      }
+      .calendar-day-cell {
+        aspect-ratio: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        border-radius: 10px;
+        border: 1px solid transparent;
+        cursor: pointer;
+        font-size: 13px;
+        color: var(--text-main);
+        transition: all 0.15s ease;
+        position: relative;
+      }
+      .calendar-day-cell.empty { cursor: default; }
+      .calendar-day-cell:not(.empty):hover { border-color: rgba(245, 158, 11, 0.4); }
+      .calendar-day-cell.today { border-color: #f59e0b; font-weight: 700; }
+      .calendar-day-cell.selected { background: rgba(245, 158, 11, 0.18); border-color: #f59e0b; }
+      .calendar-day-dot {
+        width: 5px; height: 5px;
+        border-radius: 50%;
+        background: #f59e0b;
+        margin-top: 2px;
+      }
+      .citas-dia-lista { margin-top: 20px; }
+      .cita-item {
+        background: rgba(255,255,255,0.03);
+        border: 1px solid var(--card-border);
+        border-radius: 12px;
+        padding: 12px 16px;
+        margin-bottom: 10px;
+        font-size: 13.5px;
+        color: var(--text-main);
+      }
+      .cita-item .cita-hora { color: #f59e0b; font-weight: 700; margin-right: 8px; }
+      .cita-item .cita-sub { color: var(--text-muted); font-size: 12.5px; margin-top: 3px; }
+
+      /* Cierres y ganancias */
+      .cierres-toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+      .cierres-table-wrap { overflow-x: auto; }
+      table.cierres-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13.5px;
+        min-width: 700px;
+      }
+      table.cierres-table th {
+        text-align: left;
+        color: var(--text-muted);
+        font-size: 12px;
+        text-transform: uppercase;
+        padding: 10px 12px;
+        border-bottom: 1px solid var(--card-border);
+      }
+      table.cierres-table td {
+        padding: 12px;
+        border-bottom: 1px solid var(--card-border);
+        color: var(--text-main);
+      }
+      table.cierres-table tfoot td {
+        font-weight: 700;
+        color: #f59e0b;
+        border-bottom: none;
+      }
+      .btn-delete-row {
+        background: none;
+        border: none;
+        color: #ef4444;
+        cursor: pointer;
+        font-size: 15px;
+      }
+
+      .agent-footer {
+        border-top: 1px solid var(--card-border);
+        padding: 30px 20px;
+        text-align: center;
+        color: var(--text-muted);
+        font-size: 13px;
+        margin-top: 40px;
+      }
+      .agent-footer-nav {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        flex-wrap: wrap;
+        margin-bottom: 14px;
+      }
+      .agent-footer-nav a {
+        color: var(--text-muted);
+        text-decoration: none;
+        font-size: 13.5px;
+        font-weight: 600;
+        transition: color 0.2s;
+      }
+      .agent-footer-nav a:hover { color: #f59e0b; }
+    </style>
+</head>
+<body>
+
+    <!-- ================= HEADER (banner superior) ================= -->
+    <header class="site-header">
+      <div class="header-inner">
+        <a href="index.html" class="brand">
+          <img src="assets/mi-logo.png" alt="Compra tu casa en RD" class="brand-logo" onerror="this.style.display='none'">
+        </a>
+        <nav class="main-nav">
+          <a href="index.html" class="nav-link"><span class="nav-emoji">🏠</span> Inicio</a>
+          <a href="propiedades.html" class="nav-link"><span class="nav-emoji">🏢</span> Propiedades</a>
+          <a href="#" class="nav-link"><span class="nav-emoji">ℹ️</span> Nosotros</a>
+          <a href="publicar.html" class="nav-link" style="color: #f59e0b;"><span class="nav-emoji">🤝</span> Publicar</a>
+          <a href="gestiondeagente.html" class="nav-link" style="color: #f59e0b;"><span class="nav-emoji">🤝</span> Gestión</a>
+          <span id="navMensajesSlot"></span>
+        </nav>
+        <div id="authContainer"></div>
+      </div>
+    </header>
+
+    <!-- ================= CONTENIDO PRINCIPAL ================= -->
+    <main>
+      <div class="agent-page-hero">
+        <h1 class="agent-page-title">Panel de Gestión del Agente</h1>
+        <p class="agent-page-subtitle">Calcula, agenda tus citas y lleva el control de tus cierres, todo en un mismo lugar.</p>
+      </div>
+
+      <div class="agent-container">
+
+        <!-- FILA 1: Calculadora Hipotecaria + Agendar Cita -->
+        <div class="agent-row-2col">
+
+          <!-- Calculadora Hipotecaria -->
+          <div class="agent-card">
+            <div class="agent-card-title">🧮 Calculadora Hipotecaria</div>
+            <div class="agent-form-group">
+              <label>Precio de la propiedad</label>
+              <input type="number" id="calcPrecio" class="agent-control" placeholder="Ej. 150000">
+            </div>
+            <div class="agent-form-grid-2">
+              <div class="agent-form-group">
+                <label>Inicial / Pronto pago (%)</label>
+                <input type="number" id="calcInicial" class="agent-control" placeholder="Ej. 20" value="20">
+              </div>
+              <div class="agent-form-group">
+                <label>Tasa de interés anual (%)</label>
+                <input type="number" id="calcTasa" class="agent-control" placeholder="Ej. 9.5" step="0.01">
+              </div>
+            </div>
+            <div class="agent-form-group">
+              <label>Plazo del préstamo (años)</label>
+              <input type="number" id="calcPlazo" class="agent-control" placeholder="Ej. 20" value="20">
+            </div>
+            <button type="button" class="agent-btn-primary" onclick="calcularHipoteca()">Calcular Cuota Mensual</button>
+
+            <div class="calc-result-box" id="calcResultBox">
+              <div class="calc-result-row"><span>Monto a financiar</span><strong id="calcOutMonto">$0</strong></div>
+              <div class="calc-result-row"><span>Cuota mensual estimada</span><strong id="calcOutCuota">$0</strong></div>
+              <div class="calc-result-row"><span>Total de intereses</span><strong id="calcOutIntereses">$0</strong></div>
+              <div class="calc-result-row"><span>Total a pagar</span><strong id="calcOutTotal">$0</strong></div>
+            </div>
+          </div>
+
+          <!-- Agendar Cita -->
+          <div class="agent-card">
+            <div class="agent-card-title">📅 Agendar Cita con Cliente</div>
+            <div class="agent-form-group">
+              <label>Nombre del cliente</label>
+              <input type="text" id="citaCliente" class="agent-control" placeholder="Ej. Juan Pérez">
+            </div>
+            <div class="agent-form-group">
+              <label>Propiedad relacionada</label>
+              <select id="citaPropiedad" class="agent-control" onchange="actualizarMiniMapa()">
+                <option value="">Cargando propiedades...</option>
+              </select>
+            </div>
+            <div class="agent-form-grid-2">
+              <div class="agent-form-group">
+                <label>Fecha</label>
+                <input type="date" id="citaFecha" class="agent-control">
+              </div>
+              <div class="agent-form-group">
+                <label>Hora</label>
+                <input type="time" id="citaHora" class="agent-control">
+              </div>
+            </div>
+            <div class="agent-form-group">
+              <label>Lugar de encuentro</label>
+              <input type="text" id="citaLugar" class="agent-control" placeholder="Se autocompleta con la ubicación de la propiedad" oninput="actualizarMiniMapaManual()">
+            </div>
+            <div class="agent-form-group">
+              <label>Notas (opcional)</label>
+              <textarea id="citaNotas" class="agent-control" placeholder="Detalles adicionales de la cita..." style="min-height: 60px; resize: vertical;"></textarea>
+            </div>
+            <button type="button" class="agent-btn-primary" onclick="guardarCita()">➕ Guardar Cita</button>
+
+            <!-- Mini mapa de Google -->
+            <iframe class="mini-map-frame" id="miniMapaFrame" src="https://www.google.com/maps?q=Santo%20Domingo%2C%20Rep%C3%BAblica%20Dominicana&output=embed" loading="lazy"></iframe>
+          </div>
+
+        </div>
+
+        <!-- FILA 2: Calendario de Citas -->
+        <div class="agent-card">
+          <div class="agent-card-title">🗓️ Calendario de Citas</div>
+          <div class="calendar-nav-row">
+            <button type="button" class="agent-btn-secondary" onclick="cambiarMes(-1)">❮ Anterior</button>
+            <span class="calendar-month-label" id="calendarMonthLabel"></span>
+            <button type="button" class="agent-btn-secondary" onclick="cambiarMes(1)">Siguiente ❯</button>
+          </div>
+          <div class="calendar-grid" id="calendarGrid"></div>
+          <div class="citas-dia-lista" id="citasDelDiaWrap" style="display:none;">
+            <div class="agent-card-title" style="font-size: 15px;" id="citasDelDiaTitulo">Citas del día</div>
+            <div id="citasDelDiaLista"></div>
+          </div>
+        </div>
+
+        <!-- FILA 3: Cierres y Ganancias -->
+        <div class="agent-card">
+          <div class="agent-card-title">💰 Cierres y Ganancias</div>
+
+          <div class="agent-row-2col" style="margin-bottom: 20px;">
+            <div class="agent-form-group">
+              <label>Propiedad (opcional)</label>
+              <select id="cierrePropiedad" class="agent-control">
+                <option value="">Seleccionar propiedad...</option>
+              </select>
+            </div>
+            <div class="agent-form-group">
+              <label>Cliente</label>
+              <input type="text" id="cierreCliente" class="agent-control" placeholder="Ej. María Gómez">
+            </div>
+          </div>
+          <div class="agent-form-grid-2" style="margin-bottom: 10px;">
+            <div class="agent-form-group">
+              <label>Fecha de cierre</label>
+              <input type="date" id="cierreFecha" class="agent-control">
+            </div>
+            <div class="agent-form-group">
+              <label>Monto de venta</label>
+              <input type="number" id="cierreMonto" class="agent-control" placeholder="Ej. 150000" oninput="recalcularComisionCierre()">
+            </div>
+          </div>
+          <div class="agent-form-grid-2" style="margin-bottom: 10px;">
+            <div class="agent-form-group">
+              <label>Comisión (%)</label>
+              <input type="number" id="cierrePorcentaje" class="agent-control" placeholder="Ej. 5" step="0.1" oninput="recalcularComisionCierre()">
+            </div>
+            <div class="agent-form-group">
+              <label>Ganancia (comisión)</label>
+              <input type="text" id="cierreGanancia" class="agent-control" placeholder="$0" readonly>
+            </div>
+          </div>
+          <div class="agent-form-group">
+            <label>Notas (opcional)</label>
+            <input type="text" id="cierreNotas" class="agent-control" placeholder="Detalles del cierre...">
+          </div>
+          <button type="button" class="agent-btn-primary" style="margin-bottom: 24px;" onclick="guardarCierre()">➕ Agregar Cierre</button>
+
+          <div class="cierres-toolbar">
+            <div class="agent-form-group" style="margin-bottom: 0;">
+              <label>Mes a visualizar</label>
+              <input type="month" id="cierresMesSelector" class="agent-control" onchange="renderizarCierres()">
+            </div>
+            <button type="button" class="agent-btn-secondary" onclick="descargarExcelCierres()">📥 Copiar / Descargar Excel del Mes</button>
+          </div>
+
+          <div class="cierres-table-wrap">
+            <table class="cierres-table">
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Cliente</th>
+                  <th>Propiedad</th>
+                  <th>Monto Venta</th>
+                  <th>% Com.</th>
+                  <th>Ganancia</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="cierresTableBody">
+                <tr><td colspan="7" style="text-align:center; color: var(--text-muted);">Cargando...</td></tr>
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td colspan="5">Total del mes</td>
+                  <td id="cierresTotalMes">$0</td>
+                  <td></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </main>
+
+    <!-- ================= FOOTER (banner inferior) ================= -->
+    <footer class="agent-footer">
+      <div class="agent-footer-nav">
+        <a href="index.html">🏠 Inicio</a>
+        <a href="propiedades.html">🏢 Propiedades</a>
+        <a href="#">ℹ️ Nosotros</a>
+        <a href="publicar.html">🤝 Publicar</a>
+        <a href="gestiondeagente.html">🤝 Gestión</a>
+      </div>
+      <div>© <span id="footerYear"></span> Compra tu casa en RD. Todos los derechos reservados.</div>
+    </footer>
+
+    <script type="module">
+      import { auth, db } from './firebase-config.js';
+      import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+      import {
+        collection,
+        addDoc,
+        getDocs,
+        doc,
+        getDoc,
+        deleteDoc,
+        query,
+        where
+      } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+      document.getElementById('footerYear').textContent = new Date().getFullYear();
+
+      let usuarioActual = null;
+      let nombreAgenteActual = '';
+      let listaPropiedadesCache = [];
+      let listaCitasCache = [];
+      let listaCierresCache = [];
+
+      /* =========================================================
+         AUTENTICACIÓN Y CONTROL DE ACCESO
+      ========================================================= */
+      onAuthStateChanged(auth, async (user) => {
+        try {
+          if (!user) {
+            alert("Acceso denegado. Debes iniciar sesión.");
+            window.location.href = 'index.html';
+            return;
+          }
+          usuarioActual = user;
+
+          const savedTheme = localStorage.getItem('site_theme') || 'dark';
+          if (savedTheme === 'light') document.body.classList.add('light-mode');
+
+          let nombreCompleto = user.email.split('@')[0];
+          let fotoGuardada = null;
+          let rolUsuario = '';
+
+          try {
+            const docRef = doc(db, "usuarios", user.uid);
+            const docSnap = await getDoc(docRef);
+            if (docSnap.exists()) {
+              const userData = docSnap.data();
+              nombreCompleto = userData.nombres || userData.nombre || nombreCompleto;
+              fotoGuardada = userData.fotoPerfil || userData.foto || null;
+              rolUsuario = (userData.rol || '').toLowerCase();
+            }
+          } catch (error) {
+            console.error("Error al obtener datos de Firestore:", error);
+          }
+
+          nombreAgenteActual = nombreCompleto;
+
+          // El botón "Mensajes" solo aparece si el rol es admin o superadmin
+          if (rolUsuario === 'admin' || rolUsuario === 'superadmin') {
+            const slot = document.getElementById('navMensajesSlot');
+            if (slot) {
+              slot.innerHTML = `<a href="mensajes/mensajesempresa.html" class="nav-link"><span class="nav-emoji">✉️</span> Mensajes</a>`;
+            }
+          }
+
+          renderizarPerfil(nombreCompleto, fotoGuardada, savedTheme, user);
+
+          // Se cargan los datos de la página una vez confirmada la sesión
+          await cargarPropiedadesEnSelects();
+          await cargarCitas();
+          await cargarCierres();
+
+          const hoy = new Date();
+          const mesActualStr = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}`;
+          document.getElementById('cierresMesSelector').value = mesActualStr;
+          renderizarCierres();
+
+        } catch (error) {
+          console.error("Error de inicialización:", error);
+        }
+      });
+
+      function renderizarPerfil(nombreCompleto, fotoGuardada, savedTheme, user) {
+        const authContainer = document.getElementById('authContainer');
+        if (!authContainer) return;
+
+        authContainer.innerHTML = `
+          <div class="profile-dropdown-container" style="position: relative; display: inline-block;">
+            <button id="profileBtn" style="background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 12px; padding: 4px 8px 4px 4px; border-radius: 999px; transition: background 0.2s;">
+              <img src="${fotoGuardada || 'assets/onlybladi-avatar.png'}" alt="Avatar" style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 2px solid #ef4444;" onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=${user.uid}'">
+              <span style="color: var(--text-main); font-weight: 600; font-size: 15px;">${nombreCompleto}</span>
+            </button>
+            <div id="profileMenu" class="profile-menu">
+              <button class="profile-menu-item" onclick="window.location.href='perfil.html'">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                Ir al Perfil
+              </button>
+              <div class="profile-menu-divider"></div>
+              <div class="profile-menu-section-title">Aspecto físico</div>
+              <div class="profile-theme-selector">
+                <button class="theme-btn ${savedTheme === 'light' ? 'active' : ''}" data-theme="light" title="Claro">☀️</button>
+                <button class="theme-btn ${savedTheme === 'system' ? 'active' : ''}" data-theme="system" title="Sistema">💻</button>
+                <button class="theme-btn ${savedTheme === 'dark' ? 'active' : ''}" data-theme="dark" title="Oscuro">🌙</button>
+              </div>
+              <div class="profile-menu-divider"></div>
+              <button class="profile-menu-item" id="cerrarSesionBtn" style="color: #ef4444;">
+                <span style="font-size: 16px;">⎋</span> Cerrar Sesión
+              </button>
+            </div>
+          </div>
+        `;
+
+        const profileBtn = document.getElementById('profileBtn');
+        const profileMenu = document.getElementById('profileMenu');
+        if (profileBtn && profileMenu) {
+          profileBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            profileMenu.classList.toggle('show');
+          });
+          document.addEventListener('click', (e) => {
+            if (!profileMenu.contains(e.target) && !profileBtn.contains(e.target)) {
+              profileMenu.classList.remove('show');
+            }
+          });
+        }
+
+        const cerrarBtn = document.getElementById('cerrarSesionBtn');
+        if (cerrarBtn) {
+          cerrarBtn.addEventListener('click', async (event) => {
+            event.stopPropagation();
+            try {
+              await signOut(auth);
+              window.location.href = 'index.html';
+            } catch (error) {
+              console.error("Error al cerrar sesión:", error);
+            }
+          });
+        }
+
+        document.querySelectorAll('.theme-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const theme = btn.getAttribute('data-theme');
+            document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            if (theme === 'light') {
+              document.body.classList.add('light-mode');
+            } else if (theme === 'dark') {
+              document.body.classList.remove('light-mode');
+            } else {
+              const prefiereClaro = window.matchMedia('(prefers-color-scheme: light)').matches;
+              document.body.classList.toggle('light-mode', prefiereClaro);
+            }
+            localStorage.setItem('site_theme', theme);
+          });
+        });
+      }
+
+      /* =========================================================
+         CALCULADORA HIPOTECARIA
+      ========================================================= */
+      window.calcularHipoteca = function() {
+        const precio = parseFloat(document.getElementById('calcPrecio').value) || 0;
+        const inicialPct = parseFloat(document.getElementById('calcInicial').value) || 0;
+        const tasaAnual = parseFloat(document.getElementById('calcTasa').value) || 0;
+        const plazoAnios = parseFloat(document.getElementById('calcPlazo').value) || 0;
+
+        if (precio <= 0 || tasaAnual <= 0 || plazoAnios <= 0) {
+          alert("Completa el precio, la tasa de interés y el plazo para calcular.");
+          return;
+        }
+
+        const montoFinanciar = precio * (1 - inicialPct / 100);
+        const tasaMensual = (tasaAnual / 100) / 12;
+        const numPagos = plazoAnios * 12;
+
+        let cuotaMensual;
+        if (tasaMensual === 0) {
+          cuotaMensual = montoFinanciar / numPagos;
+        } else {
+          cuotaMensual = montoFinanciar * (tasaMensual * Math.pow(1 + tasaMensual, numPagos)) / (Math.pow(1 + tasaMensual, numPagos) - 1);
+        }
+
+        const totalAPagar = cuotaMensual * numPagos;
+        const totalIntereses = totalAPagar - montoFinanciar;
+
+        document.getElementById('calcOutMonto').textContent = formatearMoneda(montoFinanciar);
+        document.getElementById('calcOutCuota').textContent = formatearMoneda(cuotaMensual);
+        document.getElementById('calcOutIntereses').textContent = formatearMoneda(totalIntereses);
+        document.getElementById('calcOutTotal').textContent = formatearMoneda(totalAPagar);
+        document.getElementById('calcResultBox').classList.add('show');
+      }
+
+      function formatearMoneda(valor) {
+        return '$ ' + Number(valor).toLocaleString(undefined, { maximumFractionDigits: 2 });
+      }
+
+      /* =========================================================
+         CARGA DE PROPIEDADES PUBLICADAS (para citas y cierres)
+      ========================================================= */
+      async function cargarPropiedadesEnSelects() {
+        try {
+          const snap = await getDocs(collection(db, "propiedades"));
+          listaPropiedadesCache = [];
+          snap.forEach(docItem => {
+            listaPropiedadesCache.push({ id: docItem.id, ...docItem.data() });
+          });
+
+          const selectCita = document.getElementById('citaPropiedad');
+          const selectCierre = document.getElementById('cierrePropiedad');
+
+          let opciones = '<option value="">Sin propiedad asociada</option>';
+          listaPropiedadesCache.forEach(p => {
+            opciones += `<option value="${p.id}">${p.titulo || 'Sin título'} — ${p.ubicacion || ''}</option>`;
+          });
+
+          if (selectCita) selectCita.innerHTML = opciones;
+          if (selectCierre) selectCierre.innerHTML = opciones;
+        } catch (error) {
+          console.error("Error al cargar propiedades:", error);
+        }
+      }
+
+      /* =========================================================
+         MINI MAPA DE GOOGLE
+      ========================================================= */
+      window.actualizarMiniMapa = function() {
+        const propId = document.getElementById('citaPropiedad').value;
+        const prop = listaPropiedadesCache.find(p => p.id === propId);
+        const lugarInput = document.getElementById('citaLugar');
+        if (prop) {
+          lugarInput.value = prop.ubicacion || '';
+        } else {
+          lugarInput.value = '';
+        }
+        actualizarMiniMapaManual();
+      }
+
+      window.actualizarMiniMapaManual = function() {
+        const direccion = document.getElementById('citaLugar').value || 'Santo Domingo, República Dominicana';
+        const frame = document.getElementById('miniMapaFrame');
+        frame.src = `https://www.google.com/maps?q=${encodeURIComponent(direccion)}&output=embed`;
+      }
+
+      /* =========================================================
+         CITAS
+      ========================================================= */
+      window.guardarCita = async function() {
+        const cliente = document.getElementById('citaCliente').value.trim();
+        const fecha = document.getElementById('citaFecha').value;
+        const hora = document.getElementById('citaHora').value;
+        const lugar = document.getElementById('citaLugar').value.trim();
+        const notas = document.getElementById('citaNotas').value.trim();
+        const propId = document.getElementById('citaPropiedad').value;
+        const prop = listaPropiedadesCache.find(p => p.id === propId);
+
+        if (!cliente || !fecha || !hora) {
+          alert("Completa al menos el nombre del cliente, la fecha y la hora.");
+          return;
+        }
+
+        try {
+          await addDoc(collection(db, "citas"), {
+            agenteUid: usuarioActual.uid,
+            agenteNombre: nombreAgenteActual,
+            cliente,
+            fecha,
+            hora,
+            lugar,
+            notas,
+            propiedadId: propId || null,
+            propiedadTitulo: prop ? prop.titulo : null,
+            fechaCreacion: new Date().toISOString()
+          });
+
+          alert("¡Cita guardada con éxito!");
+          document.getElementById('citaCliente').value = '';
+          document.getElementById('citaFecha').value = '';
+          document.getElementById('citaHora').value = '';
+          document.getElementById('citaLugar').value = '';
+          document.getElementById('citaNotas').value = '';
+          document.getElementById('citaPropiedad').value = '';
+
+          await cargarCitas();
+        } catch (error) {
+          console.error("Error al guardar la cita:", error);
+          alert("Hubo un error al guardar la cita.");
+        }
+      }
+
+      async function cargarCitas() {
+        try {
+          const q = query(collection(db, "citas"), where("agenteUid", "==", usuarioActual.uid));
+          const snap = await getDocs(q);
+          listaCitasCache = [];
+          snap.forEach(docItem => listaCitasCache.push({ id: docItem.id, ...docItem.data() }));
+          renderizarCalendario();
+        } catch (error) {
+          console.error("Error al cargar citas:", error);
+        }
+      }
+
+      /* =========================================================
+         CALENDARIO
+      ========================================================= */
+      let fechaCalendarioActual = new Date();
+      let diaSeleccionado = null;
+
+      window.cambiarMes = function(delta) {
+        fechaCalendarioActual.setMonth(fechaCalendarioActual.getMonth() + delta);
+        diaSeleccionado = null;
+        document.getElementById('citasDelDiaWrap').style.display = 'none';
+        renderizarCalendario();
+      }
+
+      function renderizarCalendario() {
+        const grid = document.getElementById('calendarGrid');
+        const label = document.getElementById('calendarMonthLabel');
+        if (!grid || !label) return;
+
+        const anio = fechaCalendarioActual.getFullYear();
+        const mes = fechaCalendarioActual.getMonth();
+
+        const nombresMes = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+        label.textContent = `${nombresMes[mes]} ${anio}`;
+
+        const diasSemana = ['dom','lun','mar','mié','jue','vie','sáb'];
+        let html = diasSemana.map(d => `<div class="calendar-weekday">${d}</div>`).join('');
+
+        const primerDiaSemana = new Date(anio, mes, 1).getDay();
+        const totalDias = new Date(anio, mes + 1, 0).getDate();
+
+        const hoy = new Date();
+        const hoyStr = `${hoy.getFullYear()}-${String(hoy.getMonth()+1).padStart(2,'0')}-${String(hoy.getDate()).padStart(2,'0')}`;
+
+        for (let i = 0; i < primerDiaSemana; i++) {
+          html += `<div class="calendar-day-cell empty"></div>`;
+        }
+
+        for (let dia = 1; dia <= totalDias; dia++) {
+          const fechaStr = `${anio}-${String(mes+1).padStart(2,'0')}-${String(dia).padStart(2,'0')}`;
+          const tieneCitas = listaCitasCache.some(c => c.fecha === fechaStr);
+          const esHoy = fechaStr === hoyStr;
+          const esSeleccionado = fechaStr === diaSeleccionado;
+
+          html += `
+            <div class="calendar-day-cell ${esHoy ? 'today' : ''} ${esSeleccionado ? 'selected' : ''}" onclick="verCitasDelDia('${fechaStr}')">
+              <span>${dia}</span>
+              ${tieneCitas ? '<span class="calendar-day-dot"></span>' : ''}
+            </div>
+          `;
+        }
+
+        grid.innerHTML = html;
+      }
+
+      window.verCitasDelDia = function(fechaStr) {
+        diaSeleccionado = fechaStr;
+        renderizarCalendario();
+
+        const citasDia = listaCitasCache.filter(c => c.fecha === fechaStr).sort((a,b) => a.hora.localeCompare(b.hora));
+        const wrap = document.getElementById('citasDelDiaWrap');
+        const titulo = document.getElementById('citasDelDiaTitulo');
+        const lista = document.getElementById('citasDelDiaLista');
+
+        const [y, m, d] = fechaStr.split('-');
+        titulo.textContent = `Citas del ${d}/${m}/${y}`;
+
+        if (citasDia.length === 0) {
+          lista.innerHTML = `<p style="color: var(--text-muted); font-size: 13.5px;">No hay citas agendadas para este día.</p>`;
+        } else {
+          lista.innerHTML = citasDia.map(c => `
+            <div class="cita-item">
+              <span class="cita-hora">${c.hora}</span>${c.cliente}
+              <div class="cita-sub">
+                ${c.propiedadTitulo ? '🏠 ' + c.propiedadTitulo + ' — ' : ''}${c.lugar || 'Sin lugar especificado'}
+                ${c.notas ? '<br>📝 ' + c.notas : ''}
+              </div>
+            </div>
+          `).join('');
+        }
+
+        wrap.style.display = 'block';
+      }
+
+      /* =========================================================
+         CIERRES Y GANANCIAS
+      ========================================================= */
+      window.recalcularComisionCierre = function() {
+        const monto = parseFloat(document.getElementById('cierreMonto').value) || 0;
+        const pct = parseFloat(document.getElementById('cierrePorcentaje').value) || 0;
+        const ganancia = monto * (pct / 100);
+        document.getElementById('cierreGanancia').value = formatearMoneda(ganancia);
+      }
+
+      window.guardarCierre = async function() {
+        const cliente = document.getElementById('cierreCliente').value.trim();
+        const fecha = document.getElementById('cierreFecha').value;
+        const monto = parseFloat(document.getElementById('cierreMonto').value) || 0;
+        const pct = parseFloat(document.getElementById('cierrePorcentaje').value) || 0;
+        const notas = document.getElementById('cierreNotas').value.trim();
+        const propId = document.getElementById('cierrePropiedad').value;
+        const prop = listaPropiedadesCache.find(p => p.id === propId);
+        const ganancia = monto * (pct / 100);
+
+        if (!cliente || !fecha || !monto) {
+          alert("Completa al menos el cliente, la fecha y el monto de venta.");
+          return;
+        }
+
+        try {
+          await addDoc(collection(db, "cierres"), {
+            agenteUid: usuarioActual.uid,
+            agenteNombre: nombreAgenteActual,
+            cliente,
+            fecha,
+            monto,
+            porcentaje: pct,
+            ganancia,
+            notas,
+            propiedadId: propId || null,
+            propiedadTitulo: prop ? prop.titulo : null,
+            fechaCreacion: new Date().toISOString()
+          });
+
+          alert("¡Cierre agregado con éxito!");
+          document.getElementById('cierreCliente').value = '';
+          document.getElementById('cierreFecha').value = '';
+          document.getElementById('cierreMonto').value = '';
+          document.getElementById('cierrePorcentaje').value = '';
+          document.getElementById('cierreGanancia').value = '';
+          document.getElementById('cierreNotas').value = '';
+          document.getElementById('cierrePropiedad').value = '';
+
+          await cargarCierres();
+          renderizarCierres();
+        } catch (error) {
+          console.error("Error al guardar el cierre:", error);
+          alert("Hubo un error al guardar el cierre.");
+        }
+      }
+
+      async function cargarCierres() {
+        try {
+          const q = query(collection(db, "cierres"), where("agenteUid", "==", usuarioActual.uid));
+          const snap = await getDocs(q);
+          listaCierresCache = [];
+          snap.forEach(docItem => listaCierresCache.push({ id: docItem.id, ...docItem.data() }));
+        } catch (error) {
+          console.error("Error al cargar cierres:", error);
+        }
+      }
+
+      window.eliminarCierre = async function(id) {
+        if (!confirm("¿Eliminar este cierre?")) return;
+        try {
+          await deleteDoc(doc(db, "cierres", id));
+          await cargarCierres();
+          renderizarCierres();
+        } catch (error) {
+          console.error("Error al eliminar cierre:", error);
+        }
+      }
+
+      window.renderizarCierres = function() {
+        const mesSelector = document.getElementById('cierresMesSelector').value;
+        const tbody = document.getElementById('cierresTableBody');
+        const totalCell = document.getElementById('cierresTotalMes');
+        if (!mesSelector) return;
+
+        const cierresDelMes = listaCierresCache
+          .filter(c => c.fecha && c.fecha.startsWith(mesSelector))
+          .sort((a, b) => a.fecha.localeCompare(b.fecha));
+
+        if (cierresDelMes.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color: var(--text-muted);">No hay cierres registrados este mes.</td></tr>`;
+          totalCell.textContent = formatearMoneda(0);
+          return;
+        }
+
+        let totalMes = 0;
+        tbody.innerHTML = cierresDelMes.map(c => {
+          totalMes += (c.ganancia || 0);
+          return `
+            <tr>
+              <td>${c.fecha}</td>
+              <td>${c.cliente}</td>
+              <td>${c.propiedadTitulo || '—'}</td>
+              <td>${formatearMoneda(c.monto)}</td>
+              <td>${c.porcentaje}%</td>
+              <td>${formatearMoneda(c.ganancia)}</td>
+              <td><button class="btn-delete-row" onclick="eliminarCierre('${c.id}')" title="Eliminar">🗑️</button></td>
+            </tr>
+          `;
+        }).join('');
+
+        totalCell.textContent = formatearMoneda(totalMes);
+      }
+
+      window.descargarExcelCierres = function() {
+        const mesSelector = document.getElementById('cierresMesSelector').value;
+        if (!mesSelector) {
+          alert("Selecciona el mes que quieres descargar.");
+          return;
+        }
+
+        const cierresDelMes = listaCierresCache
+          .filter(c => c.fecha && c.fecha.startsWith(mesSelector))
+          .sort((a, b) => a.fecha.localeCompare(b.fecha));
+
+        if (cierresDelMes.length === 0) {
+          alert("No hay cierres registrados en el mes seleccionado.");
+          return;
+        }
+
+        const filas = cierresDelMes.map(c => ({
+          "Fecha": c.fecha,
+          "Cliente": c.cliente,
+          "Propiedad": c.propiedadTitulo || '—',
+          "Monto de Venta": c.monto,
+          "% Comisión": c.porcentaje,
+          "Ganancia": c.ganancia,
+          "Notas": c.notas || ''
+        }));
+
+        const totalGanancia = cierresDelMes.reduce((acc, c) => acc + (c.ganancia || 0), 0);
+        filas.push({ "Fecha": '', "Cliente": '', "Propiedad": '', "Monto de Venta": '', "% Comisión": 'TOTAL', "Ganancia": totalGanancia, "Notas": '' });
+
+        const hoja = XLSX.utils.json_to_sheet(filas);
+        const libro = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(libro, hoja, "Cierres");
+        XLSX.writeFile(libro, `Cierres_${mesSelector}.xlsx`);
+      }
+    </script>
+</body>
+</html>
