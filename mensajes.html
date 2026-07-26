@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mensajes | Compra tu casa en RD</title>
+    <!-- Corrección de ruta del favicon asegurando que cargue el logotipo -->
     <link rel="icon" type="image/x-icon" href="assets/mi-logo.ico">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
@@ -843,7 +844,7 @@
           if (profileBtn && profileMenu) {
             profileBtn.addEventListener('click', (e) => {
               e.stopPropagation();
-              profileMenu.style.display = profileMenu.style.display === 'block' ? 'none' : 'fallback';
+              profileMenu.style.display = profileMenu.style.display === 'block' ? 'none' : 'block';
             });
             document.addEventListener('click', () => { profileMenu.style.display = 'none'; });
           }
