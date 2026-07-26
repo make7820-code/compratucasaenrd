@@ -279,6 +279,44 @@
         font-size: 15px;
       }
 
+      /* ===== Sección de Extras / Comodidades (destacada) ===== */
+      .property-extras-section {
+        margin-top: 30px;
+        padding-top: 24px;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+      }
+      .property-extras-title {
+        font-size: 20px;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 6px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .property-extras-subtitle {
+        font-size: 13px;
+        color: #a1a1aa;
+        margin-bottom: 16px;
+      }
+      .property-extras-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+      .property-extra-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(139, 92, 246, 0.12);
+        border: 1px solid rgba(139, 92, 246, 0.45);
+        color: #c4b5fd;
+        font-size: 13px;
+        font-weight: 700;
+        padding: 8px 16px;
+        border-radius: 999px;
+      }
+
       /* Barra lateral de contacto */
       .property-sidebar {
         display: flex;
@@ -729,6 +767,48 @@
                </div>` 
             : '';
 
+          // Verificación de Amueblado
+          const rawAmueblado = selectedProperty.amueblado !== undefined ? selectedProperty.amueblado : selectedProperty.furnished;
+          const esAmueblado = rawAmueblado === true || rawAmueblado === "true" || rawAmueblado === "si" || rawAmueblado === "sí" || rawAmueblado === 1 || rawAmueblado === "on";
+
+          const amuebladoBadgeHtml = esAmueblado
+            ? `<div class="spec-card">
+                 <span>Mobiliario</span>
+                 <strong style="color: #8b5cf6;">🛋️ Amueblado</strong>
+               </div>`
+            : '';
+
+          // Mapa de IDs de extras guardados en publicar.html -> etiqueta visible con emoji
+          const MAPA_EXTRAS = {
+            piscina: '🏊 Piscina',
+            gimnasio: '💪 Gimnasio',
+            seguridad24: '🛡️ Seguridad 24/7',
+            ascensor: '🛗 Ascensor',
+            terraza: '🌇 Terraza',
+            balcon: '🚪 Balcón',
+            areaBbq: '🍖 Área de BBQ',
+            plantaElectrica: '🔌 Planta Eléctrica',
+            cisterna: '💧 Cisterna',
+            areaSocial: '🎉 Área Social',
+            canchaDeportiva: '🏀 Cancha Deportiva',
+            aireAcondicionado: '❄️ Aire Acondicionado',
+            lavanderia: '🧺 Área de Lavado',
+            walkInCloset: '👗 Walk-in Closet',
+            jacuzzi: '🛁 Jacuzzi',
+            mascotas: '🐾 Acepta Mascotas'
+          };
+
+          const listaExtrasProp = Array.isArray(selectedProperty.extras) ? selectedProperty.extras : [];
+          const extrasSectionHtml = listaExtrasProp.length > 0 ? `
+            <div class="property-extras-section">
+              <div class="property-extras-title"><span>✨</span> Extras y Comodidades</div>
+              <p class="property-extras-subtitle">Detalles importantes que esta propiedad incluye:</p>
+              <div class="property-extras-grid">
+                ${listaExtrasProp.map(id => `<span class="property-extra-tag">${MAPA_EXTRAS[id] || id}</span>`).join('')}
+              </div>
+            </div>
+          ` : '';
+
           const depositosHtml = depositos 
             ? `<div class="spec-card" style="grid-column: 1 / -1;">
                  <span>Depósitos Requeridos</span>
@@ -802,6 +882,7 @@
                 </div>
 
                 ${extranjeroBadgeHtml}
+                ${amuebladoBadgeHtml}
                 ${depositosHtml}
               </div>
 
@@ -809,6 +890,8 @@
                 <h3>Acerca de esta propiedad</h3>
                 <p>${description}</p>
               </div>
+
+              ${extrasSectionHtml}
             </div>
 
             <div class="property-sidebar">
