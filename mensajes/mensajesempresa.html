@@ -248,7 +248,8 @@
         text-overflow: ellipsis;
         margin-bottom: 4px;
         text-decoration: none;
-        display: block;
+        display: inline-block;
+        max-width: 100%;
       }
 
       .conv-property-title:hover {
@@ -807,7 +808,10 @@
               <div style="text-align: center; color: #71717a; padding: 20px;">Cargando chat...</div>
             </div>
             ${finalizada
-              ? `<div style="padding: 14px; text-align: center; color: #71717a; font-size: 13px; border-top: 1px solid rgba(255,255,255,0.08);">✅ Conversación finalizada — ya no se pueden enviar mensajes. Se eliminará automáticamente en unos días.</div>`
+              ? `<div style="padding: 14px; text-align: center; border-top: 1px solid rgba(255,255,255,0.08);">
+                  <div style="color: #71717a; font-size: 13px; margin-bottom: 8px;">✅ Conversación finalizada — ya no se pueden enviar mensajes. Se eliminará automáticamente en unos días.</div>
+                  <button id="chatEliminarBtn" style="background: #ef4444; color: #fff; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 13px;">Eliminar conversación ahora</button>
+                </div>`
               : `<div class="chat-input-area">
                   <input type="text" id="chatMessageInput" placeholder="Escribe tu respuesta como agente inmobiliario...">
                   <button class="chat-send-btn" id="chatSendBtn">Responder</button>
@@ -867,7 +871,30 @@
             messagesBox.scrollTop = messagesBox.scrollHeight;
           });
 
-          if (finalizada) return; // No se puede responder ni finalizar de nuevo
+          if (finalizada) {
+            const eliminarBtn = document.getElementById('chatEliminarBtn');
+            if (eliminarBtn) {
+              eliminarBtn.addEventListener('click', async () => {
+                const confirmar = confirm('¿Eliminar esta conversación por completo ahora? Esta acción no se puede deshacer.');
+                if (!confirmar) return;
+                try {
+                  const msgsSnap = await getDocs(query(
+                    collection(db, "mensajes"),
+                    where("userId", "==", clientId),
+                    where("propertyId", "==", propertyId)
+                  ));
+                  await Promise.all(msgsSnap.docs.map(m => deleteDoc(m.ref)));
+                  await deleteDoc(doc(db, "conversaciones", `${clientId}_${propertyId}`));
+                  closeBtn.click();
+                  loadCompanyConversations();
+                } catch (error) {
+                  console.error('Error al eliminar la conversación:', error);
+                  alert('No se pudo eliminar la conversación: ' + error.message);
+                }
+              });
+            }
+            return; // No se puede responder ni finalizar de nuevo
+          }
 
           const messageInput = document.getElementById('chatMessageInput');
           const sendBtn = document.getElementById('chatSendBtn');
