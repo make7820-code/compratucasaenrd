@@ -132,15 +132,26 @@
       .conv-thumb {
         width: 45px;
         height: 45px;
-        border-radius: 10px;
+        border-radius: 50%;
         object-fit: cover;
         background: #27272a;
         flex-shrink: 0;
+        border: 2px solid #ef4444;
       }
 
       .conv-info {
         overflow: hidden;
         flex: 1;
+      }
+
+      .conv-client-name {
+        font-size: 13px;
+        font-weight: 700;
+        color: #f87171;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin-bottom: 2px;
       }
 
       .conv-property-title {
@@ -500,7 +511,7 @@
     <script type="module">
       import { auth, db } from './firebase-config.js';
       import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-      import { doc, getDoc, setDoc, deleteDoc, collection, query, where, getDocs, addDoc, onSnapshot, serverTimestamp, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+      import { doc, getDoc, collection, query, where, getDocs, addDoc, onSnapshot, serverTimestamp, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
       window.addEventListener('DOMContentLoaded', () => {
         const authContainer = document.getElementById('authContainer');
@@ -509,7 +520,6 @@
         const chatMainArea = document.getElementById('chatMainArea');
         const searchInput = document.getElementById('searchPropertyInput');
 
-        // Función corregida para evitar el error de índice compuesto en Firestore mediante filtrado en memoria
         async function marcarChatComoLeidoEnFirestore(userId, propertyId) {
           try {
             const q = query(
@@ -592,44 +602,24 @@
           }
         }
 
-        // Borra conversaciones finalizadas hace más de 7 días (junto con sus mensajes)
-        async function limpiarConversacionesViejas(userId) {
+        async function loadUserConversationsAndNotifications(userId, activePropId, currentUserDisplayName, currentUserAvatar) {
           try {
-            const q = query(collection(db, "conversaciones"), where("userId", "==", userId), where("estado", "==", "finalizada"));
-            const snap = await getDocs(q);
-            const ahora = Date.now();
-            const unaSemanaMs = 7 * 24 * 60 * 60 * 1000;
+            // Buscamos también los datos del documento de perfil del usuario actual para asegurar obtener su foto de perfil y nombre al momento
+            let clientName = currentUserDisplayName;
+            let clientAvatar = currentUserAvatar;
 
-            for (const docSnap of snap.docs) {
-              const data = docSnap.data();
-              const finalizadaEn = data.finalizadaEn?.toMillis ? data.finalizadaEn.toMillis() : 0;
-              if (finalizadaEn && (ahora - finalizadaEn) > unaSemanaMs) {
-                const qMsgs = query(collection(db, "mensajes"), where("userId", "==", data.userId), where("propertyId", "==", data.propertyId));
-                const msgsSnap = await getDocs(qMsgs);
-                await Promise.all(msgsSnap.docs.map(m => deleteDoc(m.ref)));
-                await deleteDoc(docSnap.ref);
-              }
-            }
-          } catch (error) {
-            console.error("Error limpiando conversaciones viejas:", error);
-          }
-        }
-
-        async function cargarEstadosConversaciones(userId, convs) {
-          const estados = {};
-          await Promise.all(convs.map(async (c) => {
-            const key = `${userId}_${c.propertyId}`;
             try {
-              const snap = await getDoc(doc(db, "conversaciones", key));
-              if (snap.exists()) estados[key] = snap.data().estado;
-            } catch (e) { /* ignorar */ }
-          }));
-          return estados;
-        }
+              const userDocRef = doc(db, "usuarios", userId);
+              const userDocSnap = await getDoc(userDocRef);
+              if (userDocSnap.exists()) {
+                const uData = userDocSnap.data();
+                if (uData.nombres) clientName = uData.nombres;
+                if (uData.fotoPerfil) clientAvatar = uData.fotoPerfil;
+              }
+            } catch (e) {
+              console.error("Error al obtener datos del cliente:", e);
+            }
 
-        function loadUserConversationsAndNotifications(userId, activePropId, displayName, avatarSrc) {
-          try {
-            limpiarConversacionesViejas(userId);
             const q = query(collection(db, "mensajes"), where("userId", "==", userId));
             
             onSnapshot(q, async (snapshot) => {
@@ -640,7 +630,7 @@
                     Explora las propiedades y contacta al asesor desde el botón de detalle.
                   </div>
                 `;
-                renderHeaderWithNotifications([], userId, displayName, avatarSrc, activePropId);
+                renderHeaderWithNotifications([], userId, currentUserDisplayName, currentUserAvatar, activePropId);
                 return;
               }
 
@@ -662,7 +652,9 @@
                     lastMessage: data.mensaje || data.text || '',
                     sender: data.sender || 'user',
                     hasUnread: isUnread,
-                    timestamp: timeA
+                    timestamp: timeA,
+                    clientName: clientName,
+                    clientAvatar: clientAvatar
                   });
                 } else {
                   const existing = conversationsMap.get(propId);
@@ -678,20 +670,13 @@
               });
 
               const convs = Array.from(conversationsMap.values());
-              const estados = await cargarEstadosConversaciones(userId, convs);
-              convs.forEach(c => { c.estado = estados[`${userId}_${c.propertyId}`] || 'activa'; });
-
-              const activas = convs.filter(c => c.estado !== 'finalizada');
-              const finalizadas = convs.filter(c => c.estado === 'finalizada');
-
-              renderConversations(activas, finalizadas, userId, activePropId);
-              renderHeaderWithNotifications(activas, userId, displayName, avatarSrc, activePropId);
+              renderConversations(convs, userId, activePropId);
+              renderHeaderWithNotifications(convs, userId, currentUserDisplayName, currentUserAvatar, activePropId);
 
               searchInput.addEventListener('input', (e) => {
                 const term = e.target.value.toLowerCase();
-                const filtroActivas = activas.filter(c => c.propertyTitle.toLowerCase().includes(term));
-                const filtroFinalizadas = finalizadas.filter(c => c.propertyTitle.toLowerCase().includes(term));
-                renderConversations(filtroActivas, filtroFinalizadas, userId, null);
+                const filtered = convs.filter(c => c.propertyTitle.toLowerCase().includes(term) || c.clientName.toLowerCase().includes(term));
+                renderConversations(filtered, userId, null);
               });
 
             });
@@ -701,66 +686,52 @@
           }
         }
 
-        function renderConversations(activas, finalizadas, userId, activePropId) {
-          if (activas.length === 0 && finalizadas.length === 0) {
+        function renderConversations(convs, userId, activePropId) {
+          if (convs.length === 0) {
             conversationsList.innerHTML = `<div style="padding: 20px; text-align: center; color: #a1a1aa; font-size: 13px;">No se encontraron resultados.</div>`;
             return;
           }
 
           conversationsList.innerHTML = '';
           let targetConvToOpen = null;
-          let targetFinalizada = false;
 
-          const crearItem = (conv, finalizada) => {
+          convs.forEach(conv => {
             const item = document.createElement('div');
             item.className = 'conversation-item';
-            item.style.opacity = finalizada ? '0.6' : '1';
             if (activePropId && conv.propertyId === activePropId) {
               item.classList.add('active');
               targetConvToOpen = conv;
-              targetFinalizada = finalizada;
             }
 
+            // Mostramos la foto de perfil del usuario (cliente) en lugar de la foto de la propiedad,
+            // y el nombre del usuario encima del nombre de la propiedad.
             item.innerHTML = `
-              <img src="${conv.propertyImage}" alt="Propiedad" class="conv-thumb" onerror="this.src='assets/puerto-marina.png'">
+              <img src="${conv.clientAvatar}" alt="Perfil Cliente" class="conv-thumb" onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=${userId}'">
               <div class="conv-info">
+                <div class="conv-client-name">${conv.clientName}</div>
                 <div class="conv-property-title">${conv.propertyTitle}</div>
-                <div class="conv-last-msg">${finalizada ? '✅ Conversación finalizada' : conv.lastMessage}</div>
+                <div class="conv-last-msg">${conv.lastMessage}</div>
               </div>
-              ${(!finalizada && conv.hasUnread) ? '<div class="unread-dot" title="Nuevo mensaje"></div>' : ''}
+              ${conv.hasUnread ? '<div class="unread-dot" title="Nuevo mensaje"></div>' : ''}
             `;
 
             item.addEventListener('click', async () => {
               document.querySelectorAll('.conversation-item').forEach(el => el.classList.remove('active'));
               item.classList.add('active');
               
-              if (!finalizada) {
-                await marcarChatComoLeidoEnFirestore(userId, conv.propertyId);
-              }
+              await marcarChatComoLeidoEnFirestore(userId, conv.propertyId);
               
-              openChatWindow(conv.propertyId, conv.propertyTitle, conv.propertyImage, conv.propertyPrice, userId, finalizada);
+              openChatWindow(conv.propertyId, conv.propertyTitle, conv.propertyImage, conv.propertyPrice, userId);
               const dot = item.querySelector('.unread-dot');
               if(dot) dot.remove();
             });
 
-            return item;
-          };
-
-          activas.forEach(conv => conversationsList.appendChild(crearItem(conv, false)));
-
-          if (finalizadas.length > 0) {
-            const divider = document.createElement('div');
-            divider.style.cssText = 'padding: 10px 16px; font-size: 11px; font-weight: 700; color: #71717a; text-transform: uppercase; letter-spacing: 0.5px; border-top: 1px solid rgba(255,255,255,0.08); margin-top: 8px;';
-            divider.textContent = 'Conversaciones finalizadas';
-            conversationsList.appendChild(divider);
-            finalizadas.forEach(conv => conversationsList.appendChild(crearItem(conv, true)));
-          }
+            conversationsList.appendChild(item);
+          });
 
           if (targetConvToOpen && chatMainArea.querySelector('.chat-empty-state')) {
-            if (!targetFinalizada) {
-              marcarChatComoLeidoEnFirestore(userId, targetConvToOpen.propertyId);
-            }
-            openChatWindow(targetConvToOpen.propertyId, targetConvToOpen.propertyTitle, targetConvToOpen.propertyImage, targetConvToOpen.propertyPrice, userId, targetFinalizada);
+            marcarChatComoLeidoEnFirestore(userId, targetConvToOpen.propertyId);
+            openChatWindow(targetConvToOpen.propertyId, targetConvToOpen.propertyTitle, targetConvToOpen.propertyImage, targetConvToOpen.propertyPrice, userId);
             
             const activeItemNode = Array.from(conversationsList.children).find(el => el.classList.contains('active'));
             if (activeItemNode) {
@@ -846,7 +817,7 @@
           }
         }
 
-        async function openChatWindow(propertyId, propertyTitle, propertyImage, propertyPrice, userId, finalizada = false) {
+        async function openChatWindow(propertyId, propertyTitle, propertyImage, propertyPrice, userId) {
           chatMainArea.innerHTML = `
             <div class="chat-header">
               <div class="chat-property-meta">
@@ -856,26 +827,22 @@
                   <div class="chat-prop-price">${propertyPrice}</div>
                 </div>
               </div>
-              <div style="display:flex; align-items:center; gap:8px;">
-                ${!finalizada ? `<button id="chatFinalizarBtn" style="background:rgba(239,68,68,0.15); color:#ef4444; border:1px solid rgba(239,68,68,0.3); border-radius:8px; padding:6px 12px; font-size:12px; font-weight:600; cursor:pointer; white-space:nowrap;">Finalizar conversación</button>` : ''}
-                <button class="chat-close-btn" id="chatCloseBtn" title="Minimizar / Cerrar chat">×</button>
-              </div>
+              <button class="chat-close-btn" id="chatCloseBtn" title="Minimizar / Cerrar chat">×</button>
             </div>
             
             <div class="chat-messages-box" id="chatMessagesBox">
               <div style="text-align: center; color: #71717a; padding: 20px;">Cargando chat...</div>
             </div>
 
-            ${finalizada
-              ? `<div style="padding: 14px; text-align: center; color: #71717a; font-size: 13px; border-top: 1px solid rgba(255,255,255,0.08);">✅ Conversación finalizada — ya no se pueden enviar mensajes. Se eliminará automáticamente en unos días.</div>`
-              : `<div class="chat-input-area">
-                  <input type="text" id="chatMessageInput" placeholder="Escribe tu mensaje al asesor...">
-                  <button class="chat-send-btn" id="chatSendBtn">Enviar</button>
-                </div>`
-            }
+            <div class="chat-input-area">
+              <input type="text" id="chatMessageInput" placeholder="Escribe tu mensaje al asesor...">
+              <button class="chat-send-btn" id="chatSendBtn">Enviar</button>
+            </div>
           `;
 
           const messagesBox = document.getElementById('chatMessagesBox');
+          const messageInput = document.getElementById('chatMessageInput');
+          const sendBtn = document.getElementById('chatSendBtn');
           const closeBtn = document.getElementById('chatCloseBtn');
 
           closeBtn.addEventListener('click', () => {
@@ -889,49 +856,6 @@
             `;
             window.history.replaceState({}, document.title, window.location.pathname);
           });
-
-          if (!finalizada) {
-            const finalizarBtn = document.getElementById('chatFinalizarBtn');
-            if (finalizarBtn) {
-              finalizarBtn.addEventListener('click', async () => {
-                const confirmar = confirm('¿Finalizar esta conversación? Tú y el asesor podrán seguir viéndola, pero no se podrán enviar más mensajes. Se eliminará automáticamente en 7 días.');
-                if (!confirmar) return;
-                try {
-                  // Avisar al asesor en el propio chat de que la conversación se finalizó
-                  await addDoc(collection(db, "mensajes"), {
-                    userId: userId,
-                    propertyId: propertyId,
-                    propertyTitle: propertyTitle,
-                    propertyImage: propertyImage,
-                    propertyPrice: propertyPrice,
-                    mensaje: "🔒 Esta conversación ha sido finalizada.",
-                    tipo: "sistema",
-                    sender: 'user',
-                    leidoPorUsuario: true,
-                    timestamp: serverTimestamp()
-                  });
-
-                  await setDoc(doc(db, "conversaciones", `${userId}_${propertyId}`), {
-                    userId: userId,
-                    propertyId: propertyId,
-                    propertyTitle: propertyTitle,
-                    propertyImage: propertyImage,
-                    propertyPrice: propertyPrice,
-                    estado: 'finalizada',
-                    finalizadaEn: serverTimestamp()
-                  });
-                  alert('Conversación finalizada.');
-                  closeBtn.click();
-                } catch (error) {
-                  console.error('Error al finalizar conversación:', error);
-                  alert('No se pudo finalizar la conversación: ' + error.message);
-                }
-              });
-            }
-          }
-
-          const messageInput = finalizada ? null : document.getElementById('chatMessageInput');
-          const sendBtn = finalizada ? null : document.getElementById('chatSendBtn');
 
           const renderMessagesList = (mensajesList) => {
             messagesBox.innerHTML = '';
@@ -947,14 +871,6 @@
             });
 
             mensajesList.forEach(msgData => {
-              if (msgData.tipo === 'sistema') {
-                const aviso = document.createElement('div');
-                aviso.style.cssText = 'text-align:center; color:#a1a1aa; font-size:12px; margin:14px auto; padding:6px 14px; background:rgba(255,255,255,0.05); border-radius:999px; display:table;';
-                aviso.textContent = msgData.mensaje;
-                messagesBox.appendChild(aviso);
-                return;
-              }
-
               const isOutgoing = msgData.sender === 'user';
               
               const bubble = document.createElement('div');
@@ -1015,12 +931,10 @@
             }
           };
 
-          if (!finalizada) {
-            sendBtn.addEventListener('click', enviarMensajeHandler);
-            messageInput.addEventListener('keypress', (e) => {
-              if (e.key === 'Enter') enviarMensajeHandler();
-            });
-          }
+          sendBtn.addEventListener('click', enviarMensajeHandler);
+          messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') enviarMensajeHandler();
+          });
         }
       });
     </script>
