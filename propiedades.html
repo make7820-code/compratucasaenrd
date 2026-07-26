@@ -113,17 +113,21 @@
         padding: 0 20px;
       }
 
-      /* Franja lateral gris translúcida para los filtros */
+      /* Panel sólido (sin cristal/blur) para los filtros */
       .filters-sidebar {
         width: 320px;
         flex-shrink: 0;
-        background: var(--filter-sidebar-bg);
-        backdrop-filter: blur(12px);
+        background: var(--bg-card);
         border: 1px solid var(--border-color);
         border-radius: 20px;
         padding: 24px;
         height: fit-content;
-        box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        box-shadow: 0 15px 35px rgba(0,0,0,0.18);
+      }
+
+      .filters-sidebar h3 {
+        padding-left: 12px;
+        border-left: 3px solid #ef4444;
       }
 
       .properties-content-area {
@@ -163,6 +167,114 @@
       .filter-row {
         display: flex;
         gap: 10px;
+      }
+
+      .switch-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-top: 4px;
+        margin-bottom: 20px;
+        padding-top: 14px;
+        border-top: 1px solid var(--border-color);
+        font-size: 13px;
+        color: var(--text-muted);
+      }
+
+      .filter-switch {
+        width: 40px;
+        height: 22px;
+        background: var(--bg-input);
+        border: 1px solid var(--border-color);
+        border-radius: 999px;
+        position: relative;
+        cursor: pointer;
+        flex-shrink: 0;
+        transition: background-color 0.2s;
+      }
+
+      .filter-switch::after {
+        content: '';
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 16px;
+        height: 16px;
+        background: var(--text-muted);
+        border-radius: 50%;
+        transition: left 0.2s, background-color 0.2s;
+      }
+
+      .filter-switch.on {
+        background: #ef4444;
+        border-color: #ef4444;
+      }
+
+      .filter-switch.on::after {
+        left: 20px;
+        background: #fff;
+      }
+
+      /* Fila de botones del hero (Favoritos + Catálogo Premium) */
+      .hero-cta-row {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 14px;
+        flex-wrap: wrap;
+      }
+
+      .premium-cta {
+        border: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: linear-gradient(135deg, #fde047, #f59e0b);
+        color: #1a1a1a;
+        padding: 12px 24px;
+        border-radius: 30px;
+        font-weight: 700;
+        text-decoration: none;
+        box-shadow: 0 10px 25px rgba(245, 158, 11, 0.4);
+        transition: transform 0.15s;
+      }
+
+      .premium-cta:hover {
+        transform: translateY(-2px);
+      }
+
+      /* Contador de propiedades debajo de los botones del hero */
+      .properties-counter {
+        margin-top: 16px;
+        display: flex;
+        justify-content: center;
+      }
+
+      .properties-counter span.counter-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        color: var(--text-main, #fff);
+        padding: 8px 18px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 600;
+        text-shadow: none;
+      }
+
+      [data-theme="light"] .properties-counter span.counter-badge {
+        background: rgba(0, 0, 0, 0.05);
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        color: #18181b;
+      }
+
+      .properties-counter #propCounterNum {
+        color: #ef4444;
+        font-weight: 800;
       }
 
       .properties-grid {
@@ -368,6 +480,20 @@
         padding-top: 14px;
         font-size: 13px;
         color: var(--text-muted);
+      }
+
+      .property-extranjeros-pill {
+        margin-top: 12px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(59, 130, 246, 0.1);
+        border: 1px solid #3b82f6;
+        color: #3b82f6;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 4px 10px;
+        border-radius: 999px;
       }
 
       /* Estilos para el menú flotante del perfil y notificaciones */
@@ -794,9 +920,19 @@
           
           <p class="hero-subtitle" style="font-size: 16px; margin-bottom: 24px; text-shadow: 0 1px 5px rgba(0,0,0,0.5);">Explora nuestra selección de propiedades premium, diseñadas para elevar tu estilo de vida.</p>
           
-          <button type="button" id="btnVerFavoritos" class="hero-cta" style="border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; background: #ef4444; color: #fff; padding: 12px 24px; border-radius: 30px; font-weight: 700; text-decoration: none; box-shadow: 0 10px 25px rgba(239, 68, 68, 0.4);">
-            <span id="favCtaIcon">❤️</span> <span id="favCtaText">Ver Mis Favoritos</span>
-          </button>
+          <div class="hero-cta-row">
+            <button type="button" id="btnVerFavoritos" class="hero-cta" style="border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; background: #ef4444; color: #fff; padding: 12px 24px; border-radius: 30px; font-weight: 700; text-decoration: none; box-shadow: 0 10px 25px rgba(239, 68, 68, 0.4);">
+              <span id="favCtaIcon">❤️</span> <span id="favCtaText">Ver Mis Favoritos</span>
+            </button>
+
+            <a href="premium.html" id="btnCatalogoPremium" class="premium-cta">
+              <span>💎</span> Catálogo Premium
+            </a>
+          </div>
+
+          <div class="properties-counter">
+            <span class="counter-badge">🏘️ <span id="propCounterNum">0</span> propiedades disponibles</span>
+          </div>
 
         </div>
       </section>
@@ -902,6 +1038,11 @@
               <option value="2">2</option>
               <option value="3">3+</option>
             </select>
+          </div>
+
+          <div class="switch-row">
+            <span>🌍 Solo Propiedades que Aceptan Extranjeros</span>
+            <div class="filter-switch" id="filterExtranjeros" role="button" tabindex="0" aria-pressed="false"></div>
           </div>
 
           <button id="btnAplicarFiltros" style="width: 100%; background: #3b82f6; color: #fff; border: none; padding: 12px; border-radius: 10px; font-weight: 600; cursor: pointer; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px;">
@@ -1035,6 +1176,14 @@
           const propPrice = prop.precio || '0';
           const propHabs = prop.habitaciones || prop.habs || '1';
           const propBanos = prop.banos || '2';
+          const propNivel = prop.nivel || prop.altura || prop.piso || '';
+          const propParqueos = prop.parqueos || prop.parking || prop.parqueo || '1';
+
+          const rawExtranjero = prop.extranjeros !== undefined ? prop.extranjeros
+                              : prop.extranjero !== undefined ? prop.extranjero
+                              : prop.aceptanExtranjeros !== undefined ? prop.aceptanExtranjeros
+                              : prop.permiteExtranjeros;
+          const aceptaExtranjero = rawExtranjero === true || rawExtranjero === "true" || rawExtranjero === "si" || rawExtranjero === "sí" || rawExtranjero === 1 || rawExtranjero === "on";
           
           let listaImagenes = [];
           if (prop.imagenes && Array.isArray(prop.imagenes) && prop.imagenes.length > 0) {
@@ -1072,7 +1221,8 @@
                  data-type="${propType}" 
                  data-offer="${propOffer}" 
                  data-price="${parseFloat(propPrice.toString().replace(/[^0-9.]/g, '')) || 0}" 
-                 data-habs="${propHabs}">
+                 data-habs="${propHabs}"
+                 data-extranjeros="${aceptaExtranjero ? '1' : '0'}">
               
               <div class="property-img-container" data-current-slide="0" data-total-slides="${listaImagenes.length}">
                 <span class="property-badge-top" style="background: ${badgeBg};">${propOffer}</span>
@@ -1105,13 +1255,20 @@
                 <div class="footer-info property-footer-info">
                   <span>🛏️ ${propHabs} Hab</span>
                   <span>🛁 ${propBanos} Baños</span>
-                  <span>📅 Firebase</span>
+                  <span>🅿️ ${propParqueos} Parq</span>
+                  ${propNivel ? `<span>🏢 ${propNivel}</span>` : ''}
                 </div>
+                ${aceptaExtranjero ? `<div class="property-extranjeros-pill">🌍 Acepta extranjeros</div>` : ''}
               </div>
             </div>
           `;
           propertiesGrid.insertAdjacentHTML('beforeend', cardHtml);
         });
+
+        const propCounterNum = document.getElementById('propCounterNum');
+        if (propCounterNum) {
+          propCounterNum.textContent = document.querySelectorAll('.property-card').length;
+        }
 
         document.querySelectorAll('.btn-favorito-card').forEach(btn => {
           btn.addEventListener('click', (e) => {
@@ -1278,7 +1435,9 @@
         const filterTipo = document.getElementById('filterTipo');
         const filterOferta = document.getElementById('filterOferta');
         const filterHabs = document.getElementById('filterHabs');
-        
+        const filterExtranjeros = document.getElementById('filterExtranjeros');
+
+        let soloExtranjerosActivo = false;
         let soloFavoritosActivo = false;
         let noResultsMsg = document.createElement('div');
         noResultsMsg.style.cssText = 'grid-column: 1 / -1; text-align: center; padding: 40px; color: #a1a1aa; font-size: 16px; display: none;';
@@ -1307,6 +1466,7 @@
             const offer = card.getAttribute('data-offer');
             const price = parseFloat(card.getAttribute('data-price')) || 0;
             const habs = card.getAttribute('data-habs');
+            const extranjeros = card.getAttribute('data-extranjeros') === '1';
 
             let cumpleFavoritos = !soloFavoritosActivo || favoritos.includes(cardId);
             let cumpleTexto = texto === '' || title.includes(texto) || location.includes(texto);
@@ -1316,8 +1476,9 @@
             let cumpleTipo = tipoVal === '' || type === tipoVal;
             let cumpleOferta = ofertaVal === '' || offer === ofertaVal;
             let cumpleHabs = habsVal === '' || (habsVal === '3' ? parseInt(habs) >= 3 : habs === habsVal);
+            let cumpleExtranjeros = !soloExtranjerosActivo || extranjeros;
 
-            if (cumpleFavoritos && cumpleTexto && cumplePrecio && cumpleProv && cumpleMun && cumpleTipo && cumpleOferta && cumpleHabs) {
+            if (cumpleFavoritos && cumpleTexto && cumplePrecio && cumpleProv && cumpleMun && cumpleTipo && cumpleOferta && cumpleHabs && cumpleExtranjeros) {
               card.style.display = 'block';
               visibles++;
             } else {
@@ -1326,6 +1487,11 @@
           });
 
           noResultsMsg.style.display = (visibles === 0) ? 'block' : 'none';
+
+          const propCounterNum = document.getElementById('propCounterNum');
+          if (propCounterNum) {
+            propCounterNum.textContent = visibles;
+          }
         }
 
         if (btnAplicarFiltros) {
@@ -1337,6 +1503,22 @@
 
         if (filterSearch) {
           filterSearch.addEventListener('input', ejecutarFiltros);
+        }
+
+        if (filterExtranjeros) {
+          const toggleExtranjeros = () => {
+            soloExtranjerosActivo = !soloExtranjerosActivo;
+            filterExtranjeros.classList.toggle('on', soloExtranjerosActivo);
+            filterExtranjeros.setAttribute('aria-pressed', soloExtranjerosActivo ? 'true' : 'false');
+            ejecutarFiltros();
+          };
+          filterExtranjeros.addEventListener('click', toggleExtranjeros);
+          filterExtranjeros.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              toggleExtranjeros();
+            }
+          });
         }
 
         if (btnVerFavoritos) {
@@ -1367,4 +1549,3 @@
 
 </body>
 </html>
-```[cite: 7]
