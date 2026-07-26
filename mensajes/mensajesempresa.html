@@ -3,29 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Mensajes Empresa | Compra tu casa en RD</title>
-    <link rel="icon" type="image/x-icon" href="../assets/icono.ico">
+    <title>Mensajes | Compra tu casa en RD</title>
+    <link rel="icon" type="image/x-icon" href="assets/mi-foto.ico" onerror="this.href='assets/demo.png'">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
     <!-- Hoja de Estilos Principal -->
-    <link rel="stylesheet" href="../styles.css">
+    <link rel="stylesheet" href="styles.css">
     <style>
-      :root {
-        --bg-main: #0b0b0e;
-        --card-bg: rgba(18, 18, 22, 0.88);
-        --border-color: rgba(255, 255, 255, 0.1);
-        --accent-red: #ef4444;
-        --text-main: #fff;
-        --text-muted: #a1a1aa;
-      }
-
       body {
-        background-color: var(--bg-main);
-        background-image: linear-gradient(rgba(11, 11, 14, 0.82), rgba(11, 11, 14, 0.90)), url('../assets/mi-zona.png');
+        background-color: #0b0b0e;
+        background-image: linear-gradient(rgba(11, 11, 14, 0.85), rgba(11, 11, 14, 0.92)), url('assets/mi-zona.png');
         background-size: cover;
         background-position: center;
         background-attachment: fixed;
-        color: var(--text-main);
+        color: #fff;
         font-family: 'Inter', sans-serif;
         margin: 0;
         padding: 0;
@@ -34,128 +25,50 @@
         min-height: 100vh;
       }
 
-      .site-header {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        background: rgba(11, 11, 14, 0.9);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-        z-index: 1000;
-        box-sizing: border-box;
-      }
-
-      .header-inner {
-        max-width: 1400px;
-        margin: 0 auto;
-        padding: 14px 24px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-      }
-
-      .brand {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        text-decoration: none;
-      }
-
-      .brand-logo {
-        height: 38px;
-        object-fit: contain;
-      }
-
-      .brand-demo-badge {
-        height: 20px;
-        object-fit: contain;
-      }
-
-      .main-nav {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-      }
-
-      .nav-link {
-        color: #d4d4d8;
-        text-decoration: none;
-        font-size: 14px;
-        font-weight: 500;
-        padding: 8px 12px;
-        border-radius: 8px;
-        transition: all 0.2s;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-      }
-
-      .nav-link:hover, .nav-link.active {
-        color: #fff;
-        background: rgba(255, 255, 255, 0.08);
-      }
-
-      .login-btn {
-        background: var(--accent-red);
-        color: #fff;
-        padding: 8px 16px;
-        border-radius: 10px;
-        text-decoration: none;
-        font-weight: 600;
-        font-size: 14px;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        transition: background 0.2s;
-      }
-
-      .login-btn:hover {
-        background: #dc2626;
-      }
-
       .messaging-wrapper {
-        max-width: 1350px;
-        margin: 110px auto 40px auto;
+        max-width: 1300px;
+        margin: 120px auto 40px auto;
         padding: 0 20px;
         width: 100%;
         box-sizing: border-box;
         flex: 1;
+        display: flex;
+        flex-direction: column;
       }
 
       .messaging-container {
         display: grid;
-        grid-template-columns: 360px 1fr;
-        background: var(--card-bg);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border: 1px solid var(--border-color);
+        grid-template-columns: 350px 1fr;
+        background: rgba(18, 18, 20, 0.90);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
         border-radius: 20px;
         overflow: hidden;
-        height: 720px;
-        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.7);
+        height: 680px;
+        max-height: 75vh;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.6);
       }
 
       .conversations-sidebar {
         border-right: 1px solid rgba(255, 255, 255, 0.08);
         display: flex;
         flex-direction: column;
-        background: rgba(18, 18, 22, 0.95);
+        background: rgba(18, 18, 20, 0.95);
+        overflow: hidden;
       }
 
       .sidebar-header {
         padding: 20px;
         border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        flex-shrink: 0;
       }
 
       .sidebar-title {
-        font-size: 18px;
+        font-size: 20px;
         font-weight: 800;
         color: #fff;
         margin: 0 0 14px 0;
         letter-spacing: 0.5px;
-        font-family: 'Poppins', sans-serif;
       }
 
       .search-box-wrap {
@@ -176,7 +89,7 @@
       }
 
       .search-box-wrap input:focus {
-        border-color: var(--accent-red);
+        border-color: #ef4444;
       }
 
       .search-box-wrap span {
@@ -195,33 +108,35 @@
       }
 
       .conversation-item {
-        padding: 12px 14px;
+        padding: 14px;
         border-radius: 12px;
         cursor: pointer;
-        transition: background 0.2s, border-color 0.2s;
+        transition: background 0.2s;
         display: flex;
         gap: 12px;
         align-items: center;
         margin-bottom: 6px;
         border: 1px solid transparent;
+        position: relative;
       }
 
       .conversation-item:hover {
-        background: rgba(255, 255, 255, 0.04);
+        background: rgba(255, 255, 255, 0.03);
       }
 
       .conversation-item.active {
-        background: rgba(239, 68, 68, 0.12);
-        border-color: rgba(239, 68, 68, 0.35);
+        background: rgba(239, 68, 68, 0.1);
+        border-color: rgba(239, 68, 68, 0.3);
       }
 
       .conv-thumb {
-        width: 46px;
-        height: 46px;
-        border-radius: 10px;
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
         object-fit: cover;
         background: #27272a;
         flex-shrink: 0;
+        border: 2px solid #ef4444;
       }
 
       .conv-info {
@@ -230,9 +145,9 @@
       }
 
       .conv-client-name {
-        font-size: 12px;
-        font-weight: 600;
-        color: var(--accent-red);
+        font-size: 13px;
+        font-weight: 700;
+        color: #f87171;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -250,27 +165,41 @@
         text-decoration: none;
         display: inline-block;
         max-width: 100%;
+        transition: color 0.2s;
       }
 
       .conv-property-title:hover {
+        color: #ef4444;
         text-decoration: underline;
       }
 
       .conv-last-msg {
         font-size: 12px;
-        color: var(--text-muted);
+        color: #a1a1aa;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
       }
 
+      .unread-dot {
+        width: 10px;
+        height: 10px;
+        background-color: #10b981;
+        border-radius: 50%;
+        position: absolute;
+        right: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        box-shadow: 0 0 8px #10b981;
+      }
+
       .chat-main-area {
         display: flex;
         flex-direction: column;
-        background: rgba(14, 14, 17, 0.85);
+        background: rgba(14, 14, 17, 0.90);
         position: relative;
-        height: 100%;
         overflow: hidden;
+        height: 100%;
       }
 
       .chat-empty-state {
@@ -287,7 +216,8 @@
       .chat-empty-icon {
         font-size: 48px;
         margin-bottom: 16px;
-        color: var(--accent-red);
+        color: #ef4444;
+        opacity: 0.8;
       }
 
       .chat-empty-title {
@@ -295,16 +225,16 @@
         font-weight: 700;
         color: #fff;
         margin-bottom: 8px;
-        font-family: 'Poppins', sans-serif;
       }
 
       .chat-header {
         padding: 16px 24px;
-        background: rgba(18, 18, 22, 0.95);
+        background: rgba(18, 18, 20, 0.95);
         border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         display: flex;
         align-items: center;
         justify-content: space-between;
+        flex-shrink: 0;
       }
 
       .chat-property-meta {
@@ -314,8 +244,8 @@
       }
 
       .chat-prop-img {
-        width: 42px;
-        height: 42px;
+        width: 40px;
+        height: 40px;
         border-radius: 8px;
         object-fit: cover;
       }
@@ -324,12 +254,41 @@
         font-size: 15px;
         font-weight: 700;
         color: #fff;
+        text-decoration: none;
+        transition: color 0.2s;
+      }
+
+      .chat-prop-name:hover {
+        color: #ef4444;
+        text-decoration: underline;
       }
 
       .chat-prop-price {
         font-size: 12px;
         color: #10b981;
         font-weight: 600;
+      }
+
+      .chat-close-btn {
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: #a1a1aa;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      .chat-close-btn:hover {
+        background: #ef4444;
+        color: #fff;
+        border-color: #ef4444;
       }
 
       .chat-messages-box {
@@ -339,6 +298,7 @@
         display: flex;
         flex-direction: column;
         gap: 16px;
+        box-sizing: border-box;
       }
 
       .message-bubble {
@@ -358,7 +318,7 @@
       }
 
       .message-bubble.outgoing {
-        background: var(--accent-red);
+        background: #ef4444;
         color: #fff;
         align-self: flex-end;
         border-bottom-right-radius: 4px;
@@ -373,10 +333,11 @@
 
       .chat-input-area {
         padding: 16px 24px;
-        background: rgba(18, 18, 22, 0.95);
+        background: rgba(18, 18, 20, 0.95);
         border-top: 1px solid rgba(255, 255, 255, 0.08);
         display: flex;
         gap: 12px;
+        flex-shrink: 0;
       }
 
       .chat-input-area input {
@@ -392,14 +353,14 @@
       }
 
       .chat-input-area input:focus {
-        border-color: var(--accent-red);
+        border-color: #ef4444;
       }
 
       .chat-send-btn {
-        background: var(--accent-red);
+        background: #ef4444;
         color: #fff;
         border: none;
-        padding: 0 22px;
+        padding: 0 20px;
         border-radius: 12px;
         font-weight: 700;
         cursor: pointer;
@@ -410,35 +371,47 @@
         background: #dc2626;
       }
 
-      .site-footer {
-        background: #08080a;
-        border-top: 1px solid rgba(255, 255, 255, 0.08);
-        padding: 50px 20px 20px 20px;
-        margin-top: auto;
+      @keyframes ringBell {
+        0% { transform: rotate(0deg); }
+        20% { transform: rotate(15deg); }
+        40% { transform: rotate(-15deg); }
+        60% { transform: rotate(10deg); }
+        80% { transform: rotate(-10deg); }
+        100% { transform: rotate(0deg); }
       }
-      .footer-container {
-        max-width: 1400px;
-        margin: 0 auto;
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 40px;
-        margin-bottom: 40px;
+
+      .bell-ringing {
+        animation: ringBell 1s infinite ease-in-out;
+        display: inline-block;
       }
-      .footer-brand-title { color: #fff; font-size: 18px; margin-bottom: 15px; }
-      .highlight-red { color: var(--accent-red); }
-      .footer-brand-desc { color: var(--text-muted); font-size: 14px; line-height: 1.6; margin-bottom: 20px; }
-      .footer-socials { display: flex; gap: 12px; }
-      .social-icon { color: #fff; background: rgba(255,255,255,0.06); padding: 8px; border-radius: 8px; display: inline-flex; transition: background 0.2s; }
-      .social-icon:hover { background: var(--accent-red); }
-      .footer-col-title { color: #fff; font-size: 16px; margin-bottom: 20px; font-weight: 600; }
-      .footer-links, .footer-contact-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 12px; }
-      .footer-links a, .footer-contact-list li, .footer-email { color: var(--text-muted); text-decoration: none; font-size: 14px; transition: color 0.2s; }
-      .footer-links a:hover, .footer-email:hover { color: #fff; }
-      .footer-bottom { max-width: 1400px; margin: 0 auto; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 20px; display: flex; justify-content: space-between; align-items: center; color: #71717a; font-size: 13px; }
-      .footer-bottom-container { width: 100%; display: flex; justify-content: space-between; align-items: center; }
-      .footer-legal-links { display: flex; gap: 20px; }
-      .footer-legal-links a { color: #71717a; text-decoration: none; }
-      .footer-legal-links a:hover { color: #fff; }
+
+      .notification-dropdown {
+        display: none;
+        position: absolute;
+        right: 0;
+        top: 50px;
+        background: #18181b;
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 12px;
+        width: 300px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+        z-index: 1000;
+        overflow: hidden;
+      }
+
+      .notification-item {
+        padding: 12px 16px;
+        border-bottom: 1px solid rgba(255,255,255,0.06);
+        cursor: pointer;
+        transition: background 0.2s;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .notification-item:hover {
+        background: rgba(255,255,255,0.05);
+      }
 
       @media(max-width: 900px) {
         .messaging-container {
@@ -446,10 +419,7 @@
           height: auto;
         }
         .conversations-sidebar {
-          max-height: 280px;
-        }
-        .chat-main-area {
-          height: 500px;
+          max-height: 250px;
         }
       }
     </style>
@@ -458,23 +428,23 @@
 
     <header class="site-header">
       <div class="header-inner">
-        <a href="../index.html" class="brand">
-          <img src="../assets/mi-logo.png" alt="Compra tu casa en RD" class="brand-logo">
-          <img src="../assets/demo.png" alt="DEMO" class="brand-demo-badge">
+        <a href="index.html" class="brand">
+          <img src="assets/mi-logo.png" alt="Compra tu casa en RD" class="brand-logo" onerror="this.src='assets/demo.png'">
+          <img src="assets/demo.png" alt="DEMO" class="brand-demo-badge">
         </a>
 
         <nav class="main-nav">
-          <a href="../index.html" class="nav-link">🏠 Inicio</a>
-          <a href="../propiedades.html" class="nav-link">🏢 Propiedades</a>
-          <a href="../comunidad.html" class="nav-link">👥 Comunidad</a>
-          <a href="../blog.html" class="nav-link">📰 Blog</a>
-          <a href="mensajesempresa.html" class="nav-link active" id="navMensajesEmpresa">🛡️ Panel Empresa</a>
-          <a href="../nosotros.html" class="nav-link">ℹ️ Nosotros</a>
-          <a href="../vender.html" class="nav-link">🤝 Vender</a>
+          <a href="index.html" class="nav-link"><span class="nav-emoji">🏠</span> Inicio</a>
+          <a href="propiedades.html" class="nav-link"><span class="nav-emoji">🏢</span> Propiedades</a>
+          <a href="comunidad.html" class="nav-link"><span class="nav-emoji">👥</span> Comunidad</a>
+          <a href="blog.html" class="nav-link"><span class="nav-emoji">📰</span> Blog</a>
+          <a href="mensajes.html" class="nav-link active" id="navMensajes"><span class="nav-emoji">💬</span> Mensajes</a>
+          <a href="nosotros.html" class="nav-link"><span class="nav-emoji">ℹ️</span> Nosotros</a>
+          <a href="vender.html" class="nav-link"><span class="nav-emoji">🤝</span> Vender</a>
         </nav>
 
-        <div id="authContainer">
-          <a href="../login.html" class="login-btn">
+        <div id="authContainer" style="display: flex; align-items: center; gap: 15px;">
+          <a href="login.html" class="login-btn">
             <span>🔐</span> Iniciar sesión
           </a>
         </div>
@@ -485,24 +455,24 @@
       <div class="messaging-container">
         <div class="conversations-sidebar">
           <div class="sidebar-header">
-            <h2 class="sidebar-title">CLIENTES / CHATS</h2>
+            <h2 class="sidebar-title">MENSAJES</h2>
             <div class="search-box-wrap">
               <span>🔍</span>
-              <input type="text" id="searchClientInput" placeholder="Buscar por cliente o propiedad...">
+              <input type="text" id="searchPropertyInput" placeholder="Buscar propiedad...">
             </div>
           </div>
           <div class="conversations-list" id="conversationsList">
             <div style="padding: 20px; text-align: center; color: #71717a; font-size: 13px;">
-              Cargando consultas de clientes...
+              Cargando tus mensajes...
             </div>
           </div>
         </div>
 
         <div class="chat-main-area" id="chatMainArea">
           <div class="chat-empty-state">
-            <div class="chat-empty-icon">🛡️</div>
-            <div class="chat-empty-title">PANEL DE GESTIÓN INMOBILIARIA</div>
-            <p style="margin: 0; font-size: 14px; color: #a1a1aa;">Selecciona una conversación de la izquierda para responder al cliente.</p>
+            <div class="chat-empty-icon">💬</div>
+            <div class="chat-empty-title">TU CENTRO DE NEGOCIOS</div>
+            <p style="margin: 0; font-size: 14px; color: #a1a1aa;">Selecciona un chat para gestionar tus cierres y consultas.</p>
           </div>
         </div>
       </div>
@@ -522,15 +492,15 @@
         <div class="footer-col">
           <h3 class="footer-col-title">Navegación Rápida</h3>
           <ul class="footer-links">
-            <li><a href="../index.html">Inicio</a></li>
-            <li><a href="../nosotros.html">Acerca de Nosotros</a></li>
-            <li><a href="../propiedades.html">Propiedades</a></li>
+            <li><a href="index.html">Inicio</a></li>
+            <li><a href="nosotros.html">Acerca de Nosotros</a></li>
+            <li><a href="propiedades.html">Propiedades</a></li>
           </ul>
         </div>
         <div class="footer-col">
           <h3 class="footer-col-title">Nuestros Servicios</h3>
           <ul class="footer-links">
-            <li><a href="../propiedades.html">Calculadora Hipotecaria</a></li>
+            <li><a href="propiedades.html">Calculadora Hipotecaria</a></li>
           </ul>
         </div>
         <div class="footer-col">
@@ -554,37 +524,50 @@
     </footer>
 
     <script type="module">
-      import { auth, db } from '../firebase-config.js';
+      import { auth, db } from './firebase-config.js';
       import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-      import { doc, getDoc, setDoc, deleteDoc, collection, query, getDocs, addDoc, onSnapshot, orderBy, serverTimestamp, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
-      const ALLOWED_UIDS = ["3VUuf3bJLKfAWqAlT94L1VlvaHB3"];
+      import { doc, getDoc, collection, query, where, getDocs, addDoc, onSnapshot, serverTimestamp, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
       window.addEventListener('DOMContentLoaded', () => {
         const authContainer = document.getElementById('authContainer');
-        const navMensajesEmpresa = document.getElementById('navMensajesEmpresa');
+        const navMensajes = document.getElementById('navMensajes');
         const conversationsList = document.getElementById('conversationsList');
         const chatMainArea = document.getElementById('chatMainArea');
-        const searchInput = document.getElementById('searchClientInput');
+        const searchInput = document.getElementById('searchPropertyInput');
+
+        async function marcarChatComoLeidoEnFirestore(userId, propertyId) {
+          try {
+            const q = query(
+              collection(db, "mensajes"), 
+              where("userId", "==", userId),
+              where("propertyId", "==", propertyId)
+            );
+            const snapshot = await getDocs(q);
+            snapshot.forEach(async (docSnap) => {
+              const data = docSnap.data();
+              if (data.sender !== "user" && !data.leidoPorUsuario) {
+                await updateDoc(docSnap.ref, { leidoPorUsuario: true });
+              }
+            });
+          } catch (error) {
+            console.error("Error al actualizar estado de lectura en Firestore:", error);
+          }
+        }
+
         const urlParams = new URLSearchParams(window.location.search);
-        const paramClientId = urlParams.get('cliente');
-        const paramPropId = urlParams.get('propiedad');
-        let autoAbierto = false;
+        const paramPropId = urlParams.get('propiedadId') || urlParams.get('id');
+        const paramTitulo = urlParams.get('titulo');
+        const paramUrlImg = urlParams.get('url') || urlParams.get('imagen');
+        const paramPrecio = urlParams.get('precio') || '';
 
         onAuthStateChanged(auth, async (user) => {
           if (!user) {
-            window.location.href = '../login.html';
-            return;
-          }
-
-          if (!ALLOWED_UIDS.includes(user.uid)) {
-            alert("Acceso denegado. Esta sección es exclusiva para agentes inmobiliarios autorizados.");
-            window.location.href = '../index.html';
+            window.location.href = 'login.html';
             return;
           }
 
           let displayName = user.email.split('@')[0];
-          let avatarSrc = '../assets/onlybladi-avatar.png';
+          let avatarSrc = 'assets/onlybladi-avatar.png';
 
           try {
             const docRef = doc(db, "usuarios", user.uid);
@@ -598,287 +581,369 @@
             console.error("Error al obtener usuario:", error);
           }
 
-          if (navMensajesEmpresa) navMensajesEmpresa.style.display = 'inline-flex';
+          if (navMensajes) navMensajes.style.display = 'inline-flex';
 
-          if (authContainer) {
-            authContainer.innerHTML = `
-              <div style="position: relative; display: inline-block;">
-                <button id="profileBtn" style="background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 12px; padding: 4px 8px 4px 4px; border-radius: 999px;">
-                  <img src="${avatarSrc}" alt="Avatar" style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 2px solid #ef4444;" onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=${user.uid}'">
-                  <span style="color: #fff; font-weight: 600; font-size: 15px;">${displayName} (Agente)</span>
-                </button>
-                <div id="profileMenu" style="display:none; position: absolute; right: 0; top: 50px; background: #18181b; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 10px; width: 180px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 1000;">
-                  <button class="profile-menu-item" onclick="window.location.href='../perfil.html'" style="width:100%; background:none; border:none; color:#fff; text-align:left; padding:8px; cursor:pointer; border-radius:6px;">Ir al Perfil</button>
-                  <button id="cerrarSesionBtn" style="width:100%; background:none; border:none; color:#ef4444; text-align:left; padding:8px; cursor:pointer; border-radius:6px; margin-top:4px;">Cerrar Sesión</button>
-                </div>
-              </div>
-            `;
-
-            const profileBtn = document.getElementById('profileBtn');
-            const profileMenu = document.getElementById('profileMenu');
-            if (profileBtn && profileMenu) {
-              profileBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                profileMenu.style.display = profileMenu.style.display === 'block' ? 'none' : 'block';
-              });
-              document.addEventListener('click', () => { profileMenu.style.display = 'none'; });
-            }
-
-            const cerrarBtn = document.getElementById('cerrarSesionBtn');
-            if (cerrarBtn) {
-              cerrarBtn.addEventListener('click', async () => {
-                await signOut(auth);
-                localStorage.clear();
-                window.location.href = '../index.html';
-              });
-            }
+          if (paramPropId) {
+            await verificarYCrearChatInicial(user.uid, paramPropId, paramTitulo, paramUrlImg, paramPrecio);
           }
 
-          loadCompanyConversations();
+          loadUserConversationsAndNotifications(user.uid, paramPropId, displayName, avatarSrc);
         });
 
-        // Borra conversaciones finalizadas hace más de 7 días (junto con sus mensajes)
-        async function limpiarConversacionesViejas() {
+        async function verificarYCrearChatInicial(userId, propertyId, title, image, price) {
           try {
-            const q = query(collection(db, "conversaciones"), where("estado", "==", "finalizada"));
-            const snap = await getDocs(q);
-            const ahora = Date.now();
-            const unaSemanaMs = 7 * 24 * 60 * 60 * 1000;
+            const q = query(
+              collection(db, "mensajes"), 
+              where("userId", "==", userId),
+              where("propertyId", "==", propertyId)
+            );
+            const snapshot = await getDocs(q);
 
-            for (const docSnap of snap.docs) {
-              const data = docSnap.data();
-              const finalizadaEn = data.finalizadaEn?.toMillis ? data.finalizadaEn.toMillis() : 0;
-              if (finalizadaEn && (ahora - finalizadaEn) > unaSemanaMs) {
-                const qMsgs = query(collection(db, "mensajes"), where("userId", "==", data.userId), where("propertyId", "==", data.propertyId));
-                const msgsSnap = await getDocs(qMsgs);
-                await Promise.all(msgsSnap.docs.map(m => deleteDoc(m.ref)));
-                await deleteDoc(docSnap.ref);
-              }
+            if (snapshot.empty) {
+              await addDoc(collection(db, "mensajes"), {
+                userId: userId,
+                propertyId: propertyId,
+                propertyTitle: title || 'Consulta de Propiedad',
+                propertyImage: image || 'assets/puerto-marina.png',
+                propertyPrice: price || '',
+                mensaje: 'Hola, estoy interesado en esta propiedad y me gustaría recibir más información.',
+                sender: 'user',
+                leidoPorUsuario: true,
+                timestamp: serverTimestamp()
+              });
             }
           } catch (error) {
-            console.error("Error limpiando conversaciones viejas:", error);
+            console.error("Error al inicializar chat desde URL:", error);
           }
         }
 
-        // Consulta el perfil y estado de cada conversación
-        async function cargarDatosAdicionalesConvs(convs) {
-          const resultados = {};
-          await Promise.all(convs.map(async (c) => {
-            const key = `${c.clientId}_${c.propertyId}`;
-            let estado = 'activa';
-            let clientName = c.clientId.substring(0, 8) + '...';
-            let clientPhoto = '../assets/onlybladi-avatar.png';
-
-            try {
-              const snapConv = await getDoc(doc(db, "conversaciones", key));
-              if (snapConv.exists()) {
-                estado = snapConv.data().estado || 'activa';
-              }
-            } catch (e) { /* ignorar */ }
-
-            try {
-              const snapUser = await getDoc(doc(db, "usuarios", c.clientId));
-              if (snapUser.exists()) {
-                const uData = snapUser.data();
-                if (uData.nombres) clientName = uData.nombres;
-                if (uData.fotoPerfil) clientPhoto = uData.fotoPerfil;
-              }
-            } catch (e) { /* ignorar */ }
-
-            resultados[key] = { estado, clientName, clientPhoto };
-          }));
-          return resultados;
-        }
-
-        async function loadCompanyConversations() {
+        async function loadUserConversationsAndNotifications(userId, activePropId, currentUserDisplayName, currentUserAvatar) {
           try {
-            await limpiarConversacionesViejas();
-
-            const q = query(collection(db, "mensajes"));
+            const q = query(collection(db, "mensajes"), where("userId", "==", userId));
+            
             onSnapshot(q, async (snapshot) => {
               if (snapshot.empty) {
-                conversationsList.innerHTML = `<div style="padding: 30px 20px; text-align: center; color: #a1a1aa; font-size: 13px;">No hay mensajes registrados.</div>`;
+                conversationsList.innerHTML = `
+                  <div style="padding: 30px 20px; text-align: center; color: #a1a1aa; font-size: 13px;">
+                    No tienes mensajes enviados aún.<br><br>
+                    Explora las propiedades y contacta al asesor desde el botón de detalle.
+                  </div>
+                `;
+                renderHeaderWithNotifications([], userId, currentUserDisplayName, currentUserAvatar, activePropId);
                 return;
               }
 
               const conversationsMap = new Map();
+              
+              const senderIdsSet = new Set();
               snapshot.forEach(docSnap => {
                 const data = docSnap.data();
-                const clientId = data.userId;
-                const propId = data.propertyId || 'general';
-                const compositeKey = `${clientId}_${propId}`;
+                if (data.senderId && data.senderId !== userId) {
+                  senderIdsSet.add(data.senderId);
+                }
+              });
 
-                if (!clientId) return;
-
-                if (!conversationsMap.has(compositeKey)) {
-                  let propertyLink = data.propertyLink || `../detalle-propiedad.html?id=${propId}`;
-                  if (propId === 'general') {
-                    propertyLink = '../propiedades.html';
+              const sendersInfoMap = {};
+              for (const sId of senderIdsSet) {
+                try {
+                  const sDocRef = doc(db, "usuarios", sId);
+                  const sDocSnap = await getDoc(sDocRef);
+                  if (sDocSnap.exists()) {
+                    const sData = sDocSnap.data();
+                    sendersInfoMap[sId] = {
+                      name: sData.nombres || sData.nombre || 'Asesor Inmobiliario',
+                      avatar: sData.fotoPerfil || 'assets/mi-mensaje.png'
+                    };
                   }
+                } catch (err) {
+                  console.error("Error al obtener datos del remitente:", err);
+                }
+              }
+              
+              snapshot.forEach(docSnap => {
+                const data = docSnap.data();
+                const propId = data.propertyId || 'general';
+                
+                const timeA = data.timestamp?.toMillis ? data.timestamp.toMillis() : 0;
+                const isUnread = (data.sender && data.sender !== 'user') && !data.leidoPorUsuario;
+                
+                let currentSenderName = currentUserDisplayName;
+                let currentSenderAvatar = currentUserAvatar;
 
-                  conversationsMap.set(compositeKey, {
-                    clientId: clientId,
+                if (data.sender && data.sender !== 'user') {
+                  if (data.senderId && sendersInfoMap[data.senderId]) {
+                    currentSenderName = sendersInfoMap[data.senderId].name;
+                    currentSenderAvatar = sendersInfoMap[data.senderId].avatar;
+                  } else if (data.senderName) {
+                    currentSenderName = data.senderName;
+                    if (data.senderAvatar) currentSenderAvatar = data.senderAvatar;
+                  } else {
+                    currentSenderName = "Asesor Inmobiliario";
+                    currentSenderAvatar = "assets/mi-mensaje.png";
+                  }
+                }
+
+                if (!conversationsMap.has(propId)) {
+                  conversationsMap.set(propId, {
                     propertyId: propId,
-                    propertyTitle: data.propertyTitle || 'Consulta Inmobiliaria General',
-                    propertyImage: data.propertyImage || '../assets/puerto-marina.png',
+                    propertyTitle: data.propertyTitle || 'Consulta Inmobiliaria',
+                    propertyImage: data.propertyImage || 'assets/puerto-marina.png',
                     propertyPrice: data.propertyPrice || '',
-                    propertyLink: propertyLink
+                    lastMessage: data.mensaje || data.text || '',
+                    sender: data.sender || 'user',
+                    hasUnread: isUnread,
+                    timestamp: timeA,
+                    displayName: currentSenderName,
+                    displayAvatar: currentSenderAvatar
                   });
+                } else {
+                  const existing = conversationsMap.get(propId);
+                  if (isUnread) {
+                    existing.hasUnread = true;
+                  }
+                  if (timeA >= existing.timestamp) {
+                    existing.lastMessage = data.mensaje || data.text || '';
+                    existing.sender = data.sender || 'user';
+                    existing.timestamp = timeA;
+                    if (data.sender && data.sender !== 'user') {
+                      existing.displayName = currentSenderName;
+                      existing.displayAvatar = currentSenderAvatar;
+                    }
+                  }
                 }
               });
 
               const convs = Array.from(conversationsMap.values());
-              const datosAdicionales = await cargarDatosAdicionalesConvs(convs);
-              
-              convs.forEach(c => {
-                const info = datosAdicionales[`${c.clientId}_${c.propertyId}`] || {};
-                c.estado = info.estado || 'activa';
-                c.clientName = info.clientName || c.clientId.substring(0, 8) + '...';
-                c.clientPhoto = info.clientPhoto || '../assets/onlybladi-avatar.png';
-              });
-
-              const activas = convs.filter(c => c.estado !== 'finalizada');
-              const finalizadas = convs.filter(c => c.estado === 'finalizada');
-
-              renderConversations(activas, finalizadas);
+              renderConversations(convs, userId, activePropId);
+              renderHeaderWithNotifications(convs, userId, currentUserDisplayName, currentUserAvatar, activePropId);
 
               searchInput.addEventListener('input', (e) => {
                 const term = e.target.value.toLowerCase();
-                const filtroActivas = activas.filter(c => c.propertyTitle.toLowerCase().includes(term) || c.clientName.toLowerCase().includes(term));
-                const filtroFinalizadas = finalizadas.filter(c => c.propertyTitle.toLowerCase().includes(term) || c.clientName.toLowerCase().includes(term));
-                renderConversations(filtroActivas, filtroFinalizadas);
+                const filtered = convs.filter(c => c.propertyTitle.toLowerCase().includes(term) || c.displayName.toLowerCase().includes(term));
+                renderConversations(filtered, userId, null);
               });
+
             });
           } catch (error) {
             console.error("Error cargando conversaciones:", error);
+            conversationsList.innerHTML = `<div style="padding: 20px; text-align: center; color: #ef4444;">Error al cargar mensajes.</div>`;
           }
         }
 
-        function renderConversations(activas, finalizadas) {
-          if (activas.length === 0 && finalizadas.length === 0) {
+        function renderConversations(convs, userId, activePropId) {
+          if (convs.length === 0) {
             conversationsList.innerHTML = `<div style="padding: 20px; text-align: center; color: #a1a1aa; font-size: 13px;">No se encontraron resultados.</div>`;
             return;
           }
 
           conversationsList.innerHTML = '';
+          let targetConvToOpen = null;
 
-          const crearItem = (conv, finalizada) => {
+          convs.forEach(conv => {
             const item = document.createElement('div');
             item.className = 'conversation-item';
-            item.style.opacity = finalizada ? '0.6' : '1';
-            item.dataset.clientId = conv.clientId;
-            item.dataset.propertyId = conv.propertyId;
+            if (activePropId && conv.propertyId === activePropId) {
+              item.classList.add('active');
+              targetConvToOpen = conv;
+            }
+
             item.innerHTML = `
-              <img src="${conv.clientPhoto}" alt="Perfil Cliente" class="conv-thumb" onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=${conv.clientId}'">
+              <img src="${conv.displayAvatar}" alt="Remitente" class="conv-thumb" onerror="this.src='assets/mi-mensaje.png'">
               <div class="conv-info">
-                <div class="conv-client-name">${conv.clientName}</div>
-                <a href="${conv.propertyLink}" target="_blank" class="conv-property-title" onclick="event.stopPropagation();">${conv.propertyTitle}</a>
-                <div class="conv-last-msg">${finalizada ? '✅ Conversación finalizada' : 'Chat activo'}</div>
+                <div class="conv-client-name">${conv.displayName}</div>
+                <a href="detalle.html?id=${conv.propertyId}" class="conv-property-title" onclick="event.stopPropagation();">${conv.propertyTitle}</a>
+                <div class="conv-last-msg">${conv.lastMessage}</div>
               </div>
+              ${conv.hasUnread ? '<div class="unread-dot" title="Nuevo mensaje"></div>' : ''}
             `;
-            item.addEventListener('click', () => {
+
+            item.addEventListener('click', async () => {
               document.querySelectorAll('.conversation-item').forEach(el => el.classList.remove('active'));
               item.classList.add('active');
-              openCompanyChatWindow(conv.clientId, conv.propertyId, conv.propertyTitle, conv.propertyImage, conv.propertyPrice, finalizada, conv.clientName, conv.clientPhoto);
+              
+              await marcarChatComoLeidoEnFirestore(userId, conv.propertyId);
+              
+              openChatWindow(conv.propertyId, conv.propertyTitle, conv.propertyImage, conv.propertyPrice, userId);
+              const dot = item.querySelector('.unread-dot');
+              if(dot) dot.remove();
             });
-            return item;
-          };
 
-          activas.forEach(conv => conversationsList.appendChild(crearItem(conv, false)));
+            conversationsList.appendChild(item);
+          });
 
-          if (finalizadas.length > 0) {
-            const divider = document.createElement('div');
-            divider.style.cssText = 'padding: 10px 16px; font-size: 11px; font-weight: 700; color: #71717a; text-transform: uppercase; letter-spacing: 0.5px; border-top: 1px solid rgba(255,255,255,0.08); margin-top: 8px;';
-            divider.textContent = 'Conversaciones finalizadas';
-            conversationsList.appendChild(divider);
-            finalizadas.forEach(conv => conversationsList.appendChild(crearItem(conv, true)));
-          }
-
-          if (!autoAbierto && paramClientId && paramPropId) {
-            const todas = [...activas, ...finalizadas];
-            const match = todas.find(c => c.clientId === paramClientId && c.propertyId === paramPropId);
-            if (match) {
-              autoAbierto = true;
-              const finalizadaMatch = finalizadas.includes(match);
-              document.querySelectorAll('.conversation-item').forEach(el => el.classList.remove('active'));
-              const itemEl = conversationsList.querySelector(`[data-client-id="${match.clientId}"][data-property-id="${match.propertyId}"]`);
-              if (itemEl) itemEl.classList.add('active');
-              openCompanyChatWindow(match.clientId, match.propertyId, match.propertyTitle, match.propertyImage, match.propertyPrice, finalizadaMatch, match.clientName, match.clientPhoto);
+          if (targetConvToOpen && chatMainArea.querySelector('.chat-empty-state')) {
+            marcarChatComoLeidoEnFirestore(userId, targetConvToOpen.propertyId);
+            openChatWindow(targetConvToOpen.propertyId, targetConvToOpen.propertyTitle, targetConvToOpen.propertyImage, targetConvToOpen.propertyPrice, userId);
+            
+            const activeItemNode = Array.from(conversationsList.children).find(el => el.classList.contains('active'));
+            if (activeItemNode) {
+              const dot = activeItemNode.querySelector('.unread-dot');
+              if (dot) dot.remove();
             }
           }
         }
 
-        function openCompanyChatWindow(clientId, propertyId, propertyTitle, propertyImage, propertyPrice, finalizada = false, clientName = '', clientPhoto = '../assets/onlybladi-avatar.png') {
+        function renderHeaderWithNotifications(convs, userId, displayName, avatarSrc, activePropId) {
+          const unreadConvs = convs.filter(c => c.hasUnread);
+          const hasUnread = unreadConvs.length > 0;
+
+          authContainer.innerHTML = `
+            <div style="position: relative; display: inline-block;">
+              <button id="notificationBellBtn" style="background: none; border: none; cursor: pointer; font-size: 20px; padding: 6px; position: relative;">
+                <span id="bellIconSpan" class="${hasUnread ? 'bell-ringing' : ''}">🔔</span>
+              </button>
+              <div id="notificationDropdown" class="notification-dropdown">
+                <div style="padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.08); font-weight: 700; font-size: 13px; color: #fff;">
+                  Notificaciones de Mensajes
+                </div>
+                <div id="notificationListContent" style="max-height: 250px; overflow-y: auto;">
+                  ${
+                    unreadConvs.length === 0 
+                    ? '<div style="padding: 20px; text-align: center; color: #71717a; font-size: 12px;">No hay mensajes nuevos</div>'
+                    : unreadConvs.map(c => `
+                        <div class="notification-item" onclick="window.location.href='mensajes.html?propiedadId=${c.propertyId}'">
+                          <img src="${c.propertyImage}" style="width: 32px; height: 32px; border-radius: 6px; object-fit: cover;" onerror="this.src='assets/puerto-marina.png'">
+                          <div style="overflow: hidden;">
+                            <div style="font-size: 13px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${c.propertyTitle}</div>
+                            <div style="font-size: 11px; color: #a1a1aa; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${c.lastMessage}</div>
+                          </div>
+                        </div>
+                      `).join('')
+                  }
+                </div>
+              </div>
+            </div>
+
+            <div class="profile-dropdown-container" style="position: relative; display: inline-block;">
+              <button id="profileBtn" style="background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 12px; padding: 4px 8px 4px 4px; border-radius: 999px;">
+                <img src="${avatarSrc}" alt="Avatar" style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 2px solid #ef4444;" onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=${userId}'">
+                <span style="color: #fff; font-weight: 600; font-size: 15px;">${displayName}</span>
+              </button>
+              <div id="profileMenu" class="profile-menu" style="display:none; position: absolute; right: 0; top: 50px; background: #18181b; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 10px; width: 180px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 1000;">
+                <button class="profile-menu-item" onclick="window.location.href='perfil.html'" style="width:100%; background:none; border:none; color:#fff; text-align:left; padding:8px; cursor:pointer; border-radius:6px;">Ir al Perfil</button>
+                <div style="height:1px; background:rgba(255,255,255,0.1); margin:6px 0;"></div>
+                <button id="cerrarSesionBtn" style="width:100%; background:none; border:none; color:#ef4444; text-align:left; padding:8px; cursor:pointer; border-radius:6px;">Cerrar Sesión</button>
+              </div>
+            </div>
+          `;
+
+          const notificationBellBtn = document.getElementById('notificationBellBtn');
+          const notificationDropdown = document.getElementById('notificationDropdown');
+          
+          if (notificationBellBtn && notificationDropdown) {
+            notificationBellBtn.addEventListener('mouseenter', () => {
+              notificationDropdown.style.display = 'block';
+            });
+            notificationBellBtn.parentElement.addEventListener('mouseleave', () => {
+              notificationDropdown.style.display = 'none';
+            });
+          }
+
+          const profileBtn = document.getElementById('profileBtn');
+          const profileMenu = document.getElementById('profileMenu');
+          if (profileBtn && profileMenu) {
+            profileBtn.addEventListener('click', (e) => {
+              e.stopPropagation();
+              profileMenu.style.display = profileMenu.style.display === 'block' ? 'none' : 'block';
+            });
+            document.addEventListener('click', () => { profileMenu.style.display = 'none'; });
+          }
+
+          const cerrarBtn = document.getElementById('cerrarSesionBtn');
+          if (cerrarBtn) {
+            cerrarBtn.addEventListener('click', async () => {
+              await signOut(auth);
+              localStorage.clear();
+              window.location.href = 'index.html';
+            });
+          }
+        }
+
+        async function openChatWindow(propertyId, propertyTitle, propertyImage, propertyPrice, userId) {
           chatMainArea.innerHTML = `
             <div class="chat-header">
               <div class="chat-property-meta">
-                <img src="${clientPhoto}" alt="Cliente" class="chat-prop-img" onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=${clientId}'">
+                <img src="${propertyImage}" alt="Propiedad" class="chat-prop-img" onerror="this.src='assets/puerto-marina.png'">
                 <div>
-                  <div class="chat-prop-name">${clientName}</div>
-                  <div class="chat-prop-price">${propertyTitle}</div>
+                  <a href="detalle.html?id=${propertyId}" class="chat-prop-name">${propertyTitle}</a>
+                  <div class="chat-prop-price">${propertyPrice}</div>
                 </div>
               </div>
-              <div style="display:flex; align-items:center; gap:8px;">
-                ${!finalizada ? `<button id="chatFinalizarBtn" style="background:rgba(239,68,68,0.15); color:#ef4444; border:1px solid rgba(239,68,68,0.3); border-radius:8px; padding:6px 12px; font-size:12px; font-weight:600; cursor:pointer; white-space:nowrap;">Finalizar conversación</button>` : ''}
-                <button class="chat-close-btn" id="chatCloseBtn" title="Minimizar chat">×</button>
-              </div>
+              <button class="chat-close-btn" id="chatCloseBtn" title="Minimizar / Cerrar chat">×</button>
             </div>
+            
             <div class="chat-messages-box" id="chatMessagesBox">
               <div style="text-align: center; color: #71717a; padding: 20px;">Cargando chat...</div>
             </div>
-            ${finalizada
-              ? `<div style="padding: 14px; text-align: center; border-top: 1px solid rgba(255,255,255,0.08);">
-                  <div style="color: #71717a; font-size: 13px; margin-bottom: 8px;">✅ Conversación finalizada — ya no se pueden enviar mensajes. Se eliminará automáticamente en unos días.</div>
-                  <button id="chatEliminarBtn" style="background: #ef4444; color: #fff; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 13px;">Eliminar conversación ahora</button>
-                </div>`
-              : `<div class="chat-input-area">
-                  <input type="text" id="chatMessageInput" placeholder="Escribe tu respuesta como agente inmobiliario...">
-                  <button class="chat-send-btn" id="chatSendBtn">Responder</button>
-                </div>`
-            }
+
+            <div class="chat-input-area" id="chatInputArea">
+              <input type="text" id="chatMessageInput" placeholder="Escribe tu mensaje...">
+              <button class="chat-send-btn" id="chatSendBtn">Enviar</button>
+            </div>
           `;
 
           const messagesBox = document.getElementById('chatMessagesBox');
+          const chatInputArea = document.getElementById('chatInputArea');
+          let messageInput = document.getElementById('chatMessageInput');
+          let sendBtn = document.getElementById('chatSendBtn');
           const closeBtn = document.getElementById('chatCloseBtn');
+
+          const esMensajeDeFinalizacion = (texto) => {
+            return !!texto && texto.toLowerCase().includes('conversación ha sido finalizada');
+          };
+
+          const bloquearChatFinalizado = () => {
+            chatInputArea.innerHTML = `
+              <div style="width: 100%; display: flex; flex-direction: column; gap: 8px; align-items: center;">
+                <div style="color: #a1a1aa; font-size: 13px;">🔒 Esta conversación fue finalizada. Ya no puedes escribir aquí.</div>
+                <button id="deleteConvBtn" style="background: #ef4444; color: #fff; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 13px;">Eliminar conversación</button>
+              </div>
+            `;
+            document.getElementById('deleteConvBtn').addEventListener('click', async () => {
+              if (!confirm('¿Seguro que deseas eliminar esta conversación por completo? Esta acción no se puede deshacer.')) return;
+              try {
+                const delSnap = await getDocs(query(
+                  collection(db, "mensajes"),
+                  where("userId", "==", userId),
+                  where("propertyId", "==", propertyId)
+                ));
+                await Promise.all(delSnap.docs.map(d => deleteDoc(d.ref)));
+                closeBtn.click();
+              } catch (error) {
+                console.error("Error al eliminar la conversación:", error);
+                alert("No se pudo eliminar la conversación. Inténtalo de nuevo.");
+              }
+            });
+          };
 
           closeBtn.addEventListener('click', () => {
             document.querySelectorAll('.conversation-item').forEach(el => el.classList.remove('active'));
             chatMainArea.innerHTML = `
               <div class="chat-empty-state">
                 <div class="chat-empty-icon">💬</div>
-                <div class="chat-empty-title">PANEL DE MENSAJES</div>
-                <p style="margin: 0; font-size: 14px; color: #a1a1aa;">Selecciona una conversación para responder.</p>
+                <div class="chat-empty-title">TU CENTRO DE NEGOCIOS</div>
+                <p style="margin: 0; font-size: 14px; color: #a1a1aa;">Selecciona un chat para gestionar tus cierres y consultas.</p>
               </div>
             `;
+            window.history.replaceState({}, document.title, window.location.pathname);
           });
 
-          const qMsgs = query(
-            collection(db, "mensajes"), 
-            where("userId", "==", clientId),
-            where("propertyId", "==", propertyId),
-            orderBy("timestamp", "asc")
-          );
-
-          onSnapshot(qMsgs, (snapshot) => {
+          const renderMessagesList = (mensajesList) => {
             messagesBox.innerHTML = '';
-            if (snapshot.empty) {
-              messagesBox.innerHTML = `<div style="text-align: center; color: #71717a; font-size: 13px; margin: auto;">No hay mensajes en este hilo.</div>`;
+            if (mensajesList.length === 0) {
+              messagesBox.innerHTML = `<div style="text-align: center; color: #71717a; font-size: 13px; margin: auto;">Inicia la conversación.</div>`;
               return;
             }
 
-            snapshot.forEach(docSnap => {
-              const msgData = docSnap.data();
+            mensajesList.sort((a, b) => {
+              const timeA = a.timestamp?.toMillis ? a.timestamp.toMillis() : 0;
+              const timeB = b.timestamp?.toMillis ? b.timestamp.toMillis() : 0;
+              return timeA - timeB;
+            });
 
-              if (msgData.tipo === 'sistema') {
-                const aviso = document.createElement('div');
-                aviso.style.cssText = 'text-align:center; color:#a1a1aa; font-size:12px; margin:14px auto; padding:6px 14px; background:rgba(255,255,255,0.05); border-radius:999px; display:table;';
-                aviso.textContent = msgData.mensaje;
-                messagesBox.appendChild(aviso);
-                return;
-              }
-
-              // Identifica si el mensaje es saliente (enviado por el admin/agente) o entrante (cliente)
-              const isOutgoing = msgData.sender === 'agent' || msgData.sender === 'company' || msgData.sender === 'admin';
+            mensajesList.forEach(msgData => {
+              const isOutgoing = msgData.sender === 'user';
+              
               const bubble = document.createElement('div');
               bubble.className = `message-bubble ${isOutgoing ? 'outgoing' : 'incoming'}`;
               bubble.innerHTML = `
@@ -887,100 +952,62 @@
               `;
               messagesBox.appendChild(bubble);
             });
+
             messagesBox.scrollTop = messagesBox.scrollHeight;
+          };
+
+          const qMsgs = query(
+            collection(db, "mensajes"), 
+            where("userId", "==", userId),
+            where("propertyId", "==", propertyId)
+          );
+
+          onSnapshot(qMsgs, (snapshot) => {
+            const mensajesList = [];
+            snapshot.forEach(docSnap => {
+              mensajesList.push(docSnap.data());
+            });
+            renderMessagesList(mensajesList);
+
+            const finalizada = mensajesList.some(m => esMensajeDeFinalizacion(m.mensaje || m.text || ''));
+            if (finalizada) {
+              bloquearChatFinalizado();
+            }
           });
 
-          if (finalizada) {
-            const eliminarBtn = document.getElementById('chatEliminarBtn');
-            if (eliminarBtn) {
-              eliminarBtn.addEventListener('click', async () => {
-                const confirmar = confirm('¿Eliminar esta conversación por completo ahora? Esta acción no se puede deshacer.');
-                if (!confirmar) return;
-                try {
-                  const msgsSnap = await getDocs(query(
-                    collection(db, "mensajes"),
-                    where("userId", "==", clientId),
-                    where("propertyId", "==", propertyId)
-                  ));
-                  await Promise.all(msgsSnap.docs.map(m => deleteDoc(m.ref)));
-                  await deleteDoc(doc(db, "conversaciones", `${clientId}_${propertyId}`));
-                  closeBtn.click();
-                  loadCompanyConversations();
-                } catch (error) {
-                  console.error('Error al eliminar la conversación:', error);
-                  alert('No se pudo eliminar la conversación: ' + error.message);
-                }
-              });
-            }
-            return; // No se puede responder ni finalizar de nuevo
-          }
-
-          const messageInput = document.getElementById('chatMessageInput');
-          const sendBtn = document.getElementById('chatSendBtn');
-
-          const enviarRespuesta = async () => {
+          const enviarMensajeHandler = async () => {
             const texto = messageInput.value.trim();
             if (!texto) return;
+
             try {
+              sendBtn.disabled = true;
+              sendBtn.textContent = 'Enviando...';
+
               await addDoc(collection(db, "mensajes"), {
-                userId: clientId,
+                userId: userId,
                 propertyId: propertyId,
                 propertyTitle: propertyTitle,
                 propertyImage: propertyImage,
                 propertyPrice: propertyPrice,
                 mensaje: texto,
-                sender: 'agent',
+                sender: 'user',
+                leidoPorUsuario: true,
                 timestamp: serverTimestamp()
               });
-              window.location.href = `mensajesempresa.html?cliente=${encodeURIComponent(clientId)}&propiedad=${encodeURIComponent(propertyId)}`;
+
+              window.location.href = `mensajes.html?propiedadId=${encodeURIComponent(propertyId)}`;
             } catch (error) {
-              console.error("Error al enviar respuesta:", error);
-              alert("No se pudo enviar el mensaje: " + error.message);
+              console.error("Error al enviar mensaje:", error);
+              alert("No se pudo enviar el mensaje. Inténtalo de nuevo.");
+              sendBtn.disabled = false;
+              sendBtn.textContent = 'Enviar';
             }
           };
 
-          sendBtn.addEventListener('click', enviarRespuesta);
+          sendBtn.addEventListener('click', enviarMensajeHandler);
           messageInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') enviarRespuesta();
+            if (e.key === 'Enter') enviarMensajeHandler();
           });
-
-          const finalizarBtn = document.getElementById('chatFinalizarBtn');
-          if (finalizarBtn) {
-            finalizarBtn.addEventListener('click', async () => {
-              const confirmar = confirm('¿Finalizar esta conversación? Tú y el cliente podrán seguir viéndola, pero no se podrán enviar más mensajes. Se eliminará automáticamente en 7 días.');
-              if (!confirmar) return;
-              try {
-                // Avisar al cliente en el propio chat de que la conversación se finalizó
-                await addDoc(collection(db, "mensajes"), {
-                  userId: clientId,
-                  propertyId: propertyId,
-                  propertyTitle: propertyTitle,
-                  propertyImage: propertyImage,
-                  propertyPrice: propertyPrice,
-                  mensaje: "🔒 Esta conversación ha sido finalizada.",
-                  tipo: "sistema",
-                  sender: 'agent',
-                  timestamp: serverTimestamp()
-                });
-
-                await setDoc(doc(db, "conversaciones", `${clientId}_${propertyId}`), {
-                  userId: clientId,
-                  propertyId: propertyId,
-                  propertyTitle: propertyTitle,
-                  propertyImage: propertyImage,
-                  propertyPrice: propertyPrice,
-                  estado: 'finalizada',
-                  finalizadaEn: serverTimestamp()
-                });
-                alert('Conversación finalizada.');
-                closeBtn.click();
-                loadCompanyConversations();
-              } catch (error) {
-                console.error('Error al finalizar conversación:', error);
-                alert('No se pudo finalizar la conversación: ' + error.message);
-              }
-            });
-          }
         }
       });
     </script>
