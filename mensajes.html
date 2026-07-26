@@ -526,7 +526,7 @@
     <script type="module">
       import { auth, db } from './firebase-config.js';
       import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-      import { doc, getDoc, collection, query, where, getDocs, addDoc, onSnapshot, serverTimestamp, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+      import { doc, getDoc, collection, query, where, getDocs, addDoc, onSnapshot, serverTimestamp, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
       window.addEventListener('DOMContentLoaded', () => {
         const authContainer = document.getElementById('authContainer');
@@ -876,16 +876,45 @@
               <div style="text-align: center; color: #71717a; padding: 20px;">Cargando chat...</div>
             </div>
 
-            <div class="chat-input-area">
+            <div class="chat-input-area" id="chatInputArea">
               <input type="text" id="chatMessageInput" placeholder="Escribe tu mensaje...">
               <button class="chat-send-btn" id="chatSendBtn">Enviar</button>
             </div>
           `;
 
           const messagesBox = document.getElementById('chatMessagesBox');
-          const messageInput = document.getElementById('chatMessageInput');
-          const sendBtn = document.getElementById('chatSendBtn');
+          const chatInputArea = document.getElementById('chatInputArea');
+          let messageInput = document.getElementById('chatMessageInput');
+          let sendBtn = document.getElementById('chatSendBtn');
           const closeBtn = document.getElementById('chatCloseBtn');
+
+          const esMensajeDeFinalizacion = (texto) => {
+            return !!texto && texto.toLowerCase().includes('conversación ha sido finalizada');
+          };
+
+          const bloquearChatFinalizado = () => {
+            chatInputArea.innerHTML = `
+              <div style="width: 100%; display: flex; flex-direction: column; gap: 8px; align-items: center;">
+                <div style="color: #a1a1aa; font-size: 13px;">🔒 Esta conversación fue finalizada. Ya no puedes escribir aquí.</div>
+                <button id="deleteConvBtn" style="background: #ef4444; color: #fff; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 13px;">Eliminar conversación</button>
+              </div>
+            `;
+            document.getElementById('deleteConvBtn').addEventListener('click', async () => {
+              if (!confirm('¿Seguro que deseas eliminar esta conversación por completo? Esta acción no se puede deshacer.')) return;
+              try {
+                const delSnap = await getDocs(query(
+                  collection(db, "mensajes"),
+                  where("userId", "==", userId),
+                  where("propertyId", "==", propertyId)
+                ));
+                await Promise.all(delSnap.docs.map(d => deleteDoc(d.ref)));
+                closeBtn.click();
+              } catch (error) {
+                console.error("Error al eliminar la conversación:", error);
+                alert("No se pudo eliminar la conversación. Inténtalo de nuevo.");
+              }
+            });
+          };
 
           closeBtn.addEventListener('click', () => {
             document.querySelectorAll('.conversation-item').forEach(el => el.classList.remove('active'));
@@ -939,6 +968,11 @@
               mensajesList.push(docSnap.data());
             });
             renderMessagesList(mensajesList);
+
+            const finalizada = mensajesList.some(m => esMensajeDeFinalizacion(m.mensaje || m.text || ''));
+            if (finalizada) {
+              bloquearChatFinalizado();
+            }
           });
 
           const enviarMensajeHandler = async () => {
