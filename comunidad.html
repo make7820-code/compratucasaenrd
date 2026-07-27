@@ -10,33 +10,47 @@
     <!-- Hoja de Estilos -->
     <link rel="stylesheet" href="styles.css">
     <style>
-      /* Fondo general de la página */
+      /* Fondo general de la página unificado con la imagen de la bandera */
       html, body {
-        background-color: #0b0b0e;
         margin: 0;
         padding: 0;
+        background: url('assets/hero-plaza-bandera.jpg') no-repeat center center fixed;
+        background-size: cover;
+        min-height: 100vh;
       }
 
-      /* Imagen de fondo Hero con Plaza de la Bandera a altura completa */
+      /* Capa oscura general para mantener legibilidad en toda la pantalla */
+      body::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        background: rgba(11, 11, 14, 0.82); /* Ajusta la opacidad si lo quieres más claro u oscuro */
+        z-index: 0;
+        pointer-events: none;
+      }
+
+      /* Asegurar que todo el contenido esté por encima de la capa oscura */
+      header, .hero, .main-page-wrapper, footer {
+        position: relative;
+        z-index: 1;
+      }
+
+      /* Hero integrado a pantalla completa de arriba a abajo */
       .hero {
         position: relative;
-        min-height: 480px;
+        min-height: 380px;
         display: flex;
         align-items: center;
         justify-content: center;
         text-align: center;
         overflow: hidden;
-        background: url('assets/hero-plaza-bandera.jpg') no-repeat center center/cover !important;
-        padding-top: 100px;
-        padding-bottom: 60px;
+        background: transparent !important;
+        padding-top: 90px;
+        padding-bottom: 40px;
       }
 
       .hero::before {
-        content: '';
-        position: absolute;
-        inset: 0;
-        background: rgba(0, 0, 0, 0.65); /* Capa oscura para resaltar el texto */
-        z-index: 1;
+        display: none; /* Eliminamos capas internas duplicadas */
       }
 
       .hero-content {
@@ -59,11 +73,11 @@
         gap: 15px;
       }
 
-      /* Contenedor general sin espacios blancos excesivos */
+      /* Contenedor general sin espacios ni franjas */
       .main-page-wrapper {
         position: relative;
-        background: none;
-        padding-top: 80px;
+        background: transparent;
+        padding-top: 20px;
         padding-bottom: 60px;
       }
 
@@ -71,11 +85,6 @@
       .community-layout-overlap {
         position: relative;
         z-index: 2;
-      }
-
-      .community-hero-overlap {
-        padding-top: 20px;
-        padding-bottom: 30px;
       }
 
       .community-layout-overlap {
