@@ -54,6 +54,7 @@
         background-attachment: fixed;
         min-height: 100vh;
         width: 100%;
+        overflow: hidden; /* contiene el margen negativo/colapsado de .properties-layout-overlap para que no se filtre el fondo del body antes del footer */
       }
 
       /* Capa oscura translúcida única para todo el contenedor principal */
@@ -77,6 +78,14 @@
       .properties-hero {
         background: transparent !important;
         border: none !important;
+      }
+
+      /* El oscurecimiento ya lo aporta .main-page-wrapper::before para toda la sección.
+         Se desactivan las capas propias de .hero (::before y ::after de styles.css)
+         para evitar que se sumen 3 capas oscuras sobre la misma imagen ("cristal" excesivo). */
+      .properties-hero::before,
+      .properties-hero::after {
+        display: none !important;
       }
 
       .properties-hero-overlap,
