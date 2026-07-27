@@ -10,14 +10,14 @@
     <!-- Hoja de Estilos -->
     <link rel="stylesheet" href="styles.css">
     <style>
-      /* Fondo general de la página con la foto y capa oscura */
+      /* Fondo general de la página */
       html, body {
         background-color: #0b0b0e;
         margin: 0;
         padding: 0;
       }
 
-      /* Corrección para alinear perfectamente los elementos del header (avatar, campana y enlaces) */
+      /* Corrección para alinear perfectamente los elementos del header */
       .header-inner {
         display: flex;
         align-items: center;
@@ -35,7 +35,7 @@
         position: relative;
         background: url('assets/bandera-rd-fondo.jpg') no-repeat center center;
         background-size: cover;
-        padding-top: 40px;
+        padding-top: 60px; /* Incrementado para separar el título de arriba */
         padding-bottom: 80px;
       }
 
@@ -47,7 +47,7 @@
         left: 0;
         width: 100%;
         height: 100%;
-        background: rgba(11, 11, 14, 0.82);
+        background: rgba(11, 11, 14, 0.78); /* Ajustado para que la imagen de la bandera se luzca mejor */
         pointer-events: none;
         z-index: 1;
       }
@@ -59,8 +59,8 @@
       }
 
       .community-hero-overlap {
-        padding-top: 20px;
-        padding-bottom: 40px;
+        padding-top: 30px; /* Más espacio superior para que "La Comunidad" baje y luzca bien */
+        padding-bottom: 45px;
       }
 
       .community-layout-overlap {
