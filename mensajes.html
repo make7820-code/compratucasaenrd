@@ -559,6 +559,7 @@
         const paramTitulo = urlParams.get('titulo');
         const paramUrlImg = urlParams.get('url') || urlParams.get('imagen');
         const paramPrecio = urlParams.get('precio') || '';
+        const paramMensajeInicial = urlParams.get('mensajeInicial');
 
         onAuthStateChanged(auth, async (user) => {
           if (!user) {
@@ -584,13 +585,13 @@
           if (navMensajes) navMensajes.style.display = 'inline-flex';
 
           if (paramPropId) {
-            await verificarYCrearChatInicial(user.uid, paramPropId, paramTitulo, paramUrlImg, paramPrecio);
+            await verificarYCrearChatInicial(user.uid, paramPropId, paramTitulo, paramUrlImg, paramPrecio, paramMensajeInicial);
           }
 
           loadUserConversationsAndNotifications(user.uid, paramPropId, displayName, avatarSrc);
         });
 
-        async function verificarYCrearChatInicial(userId, propertyId, title, image, price) {
+        async function verificarYCrearChatInicial(userId, propertyId, title, image, price, mensajeInicial) {
           try {
             const q = query(
               collection(db, "mensajes"), 
@@ -606,7 +607,7 @@
                 propertyTitle: title || 'Consulta de Propiedad',
                 propertyImage: image || 'assets/puerto-marina.png',
                 propertyPrice: price || '',
-                mensaje: 'Hola, estoy interesado en esta propiedad y me gustaría recibir más información.',
+                mensaje: mensajeInicial || 'Hola, estoy interesado en esta propiedad y me gustaría recibir más información.',
                 sender: 'user',
                 leidoPorUsuario: true,
                 timestamp: serverTimestamp()
