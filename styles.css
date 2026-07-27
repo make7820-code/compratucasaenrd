@@ -224,7 +224,6 @@ justify-content:center;
 text-align:center;
 overflow:hidden;
 padding-top:88px;
-background:url('assets/hero-plaza-bandera.jpg') center center/cover no-repeat;
 }
 
 .hero::before{
