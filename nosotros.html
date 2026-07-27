@@ -9,32 +9,49 @@
     <!-- Hoja de Estilos -->
     <link rel="stylesheet" href="styles.css">
     <style>
-      body {
-        background-color: #0b0b0e;
+      /* Fondo general de la página con la foto y capa oscura */
+      html, body {
         margin: 0;
-        font-family: 'Inter', sans-serif;
+        padding: 0;
+        background: url('assets/mi-nosotros.jpg') no-repeat center center fixed;
+        background-size: cover;
+        min-height: 100vh;
+      }
+
+      body::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        background: rgba(11, 11, 14, 0.82);
+        z-index: 0;
+        pointer-events: none;
+      }
+
+      header, .hero, .main-page-wrapper, footer {
+        position: relative;
+        z-index: 1;
       }
 
       .main-page-wrapper {
         position: relative;
-        background-image: url('assets/mi-nosotros.jpg');
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-        background-attachment: fixed;
-        min-height: 100vh;
-        padding-bottom: 80px;
+        background: transparent;
+        padding-top: 20px;
+        padding-bottom: 60px;
       }
 
-      .main-page-wrapper::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.78);
-        z-index: 1;
+      /* Banner superior estilizado (Alineado con blog.html y comunidad.html) */
+      .about-hero-overlap {
+        position: relative;
+        min-height: 380px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        overflow: hidden;
+        background: transparent !important;
+        padding-top: 130px;
+        padding-bottom: 40px;
+        z-index: 2;
       }
 
       .about-container-overlap {
@@ -42,23 +59,23 @@
         z-index: 2;
         max-width: 1200px;
         margin: 0 auto;
-        padding: 130px 20px 40px 20px;
+        padding: 0 20px 40px 20px;
       }
 
       /* Efecto hover profesional para las tarjetas */
       .about-card, .feature-box, .testimonial-card-custom {
-        background: rgba(18, 18, 20, 0.9);
+        background: rgba(18, 18, 20, 0.85);
         backdrop-filter: blur(12px);
         border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 24px;
+        border-radius: 20px;
         box-shadow: 0 15px 35px rgba(0,0,0,0.4);
         transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
       }
 
       .about-card:hover, .feature-box:hover, .testimonial-card-custom:hover {
-        transform: translateY(-6px);
-        box-shadow: 0 20px 40px rgba(139, 92, 246, 0.15), 0 15px 30px rgba(0,0,0,0.6);
-        border-color: rgba(139, 92, 246, 0.3);
+        transform: translateY(-4px);
+        box-shadow: 0 20px 45px rgba(239, 68, 68, 0.15), 0 15px 35px rgba(0,0,0,0.4);
+        border-color: rgba(239, 68, 68, 0.4);
       }
 
       .about-card {
@@ -288,6 +305,43 @@
         transform: scale(1.05);
       }
 
+      /* Navegación del Header */
+      .nav-link {
+        position: relative;
+        color: #d4d4d8;
+        text-decoration: none;
+        padding: 8px 16px;
+        border-radius: 999px;
+        transition: all 0.3s ease;
+      }
+
+      .nav-link:hover {
+        color: #ffffff !important;
+        background: rgba(255, 255, 255, 0.08);
+        transform: translateY(-1px);
+      }
+
+      .nav-link::after {
+        display: none !important;
+      }
+
+      .nav-link.active {
+        background: rgba(239, 68, 68, 0.15);
+        color: #ef4444 !important;
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        box-shadow: 0 0 15px rgba(239, 68, 68, 0.2);
+      }
+
+      .login-btn {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      .login-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
+        border-color: rgba(59, 130, 246, 0.6);
+      }
+
       /* Estilos optimizados para el contenedor de usuario, dropdowns y notificaciones */
       #authContainer {
         display: flex;
@@ -387,9 +441,11 @@
         background: rgba(255,255,255,0.1);
       }
 
+      /* Color corregido del botón activo del selector de aspecto */
       .theme-btn.active {
         background: #ef4444;
         border-color: #ef4444;
+        color: #fff;
       }
 
       @keyframes ringBell {
@@ -404,6 +460,23 @@
       .bell-ringing {
         animation: ringBell 1s infinite ease-in-out;
         display: inline-block;
+      }
+
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .about-container-overlap {
+        animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.2s forwards;
+        opacity: 0;
+        animation-fill-mode: forwards;
       }
 
       @media(max-width: 900px) {
@@ -437,15 +510,21 @@
 
     <!-- ================= CONTENEDOR PRINCIPAL ================= -->
     <div class="main-page-wrapper">
-      <div class="about-container-overlap">
 
-        <!-- SOBRE NOSOTROS -->
-        <div class="about-card">
-          <h1 class="about-title">Sobre <span>Nosotros</span></h1>
-          <p class="about-description">
-            En <span>Compra tu casa en RD</span>, nos dedicamos a transformar el desafío de encontrar la propiedad perfecta en la República Dominicana en una experiencia sencilla y gratificante.
+      <!-- BANNER SUPERIOR ESTILIZADO -->
+      <section class="hero about-hero about-hero-overlap">
+        <div class="hero-content" style="text-align: center;">
+          <p class="hero-subtitle" style="font-size: 13px; font-weight: 700; letter-spacing: 1px; color: #ef4444; background: rgba(239, 68, 68, 0.15); display: inline-block; padding: 6px 16px; border-radius: 30px; backdrop-filter: blur(8px); border: 1px solid rgba(239, 68, 68, 0.3); margin-bottom: 12px;">
+            SOBRE NOSOTROS
+          </p>
+          <h1 class="hero-title" style="font-size: 52px; font-weight: 800; color: #fff; margin-bottom: 12px; font-family: var(--font-display, sans-serif);">Conoce Más <span style="color: #ef4444;">Sobre Nuestro Equipo</span></h1>
+          <p class="hero-subtitle" style="font-size: 16px; color: #d4d4d8; background: rgba(18, 18, 20, 0.7); display: inline-block; padding: 10px 24px; border-radius: 30px; backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.08);">
+            Comprometidos en hacer realidad el sueño de tu hogar ideal en la República Dominicana.
           </p>
         </div>
+      </section>
+
+      <div class="about-container-overlap">
 
         <!-- MISIÓN Y VISIÓN -->
         <div class="about-grid-2">
@@ -547,6 +626,78 @@
 
       </div>
     </div>
+
+    <!-- ================= FOOTER ================= -->
+    <footer class="site-footer">
+      <div class="footer-container">
+        
+        <div class="footer-col footer-brand-col">
+          <h2 class="footer-brand-title">Compra tu casa en <span class="highlight-red">RD</span></h2>
+          <p class="footer-brand-desc">
+            Tu aliado confiable en la búsqueda y adquisición de propiedades en República Dominicana. Hacemos tus sueños de hogar una realidad.
+          </p>
+          <div class="footer-socials">
+            <a href="#" class="social-icon" aria-label="Instagram">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+            </a>
+            <a href="#" class="social-icon" aria-label="Facebook">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M9 8H6v4h3v12h5V12h3.642L18 8h-4V6.333C14 5.378 14.5 5 15.5 5H18V0h-3.808C10.59 0 9 1.581 9 4.615V8z"/></svg>
+            </a>
+            <a href="#" class="social-icon" aria-label="WhatsApp">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.124-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+            </a>
+            <a href="#" class="social-icon" aria-label="TikTok">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 3 15.6a6.34 6.34 0 0 0 10.86 4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1.04-.06z"/></svg>
+            </a>
+          </div>
+        </div>
+
+        <div class="footer-col">
+          <h3 class="footer-col-title">Navegación Rápida</h3>
+          <ul class="footer-links">
+            <li><a href="index.html">Inicio</a></li>
+            <li><a href="nosotros.html">Acerca de Nosotros</a></li>
+            <li><a href="propiedades.html">Propiedades</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h3 class="footer-col-title">Nuestros Servicios</h3>
+          <ul class="footer-links">
+            <li><a href="calculadora.html">Calculadora Hipotecaria</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h3 class="footer-col-title">Contacto Directo</h3>
+          <ul class="footer-contact-list">
+            <li>
+              <span class="contact-icon">📍</span>
+              <span>Ubicación: República Dominicana, Santo Domingo Este, La ureña, C. El Sol</span>
+            </li>
+            <li>
+              <span class="contact-icon">📞</span>
+              <span>Teléfono: +1 (849) 857-2321</span>
+            </li>
+            <li>
+              <span class="contact-icon">✉️</span>
+              <span>Correo electrónico:<br><a href="mailto:Danieldecena63@gmail.com" class="footer-email">Danieldecena63@gmail.com</a></span>
+            </li>
+          </ul>
+        </div>
+
+      </div>
+
+      <div class="footer-bottom">
+        <div class="footer-bottom-container">
+          <p>© 2026 Compra tu casa en RD. Todos los derechos reservados.</p>
+          <div class="footer-legal-links">
+            <a href="privacidad.html">Política de Privacidad</a>
+            <a href="terminos.html">Términos de Servicio</a>
+          </div>
+        </div>
+      </div>
+    </footer>
 
     <!-- ================= SCRIPT DE FIREBASE Y NAVBAR DINÁMICO ================= -->
     <script type="module">
@@ -662,17 +813,18 @@
               <span style="color: #fff; font-weight: 600; font-size: 15px;">${displayName}</span>
             </button>
             <div id="profileMenu" class="profile-menu">
-              <button class="profile-menu-item" onclick="window.location.href='mensajes.html'">
-                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-                Mensajes
-              </button>
+              <!-- ORDEN CORREGIDO: "Ir al Perfil" primero, luego "Mensajes" -->
               <button class="profile-menu-item" onclick="window.location.href='perfil.html'">
                 <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
                 Ir al Perfil
               </button>
+              <button class="profile-menu-item" onclick="window.location.href='mensajes.html'">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                Mensajes
+              </button>
 
               <div class="profile-menu-divider"></div>
-              <div class="profile-menu-section-title">Aspecto físico</div>
+              <div class="profile-menu-section-title">ASPECTO FÍSICO</div>
 
               <div class="profile-theme-selector">
                 <button class="theme-btn ${savedTheme === 'light' ? 'active' : ''}" data-theme="light" title="Claro">☀️</button>
