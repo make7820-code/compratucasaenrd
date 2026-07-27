@@ -10,43 +10,48 @@
     <link rel="stylesheet" href="styles.css">
     <style>
       /* Fondo general de la página con la foto y capa oscura */
-      body {
-        background-color: #0b0b0e;
+      html, body {
+        margin: 0;
+        padding: 0;
+        background: url('assets/hero-plaza-bandera.jpg') no-repeat center center fixed;
+        background-size: cover;
+        min-height: 100vh;
+      }
+
+      body::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        background: rgba(11, 11, 14, 0.82);
+        z-index: 0;
+        pointer-events: none;
+      }
+
+      header, .hero, .main-page-wrapper, footer {
+        position: relative;
+        z-index: 1;
       }
 
       .main-page-wrapper {
         position: relative;
-        background-image: url('assets/hero-plaza-bandera.jpg');
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-        background-attachment: fixed;
-        padding-bottom: 40px;
-      }
-
-      .main-page-wrapper::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.55);
-        z-index: 1;
-      }
-
-      .blog-hero-overlap,
-      .blog-layout-overlap {
-        position: relative;
-        z-index: 2;
+        background: transparent;
+        padding-top: 20px;
+        padding-bottom: 60px;
       }
 
       /* Aumentado el padding-top para que el banner superior no tape las letras */
       .blog-hero-overlap {
+        position: relative;
+        min-height: 380px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        overflow: hidden;
+        background: transparent !important;
         padding-top: 130px;
         padding-bottom: 40px;
-        min-height: auto !important;
-        text-align: center;
+        z-index: 2;
       }
 
       /* Barra de búsqueda dentro del hero */
@@ -97,6 +102,8 @@
         margin: 0 auto;
         padding: 0 20px;
         align-items: flex-start;
+        position: relative;
+        z-index: 2;
       }
 
       .blog-content-area {
@@ -355,7 +362,7 @@
       </div>
     </header>
 
-    <!-- ================= CONTENEDOR GENERAL CON FONDO DE FOTO ================= -->
+    <!-- ================= CONTENEDOR GENERAL ================= -->
     <div class="main-page-wrapper">
 
       <!-- HERO / BANNER SUPERIOR -->
@@ -386,7 +393,6 @@
         
         <div class="blog-content-area">
           <div class="blog-main-card">
-            <!-- Icono de noticias / artículos -->
             <div style="width: 64px; height: 64px; background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px auto; color: #60a5fa;">
               <svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
             </div>
@@ -449,7 +455,7 @@
 
       </div>
 
-    </div>
+    </div> <!-- FIN DEL CONTENEDOR GENERAL -->
 
     <!-- ================= FOOTER ================= -->
     <footer class="site-footer">
