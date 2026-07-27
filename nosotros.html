@@ -39,7 +39,7 @@
         padding-bottom: 60px;
       }
 
-      /* Banner superior estilizado (Alineado con blog.html y comunidad.html) */
+      /* Banner superior estilizado (Alineado con blog.html) */
       .about-hero-overlap {
         position: relative;
         min-height: 380px;
@@ -305,7 +305,7 @@
         transform: scale(1.05);
       }
 
-      /* Navegación del Header */
+      /* Navegación del Header idéntica a blog.html */
       .nav-link {
         position: relative;
         color: #d4d4d8;
@@ -441,11 +441,9 @@
         background: rgba(255,255,255,0.1);
       }
 
-      /* Color corregido del botón activo del selector de aspecto */
       .theme-btn.active {
         background: #ef4444;
         border-color: #ef4444;
-        color: #fff;
       }
 
       @keyframes ringBell {
@@ -491,9 +489,11 @@
     <!-- ================= HEADER ================= -->
     <header class="site-header">
       <div class="header-inner">
+        
         <a href="index.html" class="brand">
           <img src="assets/mi-logo.png" alt="Compra tu casa en RD" class="brand-logo">
         </a>
+
         <nav class="main-nav">
           <a href="index.html" class="nav-link"><span class="nav-emoji">🏠</span> Inicio</a>
           <a href="propiedades.html" class="nav-link"><span class="nav-emoji">🏢</span> Propiedades</a>
@@ -502,9 +502,13 @@
           <a href="nosotros.html" class="nav-link active"><span class="nav-emoji">ℹ️</span> Nosotros</a>
           <a href="vender.html" class="nav-link"><span class="nav-emoji">🤝</span> Vender</a>
         </nav>
-        <div id="authContainer">
-          <a href="login.html" class="login-btn"><span>🔐</span> Iniciar sesión</a>
+
+        <div id="authContainer" style="display: flex; align-items: center; gap: 16px;">
+          <a href="login.html" class="login-btn">
+            <span>🔐</span> Iniciar sesión
+          </a>
         </div>
+
       </div>
     </header>
 
@@ -512,7 +516,7 @@
     <div class="main-page-wrapper">
 
       <!-- BANNER SUPERIOR ESTILIZADO -->
-      <section class="hero about-hero about-hero-overlap">
+      <section class="hero about-hero about-hero-overlap" style="position: relative; min-height: 380px; display: flex; align-items: center; justify-content: center; text-align: center; overflow: hidden; background: transparent !important; padding-top: 130px; padding-bottom: 40px; z-index: 2;">
         <div class="hero-content" style="text-align: center;">
           <p class="hero-subtitle" style="font-size: 13px; font-weight: 700; letter-spacing: 1px; color: #ef4444; background: rgba(239, 68, 68, 0.15); display: inline-block; padding: 6px 16px; border-radius: 30px; backdrop-filter: blur(8px); border: 1px solid rgba(239, 68, 68, 0.3); margin-bottom: 12px;">
             SOBRE NOSOTROS
@@ -525,6 +529,14 @@
       </section>
 
       <div class="about-container-overlap">
+
+        <!-- SOBRE NOSOTROS -->
+        <div class="about-card">
+          <h1 class="about-title">Sobre <span>Nosotros</span></h1>
+          <p class="about-description">
+            En <span>Compra tu casa en RD</span>, nos dedicamos a transformar el desafío de encontrar la propiedad perfecta en la República Dominicana en una experiencia sencilla y gratificante.
+          </p>
+        </div>
 
         <!-- MISIÓN Y VISIÓN -->
         <div class="about-grid-2">
@@ -813,18 +825,17 @@
               <span style="color: #fff; font-weight: 600; font-size: 15px;">${displayName}</span>
             </button>
             <div id="profileMenu" class="profile-menu">
-              <!-- ORDEN CORREGIDO: "Ir al Perfil" primero, luego "Mensajes" -->
-              <button class="profile-menu-item" onclick="window.location.href='perfil.html'">
-                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                Ir al Perfil
-              </button>
               <button class="profile-menu-item" onclick="window.location.href='mensajes.html'">
                 <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
                 Mensajes
               </button>
+              <button class="profile-menu-item" onclick="window.location.href='perfil.html'">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                Ir al Perfil
+              </button>
 
               <div class="profile-menu-divider"></div>
-              <div class="profile-menu-section-title">ASPECTO FÍSICO</div>
+              <div class="profile-menu-section-title">Aspecto físico</div>
 
               <div class="profile-theme-selector">
                 <button class="theme-btn ${savedTheme === 'light' ? 'active' : ''}" data-theme="light" title="Claro">☀️</button>
