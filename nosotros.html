@@ -893,21 +893,21 @@
 
           <div class="profile-dropdown-container" style="position: relative; display: inline-block;">
             <button id="profileBtn" style="background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 12px; padding: 4px 8px 4px 4px; border-radius: 999px;">
-              <img src="${avatarSrc}" alt="Avatar" style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 2px solid #3b82f6;" onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=${userId}'">
+              <img src="${avatarSrc}" alt="Avatar" style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 2px solid #ef4444;" onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=${userId}'">
               <span style="color: #fff; font-weight: 600; font-size: 15px;">${displayName}</span>
             </button>
             <div id="profileMenu" class="profile-menu">
-              <button class="profile-menu-item" onclick="window.location.href='mensajes.html'">
-                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-                Mensajes
-              </button>
               <button class="profile-menu-item" onclick="window.location.href='perfil.html'">
                 <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
                 Ir al Perfil
               </button>
+              <button class="profile-menu-item" onclick="window.location.href='mensajes.html'">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                Mensajes
+              </button>
 
               <div class="profile-menu-divider"></div>
-              <div class="profile-menu-section-title">Aspecto físico</div>
+              <div class="profile-menu-section-title">ASPECTO FÍSICO</div>
 
               <div class="profile-theme-selector">
                 <button class="theme-btn ${savedTheme === 'light' ? 'active' : ''}" data-theme="light" title="Claro">☀️</button>
