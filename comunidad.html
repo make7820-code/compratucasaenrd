@@ -30,26 +30,12 @@
         gap: 15px;
       }
 
-      /* Contenedor general que abarca desde debajo del header hasta justo antes del footer */
+      /* Contenedor general sin imagen de fondo */
       .main-page-wrapper {
         position: relative;
-        background: url('assets/bandera-rd-fondo.jpg') no-repeat center 80px; /* Bajada más la imagen de fondo de la bandera */
-        background-size: cover;
-        padding-top: 110px; /* Incrementado para empujar todo el bloque hacia abajo */
+        background: none; /* Imagen de fondo eliminada */
+        padding-top: 110px;
         padding-bottom: 80px;
-      }
-
-      /* Capa oscura superpuesta sobre el fondo de la bandera para mantener la legibilidad */
-      .main-page-wrapper::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(11, 11, 14, 0.78);
-        pointer-events: none;
-        z-index: 1;
       }
 
       .community-hero-overlap,
@@ -59,7 +45,7 @@
       }
 
       .community-hero-overlap {
-        padding-top: 50px; /* Mayor separación superior para que el título "La Comunidad" baje aún más */
+        padding-top: 50px;
         padding-bottom: 50px;
       }
 
@@ -628,7 +614,7 @@
       </div>
     </header>
 
-    <!-- ================= CONTENEDOR GENERAL CON FONDO DE BANDERA EXTENDIDO HASTA EL FOOTER ================= -->
+    <!-- ================= CONTENEDOR GENERAL SIN IMAGEN DE FONDO ================= -->
     <div class="main-page-wrapper">
 
       <!-- HERO / BANNER SUPERIOR -->
