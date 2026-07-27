@@ -13,7 +13,6 @@
       /* Fondo general de la página con la foto y capa oscura */
       html, body {
         background-color: #0b0b0e;
-        background-image: none !important;
       }
 
       /* Corrección para alinear perfectamente los elementos del header (avatar, campana y enlaces) */
@@ -31,13 +30,8 @@
 
       .main-page-wrapper {
         position: relative;
-        background-image: none !important; /* Eliminada la imagen duplicada de fondo */
         background-color: #0b0b0e;
         padding-bottom: 40px;
-      }
-
-      .main-page-wrapper::before {
-        display: none !important; /* Eliminada la capa oscura superpuesta innecesaria */
       }
 
       .community-hero-overlap,
@@ -617,8 +611,8 @@
       </div>
     </header>
 
-    <!-- ================= CONTENEDOR GENERAL SIN FONDO DUPLICADO ================= -->
-    <div class="main-page-wrapper">
+    <!-- ================= CONTENEDOR GENERAL CON FONDO DE BANDERA RESTAURADO ================= -->
+    <div class="main-page-wrapper" style="background: url('assets/bandera-rd-fondo.jpg') no-repeat center center fixed; background-size: cover;">
 
       <!-- HERO / BANNER SUPERIOR -->
       <section class="hero community-hero community-hero-overlap" style="min-height: 45vh; text-align: center;">
