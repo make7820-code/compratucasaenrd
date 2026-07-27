@@ -4,15 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sobre Nosotros | Compra tu casa en RD</title>
-     <link rel="icon" type="image/x-icon" href="assets/icono.ico">
-    <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+    <link rel="icon" type="image/x-icon" href="assets/icono.ico">
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=stylesheet" rel="stylesheet">
     <!-- Hoja de Estilos -->
     <link rel="stylesheet" href="styles.css">
     <style>
-      /* Fondo general de la página con la foto y capa oscura */
+      /* Fondo general de la página unificado con la imagen de la bandera/nosotros */
       html, body {
         margin: 0;
         padding: 0;
@@ -21,6 +19,7 @@
         min-height: 100vh;
       }
 
+      /* Capa oscura general para mantener legibilidad en toda la pantalla */
       body::before {
         content: '';
         position: fixed;
@@ -30,20 +29,14 @@
         pointer-events: none;
       }
 
+      /* Asegurar que todo el contenido esté por encima de la capa oscura */
       header, .hero, .main-page-wrapper, footer {
         position: relative;
         z-index: 1;
       }
 
-      .main-page-wrapper {
-        position: relative;
-        background: transparent;
-        padding-top: 20px;
-        padding-bottom: 60px;
-      }
-
-      /* Banner superior estilizado (Alineado con blog.html) */
-      .about-hero-overlap {
+      /* Hero integrado a pantalla completa de arriba a abajo idéntico a comunidad.html */
+      .hero {
         position: relative;
         min-height: 380px;
         display: flex;
@@ -52,9 +45,40 @@
         text-align: center;
         overflow: hidden;
         background: transparent !important;
-        padding-top: 130px;
+        padding-top: 90px;
         padding-bottom: 40px;
+      }
+
+      .hero::before {
+        display: none;
+      }
+
+      .hero-content {
+        position: relative;
         z-index: 2;
+        max-width: 900px;
+        padding: 0 24px;
+      }
+
+      /* Corrección para alinear perfectamente los elementos del header */
+      .header-inner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      #authContainer {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+      }
+
+      /* Contenedor general sin espacios ni franjas */
+      .main-page-wrapper {
+        position: relative;
+        background: transparent;
+        padding-top: 20px;
+        padding-bottom: 60px;
       }
 
       .about-container-overlap {
@@ -65,7 +89,7 @@
         padding: 0 20px 40px 20px;
       }
 
-      /* Efecto hover profesional para las tarjetas */
+      /* Estilo idéntico de tarjetas con desenfoque y efecto hover profesional */
       .about-card, .feature-box, .testimonial-card-custom {
         background: rgba(18, 18, 20, 0.85);
         backdrop-filter: blur(12px);
@@ -77,8 +101,8 @@
 
       .about-card:hover, .feature-box:hover, .testimonial-card-custom:hover {
         transform: translateY(-4px);
-        box-shadow: 0 20px 45px rgba(239, 68, 68, 0.15), 0 15px 35px rgba(0,0,0,0.4);
-        border-color: rgba(239, 68, 68, 0.4);
+        border-color: rgba(59, 130, 246, 0.4);
+        box-shadow: 0 25px 50px rgba(59, 130, 246, 0.15), 0 20px 40px rgba(0,0,0,0.6);
       }
 
       .about-card {
@@ -92,11 +116,11 @@
         font-weight: 800;
         color: #fff;
         margin-bottom: 20px;
-        font-family: 'Poppins', sans-serif;
+        font-family: var(--font-display, sans-serif);
       }
 
       .about-title span {
-        color: #ef4444;
+        color: #3b82f6;
       }
 
       .about-description {
@@ -108,7 +132,7 @@
       }
 
       .about-description span {
-        color: #ef4444;
+        color: #60a5fa;
         font-weight: 600;
       }
 
@@ -167,9 +191,9 @@
 
       .testimonials-tag {
         display: inline-block;
-        background: rgba(147, 51, 234, 0.15);
-        color: #c084fc;
-        border: 1px solid rgba(147, 51, 234, 0.3);
+        background: rgba(59, 130, 246, 0.15);
+        color: #60a5fa;
+        border: 1px solid rgba(59, 130, 246, 0.3);
         padding: 6px 16px;
         border-radius: 999px;
         font-size: 13px;
@@ -184,7 +208,7 @@
         font-size: 36px;
         font-weight: 800;
         margin: 0;
-        font-family: 'Poppins', sans-serif;
+        font-family: var(--font-display, sans-serif);
       }
 
       .testimonial-card-custom {
@@ -202,14 +226,14 @@
         transform: translateX(-50%);
         width: 36px;
         height: 36px;
-        background: #8b5cf6;
+        background: #3b82f6;
         color: #fff;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
         font-size: 16px;
-        box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
       }
 
       .stars {
@@ -241,7 +265,7 @@
         height: 44px;
         border-radius: 50%;
         object-fit: cover;
-        border: 2px solid #8b5cf6;
+        border: 2px solid #3b82f6;
       }
 
       .author-info h4 {
@@ -252,26 +276,28 @@
       }
 
       .author-info span {
-        color: #8b5cf6;
+        color: #60a5fa;
         font-size: 12px;
         font-weight: 600;
         text-transform: uppercase;
       }
 
       .cta-card {
-        background: linear-gradient(135deg, rgba(30, 27, 75, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%);
+        background: linear-gradient(135deg, rgba(30, 27, 75, 0.85) 0%, rgba(15, 23, 42, 0.9) 100%);
+        backdrop-filter: blur(12px);
         border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 24px;
+        border-radius: 20px;
         padding: 40px;
         text-align: center;
-        box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+        box-shadow: 0 15px 35px rgba(0,0,0,0.4);
         margin-top: 50px;
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
       }
 
       .cta-card:hover {
         transform: translateY(-4px);
-        box-shadow: 0 25px 50px rgba(0,0,0,0.7);
+        border-color: rgba(59, 130, 246, 0.4);
+        box-shadow: 0 20px 45px rgba(59, 130, 246, 0.2), 0 15px 35px rgba(0,0,0,0.4);
       }
 
       .cta-card h2 {
@@ -279,7 +305,7 @@
         font-size: 32px;
         font-weight: 800;
         margin-bottom: 12px;
-        font-family: 'Poppins', sans-serif;
+        font-family: var(--font-display, sans-serif);
       }
 
       .cta-card p {
@@ -291,24 +317,24 @@
       }
 
       .cta-button {
-        background: #ef4444;
+        background: #3b82f6;
         color: #fff;
         padding: 14px 32px;
-        border-radius: 14px;
-        font-weight: 700;
+        border-radius: 12px;
+        font-weight: 600;
         font-size: 15px;
         text-decoration: none;
         display: inline-block;
-        box-shadow: 0 8px 25px rgba(239, 68, 68, 0.4);
-        transition: transform 0.2s ease, background 0.2s ease;
+        box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
+        transition: all 0.3s ease;
       }
 
       .cta-button:hover {
-        background: #dc2626;
-        transform: scale(1.05);
+        transform: translateY(-2px);
+        box-shadow: 0 12px 30px rgba(59, 130, 246, 0.6);
       }
 
-      /* Navegación del Header idéntica a blog.html */
+      /* Navegación y Enlaces idénticos a comunidad.html */
       .nav-link {
         position: relative;
         color: #d4d4d8;
@@ -343,110 +369,6 @@
         transform: translateY(-2px);
         box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
         border-color: rgba(59, 130, 246, 0.6);
-      }
-
-      /* Estilos optimizados para el contenedor de usuario, dropdowns y notificaciones */
-      #authContainer {
-        display: flex;
-        align-items: center;
-        gap: 15px;
-      }
-
-      .notification-dropdown {
-        display: none;
-        position: absolute;
-        right: -10px;
-        top: 48px;
-        width: 320px;
-        background: #18181b;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 16px;
-        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
-        z-index: 99999;
-        overflow: hidden;
-      }
-
-      .profile-menu {
-        display: none;
-        position: absolute;
-        right: 0;
-        top: 50px;
-        background: #18181b;
-        border: 1px solid rgba(255,255,255,0.1);
-        border-radius: 16px;
-        width: 240px;
-        box-shadow: 0 15px 35px rgba(0,0,0,0.6);
-        z-index: 99999;
-        overflow: hidden;
-        padding: 8px;
-      }
-
-      .profile-menu.show {
-        display: block !important;
-      }
-
-      .profile-menu-item {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        width: 100%;
-        padding: 10px 14px;
-        background: transparent;
-        border: none;
-        color: #d4d4d8;
-        font-size: 14px;
-        font-weight: 500;
-        cursor: pointer;
-        text-align: left;
-        text-decoration: none;
-        transition: background 0.2s, color 0.2s;
-        border-radius: 8px;
-      }
-
-      .profile-menu-item:hover {
-        background: rgba(255,255,255,0.06);
-        color: #fff;
-      }
-
-      .profile-menu-divider {
-        height: 1px;
-        background: rgba(255, 255, 255, 0.1);
-        margin: 6px 0;
-      }
-
-      .profile-menu-section-title {
-        font-size: 11px;
-        color: #a1a1aa;
-        font-weight: 700;
-        text-transform: uppercase;
-        padding: 4px 8px;
-        letter-spacing: 0.5px;
-      }
-
-      .profile-theme-selector {
-        display: flex;
-        gap: 6px;
-        padding: 6px 14px;
-      }
-
-      .theme-btn {
-        flex: 1;
-        background: rgba(255,255,255,0.05);
-        border: 1px solid rgba(255,255,255,0.1);
-        border-radius: 8px;
-        padding: 6px;
-        cursor: pointer;
-        font-size: 14px;
-        transition: all 0.2s;
-      }
-
-      .theme-btn:hover {
-        background: rgba(255,255,255,0.1);
-      }
-
-      .theme-btn.active {
-        background: #ef4444;
-        border-color: #ef4444;
       }
 
       @keyframes ringBell {
@@ -506,7 +428,8 @@
           <a href="vender.html" class="nav-link"><span class="nav-emoji">🤝</span> Vender</a>
         </nav>
 
-        <div id="authContainer" style="display: flex; align-items: center; gap: 16px;">
+        <!-- CONTENEDOR DE SESIÓN / PERFIL -->
+        <div id="authContainer">
           <a href="login.html" class="login-btn">
             <span>🔐</span> Iniciar sesión
           </a>
@@ -515,27 +438,24 @@
       </div>
     </header>
 
-    <!-- ================= CONTENEDOR PRINCIPAL ================= -->
-    <div class="main-page-wrapper">
+    <!-- ================= HERO / BANNER SUPERIOR ================= -->
+    <section class="hero">
+      <div class="hero-content">
+        <h1 class="hero-title" style="font-size: 52px; font-weight: 800; color: #fff; margin-bottom: 12px; font-family: var(--font-display, sans-serif);">Sobre <span style="color: #3b82f6;">Nosotros</span></h1>
+        <p class="hero-subtitle" style="font-size: 16px; color: #d4d4d8; display: inline-block; padding: 0; background: transparent; backdrop-filter: none; border: none;">
+          Comprometidos en hacer realidad el sueño de tu hogar ideal en la República Dominicana.
+        </p>
+      </div>
+    </section>
 
-      <!-- BANNER SUPERIOR ESTILIZADO -->
-      <section class="hero about-hero about-hero-overlap" style="position: relative; min-height: 380px; display: flex; align-items: center; justify-content: center; text-align: center; overflow: hidden; background: transparent !important; padding-top: 130px; padding-bottom: 40px; z-index: 2;">
-        <div class="hero-content" style="text-align: center;">
-          <p class="hero-subtitle" style="font-size: 13px; font-weight: 700; letter-spacing: 1px; color: #ef4444; background: rgba(239, 68, 68, 0.15); display: inline-block; padding: 6px 16px; border-radius: 30px; backdrop-filter: blur(8px); border: 1px solid rgba(239, 68, 68, 0.3); margin-bottom: 12px;">
-            SOBRE NOSOTROS
-          </p>
-          <h1 class="hero-title" style="font-size: 52px; font-weight: 800; color: #fff; margin-bottom: 12px; font-family: var(--font-display, sans-serif);">Conoce Más <span style="color: #ef4444;">Sobre Nuestro Equipo</span></h1>
-          <p class="hero-subtitle" style="font-size: 16px; color: #d4d4d8; background: rgba(18, 18, 20, 0.7); display: inline-block; padding: 10px 24px; border-radius: 30px; backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.08);">
-            Comprometidos en hacer realidad el sueño de tu hogar ideal en la República Dominicana.
-          </p>
-        </div>
-      </section>
+    <!-- ================= CONTENEDOR GENERAL ================= -->
+    <div class="main-page-wrapper">
 
       <div class="about-container-overlap">
 
         <!-- SOBRE NOSOTROS -->
         <div class="about-card">
-          <h1 class="about-title">Sobre <span>Nosotros</span></h1>
+          <h2 class="about-title" style="font-size: 28px; margin-bottom: 12px;">Nuestra <span>Historia</span></h2>
           <p class="about-description">
             En <span>Compra tu casa en RD</span>, nos dedicamos a transformar el desafío de encontrar la propiedad perfecta en la República Dominicana en una experiencia sencilla y gratificante.
           </p>
@@ -549,7 +469,7 @@
             <p>Facilitar y hacer transparente el proceso de compra, venta y alquiler de bienes inmuebles en República Dominicana.</p>
           </div>
           <div class="feature-box">
-            <div class="feature-icon-wrapper" style="background: rgba(99, 102, 241, 0.15); color: #818cf8;">👁️</div>
+            <div class="feature-icon-wrapper" style="background: rgba(59, 130, 246, 0.15); color: #60a5fa;">👁️</div>
             <h3>Nuestra Visión</h3>
             <p>Ser la plataforma inmobiliaria líder y más confiable de la República Dominicana, reconocida por nuestra innovación.</p>
           </div>
@@ -640,7 +560,7 @@
         </div>
 
       </div>
-    </div>
+    </div> <!-- FIN DEL CONTENEDOR GENERAL -->
 
     <!-- ================= FOOTER ================= -->
     <footer class="site-footer">
@@ -714,7 +634,7 @@
       </div>
     </footer>
 
-    <!-- ================= SCRIPT DE FIREBASE Y NAVBAR DINÁMICO ================= -->
+    <!-- SCRIPT DE FIREBASE Y NAVBAR DINÁMICO IDÉNTICO AL DE COMUNIDAD -->
     <script type="module">
       import { auth, db } from './firebase-config.js';
       import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
@@ -744,6 +664,7 @@
             if (docSnap.exists()) {
               const data = docSnap.data();
               if (data.nombres) displayName = data.nombres;
+              else if (data.nombre) displayName = data.nombre;
               if (data.fotoPerfil) avatarSrc = data.fotoPerfil;
             }
           } catch (e) {
@@ -824,7 +745,7 @@
 
           <div class="profile-dropdown-container" style="position: relative; display: inline-block;">
             <button id="profileBtn" style="background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 12px; padding: 4px 8px 4px 4px; border-radius: 999px;">
-              <img src="${avatarSrc}" alt="Avatar" style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 2px solid #ef4444;" onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=${userId}'">
+              <img src="${avatarSrc}" alt="Avatar" style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 2px solid #3b82f6;" onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=${userId}'">
               <span style="color: #fff; font-weight: 600; font-size: 15px;">${displayName}</span>
             </button>
             <div id="profileMenu" class="profile-menu">
