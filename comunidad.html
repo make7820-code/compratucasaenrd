@@ -293,6 +293,22 @@
         box-shadow: 0 15px 35px rgba(0,0,0,0.4);
       }
 
+      /* Tarjeta de Solicitud Activa */
+      .solicitud-activa-card {
+        background: rgba(18, 18, 20, 0.85);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(59, 130, 246, 0.4);
+        border-radius: 16px;
+        padding: 20px 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 16px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+        flex-wrap: wrap;
+        gap: 15px;
+      }
+
       .nav-link {
         position: relative;
         color: #d4d4d8;
@@ -672,9 +688,11 @@
                 </button>
               </div>
 
-              <!-- Tarjeta de Estado Vacío -->
-              <div class="empty-state-card">
-                Aún no tienes solicitudes de búsqueda activas. ¡Crea una hoy!
+              <!-- CONTENEDOR DINÁMICO DE SOLICITUDES ACTIVAS / ESTADO VACÍO -->
+              <div id="contenedorSolicitudesActivas">
+                <div class="empty-state-card" id="emptyStateSolicitudes">
+                  Aún no tienes solicitudes de búsqueda activas. ¡Crea una hoy!
+                </div>
               </div>
             </div>
 
@@ -846,7 +864,7 @@
     <script type="module">
       import { auth, db } from './firebase-config.js';
       import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-      import { doc, getDoc, addDoc, collection, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+      import { doc, getDoc, addDoc, collection, query, where, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
       window.cambiarPestana = function(pestana) {
         const btnPub = document.getElementById('btnPublicaciones');
@@ -959,6 +977,91 @@
         renderAgents(currentUser);
       }
 
+      // ===== ESCUCHADOR EN TIEMPO REAL DE SOLICITUDES ACTIVAS =====
+      function escucharSolicitudesUsuario(userId) {
+        const contenedor = document.getElementById('contenedorSolicitudesActivas');
+        if (!contenedor) return;
+
+        const q = query(collection(db, "mensajes"), where("userId", "==", userId));
+        onSnapshot(q, async (snapshot) => {
+          if (snapshot.empty) {
+            contenedor.innerHTML = `
+              <div class="empty-state-card" id="emptyStateSolicitudes">
+                Aún no tienes solicitudes de búsqueda activas. ¡Crea una hoy!
+              </div>`;
+            return;
+          }
+
+          const solicitudesMap = new Map();
+          snapshot.forEach(docSnap => {
+            const data = docSnap.data();
+            if (data.propertyId && data.propertyId.startsWith('solicitud_')) {
+              solicitudesMap.set(data.propertyId, {
+                propertyId: data.propertyId,
+                propertyTitle: data.propertyTitle || 'Solicitud de Búsqueda',
+                propertyPrice: data.propertyPrice || 'A convenir',
+                timestamp: data.timestamp
+              });
+            }
+          });
+
+          if (solicitudesMap.size === 0) {
+            contenedor.innerHTML = `
+              <div class="empty-state-card" id="emptyStateSolicitudes">
+                Aún no tienes solicitudes de búsqueda activas. ¡Crea una hoy!
+              </div>`;
+            return;
+          }
+
+          let htmlMiniaturas = '';
+          for (let [propId, sol] of solicitudesMap.entries()) {
+            let estadoConversacion = 'activa';
+            try {
+              const convDoc = await getDoc(doc(db, "conversaciones", `${userId}_${propId}`));
+              if (convDoc.exists()) {
+                estadoConversacion = convDoc.data().estado || 'activa';
+              }
+            } catch (e) {
+              console.error("Error al consultar estado de conversación:", e);
+            }
+
+            // Si la empresa finalizó la conversación, no la mostramos como activa
+            if (estadoConversacion === 'finalizada') {
+              continue; 
+            }
+
+            htmlMiniaturas += `
+              <div class="solicitud-activa-card">
+                <div style="display: flex; align-items: center; gap: 16px;">
+                  <div style="background: rgba(59, 130, 246, 0.15); color: #60a5fa; width: 45px; height: 45px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; border: 1px solid rgba(59, 130, 246, 0.3);">
+                    🏠
+                  </div>
+                  <div>
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px; flex-wrap: wrap;">
+                      <h4 style="color: #fff; font-size: 16px; font-weight: 700; margin: 0;">${sol.propertyTitle}</h4>
+                      <span style="background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px;">Búsqueda Activa</span>
+                    </div>
+                    <p style="color: #a1a1aa; font-size: 13px; margin: 0;">Presupuesto: <strong style="color: #10b981;">${sol.propertyPrice}</strong></p>
+                  </div>
+                </div>
+                <button onclick="window.location.href='mensajes.html?propiedadId=${encodeURIComponent(propId)}'" style="background: #3b82f6; color: #fff; border: none; padding: 10px 18px; border-radius: 10px; font-weight: 600; font-size: 13px; cursor: pointer; transition: background 0.2s;">
+                  Ver Chat
+                </button>
+              </div>
+            `;
+          }
+
+          if (htmlMiniaturas === '') {
+            contenedor.innerHTML = `
+              <div class="empty-state-card" id="emptyStateSolicitudes">
+                Aún no tienes solicitudes de búsqueda activas. ¡Crea una hoy!
+              </div>`;
+          } else {
+            contenedor.innerHTML = htmlMiniaturas;
+          }
+        });
+      }
+
       // ===== MODAL: NUEVA SOLICITUD DE BÚSQUEDA =====
       window.abrirModalSolicitud = function() {
         if (!auth.currentUser) {
@@ -1066,6 +1169,10 @@
           }
 
           renderAgents(user);
+
+          if (user) {
+            escucharSolicitudesUsuario(user.uid);
+          }
         });
       });
     </script>
