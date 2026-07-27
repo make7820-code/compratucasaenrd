@@ -10,8 +10,9 @@
     <link rel="stylesheet" href="styles.css">
     <style>
       /* Fondo general de la página con la foto y capa oscura */
-      body {
+      html, body {
         background-color: #0b0b0e;
+        background-image: none !important;
       }
 
       /* Corrección para alinear perfectamente los elementos del header (avatar, campana y enlaces) */
@@ -412,6 +413,172 @@
           align-items: flex-start;
         }
       }
+
+      /* ===== MODAL: NUEVA SOLICITUD DE BÚSQUEDA ===== */
+      .solicitud-modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(4px);
+        z-index: 3000;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        box-sizing: border-box;
+      }
+
+      .solicitud-modal-overlay.active {
+        display: flex;
+      }
+
+      .solicitud-modal-box {
+        background: #18181b;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        padding: 30px;
+        width: 100%;
+        max-width: 550px;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7);
+        animation: fadeInUp 0.3s ease;
+      }
+
+      .solicitud-modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 24px;
+      }
+
+      .solicitud-modal-header h3 {
+        color: #fff;
+        font-size: 20px;
+        font-weight: 700;
+        margin: 0;
+      }
+
+      .solicitud-modal-close {
+        background: none;
+        border: none;
+        color: #a1a1aa;
+        font-size: 22px;
+        cursor: pointer;
+        line-height: 1;
+        padding: 4px;
+        transition: color 0.2s ease;
+      }
+
+      .solicitud-modal-close:hover {
+        color: #fff;
+      }
+
+      .solicitud-form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin-bottom: 16px;
+      }
+
+      .solicitud-field {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .solicitud-field.full-width {
+        grid-column: 1 / -1;
+      }
+
+      .solicitud-field label {
+        color: #d4d4d8;
+        font-size: 13px;
+        font-weight: 600;
+      }
+
+      .solicitud-field input,
+      .solicitud-field select,
+      .solicitud-field textarea {
+        background: #fff;
+        color: #18181b;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        padding: 12px 14px;
+        font-size: 14px;
+        font-family: 'Inter', sans-serif;
+        outline: none;
+        box-sizing: border-box;
+        width: 100%;
+        transition: box-shadow 0.2s ease;
+      }
+
+      .solicitud-field input:focus,
+      .solicitud-field select:focus,
+      .solicitud-field textarea:focus {
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.4);
+      }
+
+      .solicitud-field textarea {
+        resize: vertical;
+        min-height: 90px;
+        font-family: 'Inter', sans-serif;
+      }
+
+      .solicitud-modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 14px;
+        margin-top: 10px;
+      }
+
+      .solicitud-btn-cancel {
+        background: none;
+        border: none;
+        color: #a1a1aa;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        padding: 12px 16px;
+        transition: color 0.2s ease;
+      }
+
+      .solicitud-btn-cancel:hover {
+        color: #fff;
+      }
+
+      .solicitud-btn-submit {
+        background: #3b82f6;
+        color: #fff;
+        border: none;
+        padding: 12px 22px;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
+        transition: all 0.3s ease;
+      }
+
+      .solicitud-btn-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 30px rgba(59, 130, 246, 0.6);
+      }
+
+      .solicitud-btn-submit:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      @media(max-width: 560px) {
+        .solicitud-form-grid {
+          grid-template-columns: 1fr;
+        }
+      }
     </style>
 </head>
 <body>
@@ -484,9 +651,9 @@
                     Publica tu solicitud con las características que buscas, presupuesto y ubicación. ¡Nuestros agentes te contactarán directamente con las mejores opciones de forma personalizada!
                   </p>
                 </div>
-                <a href="#" style="background: #3b82f6; color: #fff; padding: 12px 20px; border-radius: 12px; font-weight: 600; font-size: 14px; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4); white-space: nowrap; transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 12px 30px rgba(59, 130, 246, 0.6)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 20px rgba(59, 130, 246, 0.4)';">
+                <button type="button" onclick="abrirModalSolicitud()" style="background: #3b82f6; color: #fff; padding: 12px 20px; border-radius: 12px; font-weight: 600; font-size: 14px; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4); white-space: nowrap; transition: all 0.3s ease; border: none; cursor: pointer; font-family: 'Inter', sans-serif;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 12px 30px rgba(59, 130, 246, 0.6)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 20px rgba(59, 130, 246, 0.4)';">
                   <span>+</span> Hacer Solicitud de Búsqueda
-                </a>
+                </button>
               </div>
             </div>
 
@@ -500,9 +667,9 @@
                     Publica tus criterios para que nuestros agentes te recomienden propiedades personalizadas.
                   </p>
                 </div>
-                <a href="#" style="background: #3b82f6; color: #fff; padding: 12px 20px; border-radius: 12px; font-weight: 600; font-size: 14px; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4); white-space: nowrap; transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 12px 30px rgba(59, 130, 246, 0.6)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 20px rgba(59, 130, 246, 0.4)';">
+                <button type="button" onclick="abrirModalSolicitud()" style="background: #3b82f6; color: #fff; padding: 12px 20px; border-radius: 12px; font-weight: 600; font-size: 14px; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4); white-space: nowrap; transition: all 0.3s ease; border: none; cursor: pointer; font-family: 'Inter', sans-serif;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 12px 30px rgba(59, 130, 246, 0.6)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 20px rgba(59, 130, 246, 0.4)';">
                   <span>+</span> Crear Solicitud
-                </a>
+                </button>
               </div>
 
               <!-- Tarjeta de Estado Vacío -->
@@ -529,6 +696,79 @@
       </div>
 
     </div> <!-- FIN DEL CONTENEDOR GENERAL CON FOTO -->
+
+    <!-- ================= MODAL: NUEVA SOLICITUD DE BÚSQUEDA ================= -->
+    <div class="solicitud-modal-overlay" id="solicitudModalOverlay">
+      <div class="solicitud-modal-box">
+        <div class="solicitud-modal-header">
+          <h3>Nueva Solicitud de Búsqueda</h3>
+          <button type="button" class="solicitud-modal-close" onclick="cerrarModalSolicitud()">×</button>
+        </div>
+
+        <form id="solicitudForm" onsubmit="return false;">
+          <div class="solicitud-form-grid">
+            <div class="solicitud-field">
+              <label for="solZona">Ubicación / Zona *</label>
+              <input type="text" id="solZona" placeholder="Ej. Bella Vista, Santo Domingo" required>
+            </div>
+
+            <div class="solicitud-field">
+              <label for="solTipoOferta">Tipo de Oferta *</label>
+              <select id="solTipoOferta" required>
+                <option value="Cualquiera">Cualquiera</option>
+                <option value="Venta">Venta</option>
+                <option value="Alquiler">Alquiler</option>
+              </select>
+            </div>
+
+            <div class="solicitud-field">
+              <label for="solPresupuesto">Presupuesto Máximo *</label>
+              <input type="number" id="solPresupuesto" placeholder="Ej. 150000" min="0" required>
+            </div>
+
+            <div class="solicitud-field">
+              <label for="solMoneda">Moneda *</label>
+              <select id="solMoneda" required>
+                <option value="USD">USD ($)</option>
+                <option value="DOP">DOP (RD$)</option>
+              </select>
+            </div>
+
+            <div class="solicitud-field">
+              <label for="solHabitaciones">Habitaciones *</label>
+              <select id="solHabitaciones" required>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5+">5+</option>
+              </select>
+            </div>
+
+            <div class="solicitud-field">
+              <label for="solBanos">Baños *</label>
+              <select id="solBanos" required>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5+">5+</option>
+              </select>
+            </div>
+
+            <div class="solicitud-field full-width">
+              <label for="solDescripcion">Descripción de tu Búsqueda *</label>
+              <textarea id="solDescripcion" placeholder="Describe detalladamente lo que buscas (ej. con patio, cerca del metro, seguridad 24/7, etc.)" required></textarea>
+            </div>
+          </div>
+
+          <div class="solicitud-modal-actions">
+            <button type="button" class="solicitud-btn-cancel" onclick="cerrarModalSolicitud()">Cancelar</button>
+            <button type="button" class="solicitud-btn-submit" id="btnCrearSolicitud" onclick="enviarSolicitudBusqueda()">Crear Solicitud</button>
+          </div>
+        </form>
+      </div>
+    </div>
 
     <!-- ================= FOOTER ================= -->
     <footer class="site-footer">
@@ -584,7 +824,7 @@
             </li>
             <li>
               <span class="contact-icon">✉️</span>
-              <span>Correo electrónico:<br><a href="mailto:Danieldecena63@gmail.com" class="footer-email"> Danieldecena63@gmail.com</a></span>
+              <span>Correo electrónico:<br><a href="mailto:Danieldecena63@gmail.com" class="footer-email">Danieldecena63@gmail.com</a></span>
             </li>
           </ul>
         </div>
@@ -606,7 +846,7 @@
     <script type="module">
       import { auth, db } from './firebase-config.js';
       import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-      import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+      import { doc, getDoc, addDoc, collection, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
       window.cambiarPestana = function(pestana) {
         const btnPub = document.getElementById('btnPublicaciones');
@@ -717,6 +957,87 @@
 
         localStorage.setItem(countKey, currentCount);
         renderAgents(currentUser);
+      }
+
+      // ===== MODAL: NUEVA SOLICITUD DE BÚSQUEDA =====
+      window.abrirModalSolicitud = function() {
+        if (!auth.currentUser) {
+          alert("Debes iniciar sesión para crear una solicitud de búsqueda.");
+          window.location.href = 'login.html';
+          return;
+        }
+        document.getElementById('solicitudModalOverlay').classList.add('active');
+      }
+
+      window.cerrarModalSolicitud = function() {
+        document.getElementById('solicitudModalOverlay').classList.remove('active');
+      }
+
+      document.getElementById('solicitudModalOverlay').addEventListener('click', (e) => {
+        if (e.target.id === 'solicitudModalOverlay') {
+          cerrarModalSolicitud();
+        }
+      });
+
+      window.enviarSolicitudBusqueda = async function() {
+        const user = auth.currentUser;
+        if (!user) {
+          alert("Debes iniciar sesión para crear una solicitud de búsqueda.");
+          window.location.href = 'login.html';
+          return;
+        }
+
+        const zona = document.getElementById('solZona').value.trim();
+        const tipoOferta = document.getElementById('solTipoOferta').value;
+        const presupuesto = document.getElementById('solPresupuesto').value.trim();
+        const moneda = document.getElementById('solMoneda').value;
+        const habitaciones = document.getElementById('solHabitaciones').value;
+        const banos = document.getElementById('solBanos').value;
+        const descripcion = document.getElementById('solDescripcion').value.trim();
+
+        if (!zona || !presupuesto || !descripcion) {
+          alert("Por favor completa todos los campos obligatorios.");
+          return;
+        }
+
+        const btnCrear = document.getElementById('btnCrearSolicitud');
+        btnCrear.disabled = true;
+        btnCrear.textContent = 'Enviando...';
+
+        try {
+          const solicitudId = `solicitud_${Date.now()}`;
+          const mensajeCompleto =
+            `📋 Nueva Solicitud de Búsqueda\n\n` +
+            `📍 Ubicación/Zona: ${zona}\n` +
+            `🏷️ Tipo de Oferta: ${tipoOferta}\n` +
+            `💰 Presupuesto Máximo: ${presupuesto} ${moneda}\n` +
+            `🛏️ Habitaciones: ${habitaciones}\n` +
+            `🛁 Baños: ${banos}\n\n` +
+            `📝 Descripción:\n${descripcion}`;
+
+          await addDoc(collection(db, "mensajes"), {
+            userId: user.uid,
+            propertyId: solicitudId,
+            propertyTitle: `Solicitud: ${zona}`,
+            propertyImage: 'assets/puerto-marina.png',
+            propertyPrice: `${presupuesto} ${moneda}`,
+            mensaje: mensajeCompleto,
+            sender: 'user',
+            leidoPorUsuario: true,
+            timestamp: serverTimestamp()
+          });
+
+          cerrarModalSolicitud();
+          document.getElementById('solicitudForm').reset();
+          alert("¡Tu solicitud fue enviada! Podrás ver la conversación en tus Mensajes.");
+          window.location.href = `mensajes.html?propiedadId=${encodeURIComponent(solicitudId)}`;
+        } catch (error) {
+          console.error("Error al crear la solicitud:", error);
+          alert("No se pudo enviar la solicitud. Inténtalo de nuevo.");
+        } finally {
+          btnCrear.disabled = false;
+          btnCrear.textContent = 'Crear Solicitud';
+        }
       }
 
       window.addEventListener('DOMContentLoaded', () => {
