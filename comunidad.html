@@ -6,7 +6,7 @@
     <title>Comunidad | Compra tu casa en RD</title>
     <link rel="icon" type="image/x-icon" href="assets/icono.ico">
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=stylesheet" rel="stylesheet">
     <!-- Hoja de Estilos -->
     <link rel="stylesheet" href="styles.css">
     <style>
@@ -33,9 +33,9 @@
       /* Contenedor general que abarca desde debajo del header hasta justo antes del footer */
       .main-page-wrapper {
         position: relative;
-        background: url('assets/bandera-rd-fondo.jpg') no-repeat center center;
+        background: url('assets/bandera-rd-fondo.jpg') no-repeat center 80px; /* Bajada más la imagen de fondo de la bandera */
         background-size: cover;
-        padding-top: 60px; /* Incrementado para separar el título de arriba */
+        padding-top: 110px; /* Incrementado para empujar todo el bloque hacia abajo */
         padding-bottom: 80px;
       }
 
@@ -47,7 +47,7 @@
         left: 0;
         width: 100%;
         height: 100%;
-        background: rgba(11, 11, 14, 0.78); /* Ajustado para que la imagen de la bandera se luzca mejor */
+        background: rgba(11, 11, 14, 0.78);
         pointer-events: none;
         z-index: 1;
       }
@@ -59,8 +59,8 @@
       }
 
       .community-hero-overlap {
-        padding-top: 30px; /* Más espacio superior para que "La Comunidad" baje y luzca bien */
-        padding-bottom: 45px;
+        padding-top: 50px; /* Mayor separación superior para que el título "La Comunidad" baje aún más */
+        padding-bottom: 50px;
       }
 
       .community-layout-overlap {
