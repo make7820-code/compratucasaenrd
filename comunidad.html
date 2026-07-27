@@ -17,23 +17,25 @@
         padding: 0;
       }
 
-      /* Imagen de fondo Hero con Plaza de la Bandera */
+      /* Imagen de fondo Hero con Plaza de la Bandera a altura completa */
       .hero {
         position: relative;
-        min-height: auto;
+        min-height: 480px;
         display: flex;
         align-items: center;
         justify-content: center;
         text-align: center;
         overflow: hidden;
         background: url('assets/hero-plaza-bandera.jpg') no-repeat center center/cover !important;
+        padding-top: 100px;
+        padding-bottom: 60px;
       }
 
       .hero::before {
         content: '';
         position: absolute;
         inset: 0;
-        background: rgba(0, 0, 0, 0.55); /* Capa oscura para resaltar el texto */
+        background: rgba(0, 0, 0, 0.65); /* Capa oscura para resaltar el texto */
         z-index: 1;
       }
 
@@ -57,12 +59,12 @@
         gap: 15px;
       }
 
-      /* Contenedor general sin imagen de fondo */
+      /* Contenedor general sin espacios blancos excesivos */
       .main-page-wrapper {
         position: relative;
-        background: none; /* Imagen de fondo eliminada */
-        padding-top: 110px;
-        padding-bottom: 80px;
+        background: none;
+        padding-top: 80px;
+        padding-bottom: 60px;
       }
 
       .community-hero-overlap,
@@ -72,8 +74,8 @@
       }
 
       .community-hero-overlap {
-        padding-top: 50px;
-        padding-bottom: 50px;
+        padding-top: 20px;
+        padding-bottom: 30px;
       }
 
       .community-layout-overlap {
@@ -641,21 +643,18 @@
       </div>
     </header>
 
-    <!-- ================= CONTENEDOR GENERAL SIN IMAGEN DE FONDO ================= -->
+    <!-- ================= HERO / BANNER SUPERIOR CON PLAZA DE LA BANDERA ================= -->
+    <section class="hero">
+      <div class="hero-content">
+        <h1 class="hero-title" style="font-size: 52px; font-weight: 800; color: #fff; margin-bottom: 12px; font-family: var(--font-display, sans-serif);">La Comunidad</h1>
+        <p class="hero-subtitle" style="font-size: 16px; color: #d4d4d8; background: rgba(18, 18, 20, 0.7); display: inline-block; padding: 10px 24px; border-radius: 30px; backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.08);">
+          Conecta con los mejores profesionales, descubre oportunidades.
+        </p>
+      </div>
+    </section>
+
+    <!-- ================= CONTENEDOR GENERAL ================= -->
     <div class="main-page-wrapper">
-
-      <!-- HERO / BANNER SUPERIOR -->
-      <section class="hero community-hero community-hero-overlap">
-        <div class="hero-content">
-          
-          <h1 class="hero-title" style="font-size: 52px; font-weight: 800; color: #fff; margin-bottom: 12px; font-family: var(--font-display, sans-serif);">La Comunidad</h1>
-          
-          <p class="hero-subtitle" style="font-size: 16px; color: #d4d4d8; background: rgba(18, 18, 20, 0.7); display: inline-block; padding: 10px 24px; border-radius: 30px; backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.08);">
-            Conecta con los mejores profesionales, descubre oportunidades.
-          </p>
-
-        </div>
-      </section>
 
       <!-- CONTENIDO SUPERPUESTO: PESTAÑAS + BANNER + PANEL LATERAL -->
       <div class="community-layout-overlap">
