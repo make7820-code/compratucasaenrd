@@ -31,23 +31,13 @@
 
       .main-page-wrapper {
         position: relative;
-        background-image: url('assets/hero-plaza-bandera.jpg');
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-        background-attachment: fixed;
+        background-image: none !important; /* Eliminada la imagen duplicada de fondo */
+        background-color: #0b0b0e;
         padding-bottom: 40px;
       }
 
       .main-page-wrapper::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.55);
-        z-index: 1;
+        display: none !important; /* Eliminada la capa oscura superpuesta innecesaria */
       }
 
       .community-hero-overlap,
@@ -627,7 +617,7 @@
       </div>
     </header>
 
-    <!-- ================= CONTENEDOR GENERAL CON FONDO DE FOTO ================= -->
+    <!-- ================= CONTENEDOR GENERAL SIN FONDO DUPLICADO ================= -->
     <div class="main-page-wrapper">
 
       <!-- HERO / BANNER SUPERIOR -->
@@ -714,7 +704,7 @@
 
       </div>
 
-    </div> <!-- FIN DEL CONTENEDOR GENERAL CON FOTO -->
+    </div> <!-- FIN DEL CONTENEDOR GENERAL -->
 
     <!-- ================= MODAL: NUEVA SOLICITUD DE BÚSQUEDA ================= -->
     <div class="solicitud-modal-overlay" id="solicitudModalOverlay">
@@ -1026,7 +1016,6 @@
               console.error("Error al consultar estado de conversación:", e);
             }
 
-            // Si la empresa finalizó la conversación, no la mostramos como activa
             if (estadoConversacion === 'finalizada') {
               continue; 
             }
