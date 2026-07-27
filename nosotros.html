@@ -260,12 +260,16 @@
         padding-top: 16px;
       }
 
+      /* Círculo del perfil y avatares perfectamente redondos e idénticos a comunidad.html */
       .author-avatar {
-        width: 44px;
-        height: 44px;
-        border-radius: 50%;
-        object-fit: cover;
-        border: 2px solid #3b82f6;
+        width: 44px !important;
+        height: 44px !important;
+        min-width: 44px !important;
+        min-height: 44px !important;
+        border-radius: 50% !important;
+        object-fit: cover !important;
+        border: 2px solid #3b82f6 !important;
+        display: block;
       }
 
       .author-info h4 {
@@ -411,6 +415,122 @@
 
       .notification-item:hover {
         background: rgba(255,255,255,0.05);
+      }
+
+      /* Estilos idénticos para el contenedor y círculo del perfil de usuario */
+      .profile-dropdown-container {
+        position: relative;
+        display: inline-block;
+      }
+
+      #profileBtn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 4px 8px 4px 4px;
+        border-radius: 999px;
+        transition: background 0.2s ease;
+      }
+
+      #profileBtn:hover {
+        background: rgba(255, 255, 255, 0.05);
+      }
+
+      #profileBtn img {
+        width: 38px !important;
+        height: 38px !important;
+        min-width: 38px !important;
+        min-height: 38px !important;
+        border-radius: 50% !important;
+        object-fit: cover !important;
+        border: 2px solid #3b82f6 !important;
+        display: block;
+      }
+
+      .profile-menu {
+        display: none;
+        position: absolute;
+        right: 0;
+        top: 50px;
+        background: #18181b;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        width: 240px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+        z-index: 1000;
+        padding: 8px;
+        backdrop-filter: blur(12px);
+      }
+
+      .profile-menu.show {
+        display: block;
+      }
+
+      .profile-menu-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+        padding: 10px 12px;
+        background: none;
+        border: none;
+        color: #d4d4d8;
+        font-size: 14px;
+        font-weight: 500;
+        text-align: left;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background 0.2s, color 0.2s;
+        text-decoration: none;
+      }
+
+      .profile-menu-item:hover {
+        background: rgba(255, 255, 255, 0.08);
+        color: #fff;
+      }
+
+      .profile-menu-divider {
+        height: 1px;
+        background: rgba(255, 255, 255, 0.08);
+        margin: 6px 0;
+      }
+
+      .profile-menu-section-title {
+        font-size: 11px;
+        font-weight: 700;
+        color: #71717a;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 6px 12px;
+      }
+
+      .profile-theme-selector {
+        display: flex;
+        background: rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 10px;
+        padding: 4px;
+        margin: 4px 8px;
+        gap: 4px;
+      }
+
+      .theme-btn {
+        flex: 1;
+        background: none;
+        border: none;
+        border-radius: 6px;
+        padding: 6px 0;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.2s;
+      }
+
+      .theme-btn.active {
+        background: rgba(59, 130, 246, 0.25);
+        border: 1px solid rgba(59, 130, 246, 0.4);
       }
 
       @keyframes fadeInUp {
