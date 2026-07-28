@@ -153,6 +153,52 @@
         z-index: 3;
       }
 
+      /* Tira de miniaturas para elegir foto */
+      .gallery-thumbs {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 24px;
+        overflow-x: auto;
+        padding-bottom: 4px;
+      }
+
+      .gallery-thumbs::-webkit-scrollbar {
+        height: 6px;
+      }
+
+      .gallery-thumbs::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 10px;
+      }
+
+      .gallery-thumb-item {
+        flex: 0 0 auto;
+        width: 72px;
+        height: 72px;
+        border-radius: 10px;
+        overflow: hidden;
+        cursor: pointer;
+        border: 2px solid transparent;
+        opacity: 0.6;
+        transition: opacity 0.2s, border-color 0.2s;
+      }
+
+      .gallery-thumb-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+
+      .gallery-thumb-item:hover {
+        opacity: 0.9;
+      }
+
+      .gallery-thumb-item.active {
+        opacity: 1;
+        border-color: #ef4444;
+      }
+
       /* Modal / Lightbox para Imagen Ampliada */
       .image-modal {
         display: none;
@@ -760,6 +806,42 @@
           
           const aceptaExtranjero = rawExtranjero === true || rawExtranjero === "true" || rawExtranjero === "si" || rawExtranjero === "sí" || rawExtranjero === 1 || rawExtranjero === "on";
 
+          // Tarjetas de specs: se ocultan si el valor es 0 / N/D (no aportan información)
+          const habsHtml = (habs && habs.toString() !== '0' && habs.toString().toUpperCase() !== 'N/D')
+            ? `<div class="spec-card">
+                 <span>Habitaciones</span>
+                 <strong>🛏️ ${habs} Hab</strong>
+               </div>`
+            : '';
+
+          const banosHtml = (banos && banos.toString() !== '0' && banos.toString().toUpperCase() !== 'N/D')
+            ? `<div class="spec-card">
+                 <span>Baños</span>
+                 <strong>🛁 ${banos} Baños</strong>
+               </div>`
+            : '';
+
+          const metrosHtml = (metros && metros.toString() !== '0' && metros.toString().toUpperCase() !== 'N/D')
+            ? `<div class="spec-card">
+                 <span>Superficie</span>
+                 <strong>📐 ${metros}</strong>
+               </div>`
+            : '';
+
+          const nivelHtml = (nivel && nivel.toString() !== '0' && nivel.toString().toUpperCase() !== 'N/D')
+            ? `<div class="spec-card">
+                 <span>Nivel / Altura</span>
+                 <strong>🏢 ${nivel}</strong>
+               </div>`
+            : '';
+
+          const parqueosHtml = (parqueos && parqueos.toString() !== '0' && parqueos.toString().toUpperCase() !== 'N/D')
+            ? `<div class="spec-card">
+                 <span>Parqueos</span>
+                 <strong>🚗 ${parqueos} Parqueos</strong>
+               </div>`
+            : '';
+
           const extranjeroBadgeHtml = aceptaExtranjero 
             ? `<div class="spec-card">
                  <span>Estatus</span>
@@ -850,6 +932,16 @@
                 ` : ''}
               </div>
 
+              ${imgs.length > 1 ? `
+                <div class="gallery-thumbs" id="galleryThumbs">
+                  ${imgs.map((src, i) => `
+                    <div class="gallery-thumb-item${i === 0 ? ' active' : ''}" data-index="${i}">
+                      <img src="${src}" alt="${title} miniatura ${i + 1}" onerror="this.src='assets/puerto-marina.png'">
+                    </div>
+                  `).join('')}
+                </div>
+              ` : ''}
+
               <div class="property-header-info">
                 <div>
                   <h1 class="property-title-main">${title}</h1>
@@ -860,27 +952,11 @@
 
               <!-- Cuadrícula de Especificaciones -->
               <div class="property-specs-grid">
-                <div class="spec-card">
-                  <span>Habitaciones</span>
-                  <strong>🛏️ ${habs} Hab</strong>
-                </div>
-                <div class="spec-card">
-                  <span>Baños</span>
-                  <strong>🛁 ${banos} Baños</strong>
-                </div>
-                <div class="spec-card">
-                  <span>Superficie</span>
-                  <strong>📐 ${metros}</strong>
-                </div>
-                <div class="spec-card">
-                  <span>Nivel / Altura</span>
-                  <strong>🏢 ${nivel}</strong>
-                </div>
-                <div class="spec-card">
-                  <span>Parqueos</span>
-                  <strong>🚗 ${parqueos} Parqueos</strong>
-                </div>
-
+                ${habsHtml}
+                ${banosHtml}
+                ${metrosHtml}
+                ${nivelHtml}
+                ${parqueosHtml}
                 ${extranjeroBadgeHtml}
                 ${amuebladoBadgeHtml}
                 ${depositosHtml}
@@ -938,22 +1014,35 @@
           const prevBtn = document.getElementById('prevImgBtn');
           const nextBtn = document.getElementById('nextImgBtn');
           const counterSpan = document.getElementById('currentImgIndex');
+          const thumbItems = document.querySelectorAll('.gallery-thumb-item');
+
+          function goToImage(index) {
+            currentIndex = (index + imgs.length) % imgs.length;
+            activeImgElement.src = imgs[currentIndex];
+            if (counterSpan) counterSpan.textContent = currentIndex + 1;
+            thumbItems.forEach(item => {
+              item.classList.toggle('active', Number(item.dataset.index) === currentIndex);
+            });
+          }
 
           if (prevBtn && nextBtn) {
             prevBtn.addEventListener('click', (e) => {
               e.stopPropagation();
-              currentIndex = (currentIndex - 1 + imgs.length) % imgs.length;
-              activeImgElement.src = imgs[currentIndex];
-              counterSpan.textContent = currentIndex + 1;
+              goToImage(currentIndex - 1);
             });
 
             nextBtn.addEventListener('click', (e) => {
               e.stopPropagation();
-              currentIndex = (currentIndex + 1 + imgs.length) % imgs.length;
-              activeImgElement.src = imgs[currentIndex];
-              counterSpan.textContent = currentIndex + 1;
+              goToImage(currentIndex + 1);
             });
           }
+
+          thumbItems.forEach(item => {
+            item.addEventListener('click', (e) => {
+              e.stopPropagation();
+              goToImage(Number(item.dataset.index));
+            });
+          });
 
           // Modal de Zoom
           const modal = document.getElementById('imageModal');
