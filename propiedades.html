@@ -1001,9 +1001,9 @@
               <span id="favCtaIcon">❤️</span> <span id="favCtaText">Ver Mis Favoritos</span>
             </button>
 
-            <a href="premium.html" id="btnCatalogoPremium" class="premium-cta">
-              <span>💎</span> Catálogo Premium
-            </a>
+            <button type="button" id="btnCatalogoPremium" class="premium-cta">
+              <span id="premiumCtaIcon">💎</span> <span id="premiumCtaText">Catálogo Premium</span>
+            </button>
           </div>
 
           <div class="properties-counter">
@@ -1292,6 +1292,9 @@
           const rawAmueblado = prop.amueblado !== undefined ? prop.amueblado : prop.furnished;
           const esAmueblado = rawAmueblado === true || rawAmueblado === "true" || rawAmueblado === "si" || rawAmueblado === "sí" || rawAmueblado === 1 || rawAmueblado === "on";
 
+          const rawPremium = prop.premium;
+          const esPremium = rawPremium === true || rawPremium === "true" || rawPremium === "si" || rawPremium === "sí" || rawPremium === 1 || rawPremium === "on";
+
           let listaImagenes = [];
           if (prop.imagenes && Array.isArray(prop.imagenes) && prop.imagenes.length > 0) {
             listaImagenes = prop.imagenes;
@@ -1335,11 +1338,13 @@
                  data-price="${parseFloat(propPrice.toString().replace(/[^0-9.]/g, '')) || 0}" 
                  data-habs="${propHabs}"
                  data-extranjeros="${aceptaExtranjero ? '1' : '0'}"
-                 data-amueblado="${esAmueblado ? '1' : '0'}">
+                 data-amueblado="${esAmueblado ? '1' : '0'}"
+                 data-premium="${esPremium ? '1' : '0'}">
               
               <div class="property-img-container" data-current-slide="0" data-total-slides="${listaImagenes.length}">
                 <span class="property-badge-top" style="background: ${badgeBg}; ${propOffer === 'Alquiler' ? 'color:#1a1a1a;' : ''}">${propOffer}</span>
                 ${esAmueblado ? `<span class="property-badge-top" style="background: #8b5cf6; left: auto; top: 44px;">🛋️ Amueblado</span>` : ''}
+                ${esPremium ? `<span class="property-badge-top" style="background: linear-gradient(135deg, #fde047, #f59e0b); color: #1a1a1a; left: auto; top: ${esAmueblado ? '78px' : '44px'};">⭐ Premium</span>` : ''}
                 
                 <div class="property-carousel-track">
                   ${slidesHtml}
@@ -1616,6 +1621,7 @@
         let soloExtranjerosActivo = false;
         let soloAmuebladoActivo = false;
         let soloFavoritosActivo = false;
+        let soloPremiumActivo = false;
         let noResultsMsg = document.createElement('div');
         noResultsMsg.style.cssText = 'grid-column: 1 / -1; text-align: center; padding: 40px; color: #a1a1aa; font-size: 16px; display: none;';
         noResultsMsg.innerHTML = '❌ No se encontraron propiedades con los filtros seleccionados.';
@@ -1651,8 +1657,10 @@
             const habs = card.getAttribute('data-habs');
             const extranjeros = card.getAttribute('data-extranjeros') === '1';
             const amueblado = card.getAttribute('data-amueblado') === '1';
+            const premium = card.getAttribute('data-premium') === '1';
 
             let cumpleFavoritos = !soloFavoritosActivo || favoritos.includes(cardId);
+            let cumplePremium = !soloPremiumActivo || premium;
             let cumpleTexto = texto === '' || title.includes(texto) || location.includes(texto);
             let cumplePrecio = price >= pMin && price <= pMax;
             let cumpleProv = provVal === '' || location.includes(provVal);
@@ -1664,7 +1672,7 @@
             let cumpleExtranjeros = !soloExtranjerosActivo || extranjeros;
             let cumpleAmueblado = !soloAmuebladoActivo || amueblado;
 
-            return cumpleFavoritos && cumpleTexto && cumplePrecio && cumpleProv && cumpleMun && cumpleDis && cumpleTipo && cumpleOferta && cumpleHabs && cumpleExtranjeros && cumpleAmueblado;
+            return cumpleFavoritos && cumplePremium && cumpleTexto && cumplePrecio && cumpleProv && cumpleMun && cumpleDis && cumpleTipo && cumpleOferta && cumpleHabs && cumpleExtranjeros && cumpleAmueblado;
           });
 
           const totalPaginas = Math.max(1, Math.ceil(coincidentes.length / ITEMS_POR_PAGINA_PROPIEDADES));
@@ -1788,6 +1796,30 @@
               btnVerFavoritos.style.background = '#ef4444';
               if (ctaIcon) ctaIcon.textContent = '❤️';
               if (ctaText) ctaText.textContent = 'Ver Mis Favoritos';
+            }
+
+            ejecutarFiltros();
+          });
+        }
+
+        const btnCatalogoPremium = document.getElementById('btnCatalogoPremium');
+        if (btnCatalogoPremium) {
+          btnCatalogoPremium.addEventListener('click', (e) => {
+            e.preventDefault();
+            soloPremiumActivo = !soloPremiumActivo;
+            const premiumIcon = document.getElementById('premiumCtaIcon');
+            const premiumText = document.getElementById('premiumCtaText');
+
+            if (soloPremiumActivo) {
+              btnCatalogoPremium.style.background = '#10b981';
+              btnCatalogoPremium.style.color = '#fff';
+              if (premiumIcon) premiumIcon.textContent = '🏠';
+              if (premiumText) premiumText.textContent = 'Ver Todas las Propiedades';
+            } else {
+              btnCatalogoPremium.style.background = 'linear-gradient(135deg, #fde047, #f59e0b)';
+              btnCatalogoPremium.style.color = '#1a1a1a';
+              if (premiumIcon) premiumIcon.textContent = '💎';
+              if (premiumText) premiumText.textContent = 'Catálogo Premium';
             }
 
             ejecutarFiltros();
