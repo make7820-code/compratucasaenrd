@@ -1054,3 +1054,228 @@ body.light-mode .theme-btn.active {
   display: block !important;
   margin-left: 6px !important;
 }
+
+/* ================================================= */
+/* ============ RESPONSIVE / MÓVIL ================ */
+/* ================================================= */
+
+/* ---- TABLETS Y MÓVILES GRANDES (hasta 900px) ---- */
+@media (max-width: 900px) {
+
+  .header-inner{
+    padding:0 16px;
+    gap:10px;
+  }
+
+  .site-header .header-inner .brand{
+    transform:translateX(0) !important;
+  }
+
+  .site-header .header-inner .brand .brand-logo{
+    height:38px !important;
+    max-height:38px !important;
+  }
+
+  .site-header .header-inner .brand .brand-demo-badge{
+    height:26px !important;
+    max-height:26px !important;
+  }
+
+  /* El menú se vuelve deslizable horizontalmente en vez de romperse */
+  .main-nav{
+    justify-content:flex-start;
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+    gap:4px;
+    flex:1;
+    mask-image:linear-gradient(to right, transparent, black 12px, black 95%, transparent);
+  }
+
+  .main-nav::-webkit-scrollbar{
+    display:none;
+  }
+
+  .nav-link{
+    padding:9px 14px;
+    font-size:14px;
+  }
+
+  .login-btn{
+    padding:9px 14px;
+    font-size:14px;
+  }
+
+  .login-btn span:nth-child(2){
+    max-width:90px;
+  }
+
+  .hero-title{
+    font-size:44px;
+  }
+
+  .hero-eyebrow{
+    font-size:20px;
+  }
+
+  .hero-subtitle{
+    font-size:16px;
+  }
+
+  .about-container{
+    flex-direction:column;
+    text-align:center;
+    gap:36px;
+  }
+
+  .about-text-content{
+    text-align:center;
+  }
+
+  .about-image-content{
+    justify-content:center;
+  }
+
+  .moving-card{
+    flex-direction:column;
+    padding:40px 24px;
+    gap:30px;
+  }
+
+  .actions-container{
+    flex-direction:column;
+  }
+
+  .footer-container{
+    grid-template-columns:1fr 1fr;
+    gap:32px;
+  }
+}
+
+/* ---- MÓVILES (hasta 600px) ---- */
+@media (max-width: 600px) {
+
+  .header-inner{
+    height:70px;
+    padding:0 12px;
+  }
+
+  .hero{
+    padding-top:70px;
+  }
+
+  .site-header .header-inner .brand .brand-logo{
+    height:32px !important;
+    max-height:32px !important;
+  }
+
+  .site-header .header-inner .brand .brand-demo-badge{
+    height:22px !important;
+    max-height:22px !important;
+  }
+
+  .login-btn span:nth-child(2){
+    display:none;
+  }
+
+  .login-btn{
+    padding:10px;
+  }
+
+  .hero-content{
+    padding:0 16px;
+  }
+
+  .hero-title{
+    font-size:32px;
+  }
+
+  .hero-eyebrow{
+    font-size:17px;
+  }
+
+  .hero-subtitle{
+    font-size:15px;
+    margin-bottom:24px;
+  }
+
+  .hero-cta{
+    padding:14px 26px;
+    font-size:15px;
+  }
+
+  .offers-section{
+    padding:60px 16px;
+  }
+
+  .offers-title{
+    font-size:28px;
+  }
+
+  .request-card{
+    padding:32px 20px;
+  }
+
+  .request-title{
+    font-size:22px;
+  }
+
+  .about-section{
+    padding:50px 16px;
+  }
+
+  .about-main-title{
+    font-size:30px;
+  }
+
+  .testimonials-section{
+    padding:60px 16px;
+  }
+
+  .testimonials-main-title{
+    font-size:28px;
+  }
+
+  .testimonials-slider{
+    height:420px;
+  }
+
+  .testimonial-card{
+    padding:32px 24px;
+  }
+
+  .moving-section{
+    padding:60px 16px;
+  }
+
+  .moving-title{
+    font-size:26px;
+  }
+
+  .moving-phone{
+    font-size:28px;
+  }
+
+  .action-card{
+    padding:36px 24px;
+  }
+
+  .action-title{
+    font-size:22px;
+  }
+
+  .footer-container{
+    grid-template-columns:1fr;
+    padding:0 16px 40px 16px;
+    gap:36px;
+  }
+
+  .footer-bottom-container{
+    flex-direction:column;
+    text-align:center;
+  }
+
+  .footer-legal-links{
+    gap:16px;
+  }
+}
