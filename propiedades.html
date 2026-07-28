@@ -290,8 +290,22 @@
 
       .properties-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        grid-template-columns: repeat(3, 1fr);
         gap: 24px;
+      }
+
+      /* Publicaciones en cuadrícula 3x3: en pantallas medianas bajamos a 2
+         columnas y en móvil a 1, para que siga viéndose profesional */
+      @media (max-width: 1150px) {
+        .properties-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+
+      @media (max-width: 700px) {
+        .properties-grid {
+          grid-template-columns: 1fr;
+        }
       }
 
       .property-card {
@@ -533,7 +547,7 @@
         border-radius: 999px;
       }
 
-      /* ===== Paginación (Cuadrícula 4x4) ===== */
+      /* ===== Paginación (Cuadrícula 3x3) ===== */
       .pagination-controls-wrap {
         display: flex;
         justify-content: center;
@@ -1635,8 +1649,8 @@
         noResultsMsg.innerHTML = '❌ No se encontraron propiedades con los filtros seleccionados.';
         propertiesGrid.appendChild(noResultsMsg);
 
-        /* ===== Estado de Paginación (Cuadrícula 4x4 = 16 por página) ===== */
-        const ITEMS_POR_PAGINA_PROPIEDADES = 16;
+        /* ===== Estado de Paginación (Cuadrícula 3x3 = 9 por página) ===== */
+        const ITEMS_POR_PAGINA_PROPIEDADES = 9;
         let paginaActualPropiedades = 1;
 
         function ejecutarFiltros(resetearPagina = true) {
@@ -1835,7 +1849,7 @@
         }
 
         /* Ejecuta el filtrado/paginación una vez al cargar, para que desde
-           el inicio solo se muestren 16 propiedades (4x4) por página */
+           el inicio solo se muestren 9 propiedades (3x3) por página */
         ejecutarFiltros();
       });
     </script>
