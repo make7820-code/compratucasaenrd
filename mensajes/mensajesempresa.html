@@ -560,7 +560,8 @@
   "3VUuf3bJLKfAWqAlT94L1VlvaHB3",
   "LEijKcwLMchLZnQWhYi9DA7igxw2",
   "0Erv42ygEJdhp5MLA2LHmQVbVuz1",
-  "aHJrlTkjAZaUCYxNsJRiL0yb1cs2"
+  "aHJrlTkjAZaUCYxNsJRiL0yb1cs2",
+  "2E7tIaEfdGeVERzDtWvaXQEmPG02"
 ];
         
 
@@ -580,11 +581,6 @@
             window.location.href = '../login.html';
             return;
           }
-
-          // === DEBUG TEMPORAL: muestra tu UID real para compararlo con ALLOWED_UIDS ===
-          alert("Tu UID real es:\n\n" + user.uid + "\n\nCópialo y compáralo con la lista ALLOWED_UIDS.");
-          console.log("MI UID:", user.uid);
-          // === FIN DEBUG TEMPORAL (borra este bloque después de verificar) ===
 
           if (!ALLOWED_UIDS.includes(user.uid)) {
             alert("Acceso denegado. Esta sección es exclusiva para agentes inmobiliarios autorizados.");
