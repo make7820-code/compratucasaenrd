@@ -1365,7 +1365,7 @@
                 </div>
               </div>
 
-              <div class="property-body">
+              <div class="property-body" data-property-link="detalle.html?id=${propId}" style="cursor: pointer;">
                 <div class="property-type">${propType}</div>
                 <h3 class="property-title"><a href="detalle.html?id=${propId}">${propTitle}</a></h3>
                 <p class="property-location">📍 ${propLocation}</p>
@@ -1405,6 +1405,14 @@
               btn.textContent = '❤️';
             }
             localStorage.setItem('mis_favoritos', JSON.stringify(favs));
+          });
+        });
+
+        document.querySelectorAll('.property-body[data-property-link]').forEach(body => {
+          body.addEventListener('click', (e) => {
+            if (e.target.closest('a')) return;
+            const link = body.getAttribute('data-property-link');
+            if (link) window.location.href = link;
           });
         });
 
