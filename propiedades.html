@@ -1334,11 +1334,17 @@
           }
 
           const propPrice = prop.precio || '0';
-          const propHabs = prop.habitaciones || prop.habs || '1';
-          const propBanos = prop.banos || '2';
+          const propHabs = prop.habitaciones || prop.habs || '0';
+          const propBanos = prop.banos || '0';
           const propNivel = prop.nivel || prop.altura || prop.piso || '';
-          const propParqueos = prop.parqueos || prop.parking || prop.parqueo || '1';
+          const propParqueos = prop.parqueos || prop.parking || prop.parqueo || '0';
           const propDescripcion = prop.descripcion || prop.description || '';
+
+          /* Cada estadística (Hab, Baños, Parq) solo se muestra si su valor
+             numérico es 1 o más; si es 0 o no está definida, se oculta */
+          const numHabs = parseInt(propHabs, 10) || 0;
+          const numBanos = parseInt(propBanos, 10) || 0;
+          const numParqueos = parseInt(propParqueos, 10) || 0;
 
           const rawExtranjero = prop.extranjeros !== undefined ? prop.extranjeros
                               : prop.extranjero !== undefined ? prop.extranjero
@@ -1429,9 +1435,9 @@
                 <div class="property-price">${propPrice}</div>
                 ${propDescripcion ? `<p class="property-desc-preview">${propDescripcion}</p>` : ''}
                 <div class="footer-info property-footer-info">
-                  <span>🛏️ ${propHabs} Hab</span>
-                  <span>🛁 ${propBanos} Baños</span>
-                  <span>🅿️ ${propParqueos} Parq</span>
+                  ${numHabs >= 1 ? `<span>🛏️ ${numHabs} Hab</span>` : ''}
+                  ${numBanos >= 1 ? `<span>🛁 ${numBanos} Baños</span>` : ''}
+                  ${numParqueos >= 1 ? `<span>🅿️ ${numParqueos} Parq</span>` : ''}
                   ${propNivel ? `<span>🏢 ${propNivel}</span>` : ''}
                 </div>
                 ${aceptaExtranjero ? `<div class="property-extranjeros-pill">🌍 Acepta extranjeros</div>` : ''}
