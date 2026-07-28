@@ -2002,6 +2002,7 @@
 
         if (mostrandoArchivadas) {
           let fuenteArchivadas = JSON.parse(localStorage.getItem('lista_archivadas')) || [];
+          fuenteArchivadas.sort((a, b) => new Date(b.fechaCreacion || 0) - new Date(a.fechaCreacion || 0));
           esArchivadaGestionActual = true;
           listaFiltradaGestionActual = fuenteArchivadas;
 
@@ -2022,6 +2023,8 @@
           querySnapshot.forEach((docSnap) => {
             listaPropiedades.push({ id: docSnap.id, ...docSnap.data() });
           });
+
+          listaPropiedades.sort((a, b) => new Date(b.fechaCreacion || 0) - new Date(a.fechaCreacion || 0));
 
           if (filtro.trim() !== '') {
             const queryText = filtro.toLowerCase();
