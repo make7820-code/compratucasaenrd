@@ -581,6 +581,11 @@
             return;
           }
 
+          // === DEBUG TEMPORAL: muestra tu UID real para compararlo con ALLOWED_UIDS ===
+          alert("Tu UID real es:\n\n" + user.uid + "\n\nCópialo y compáralo con la lista ALLOWED_UIDS.");
+          console.log("MI UID:", user.uid);
+          // === FIN DEBUG TEMPORAL (borra este bloque después de verificar) ===
+
           if (!ALLOWED_UIDS.includes(user.uid)) {
             alert("Acceso denegado. Esta sección es exclusiva para agentes inmobiliarios autorizados.");
             window.location.href = '../index.html';
