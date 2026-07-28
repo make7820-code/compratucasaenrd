@@ -558,7 +558,7 @@
         flex-wrap: wrap;
       }
       .pagination-btn {
-        background: var(--bg-card);
+        background: rgba(20, 20, 23, 0.9);
         border: 1px solid var(--border-color);
         color: var(--text-main);
         padding: 10px 20px;
@@ -572,8 +572,9 @@
         transition: all 0.2s;
       }
       .pagination-btn:hover:not(:disabled) {
-        border-color: #ef4444;
+        border-color: rgba(239, 68, 68, 0.55);
         color: #ef4444;
+        box-shadow: 0 0 12px rgba(239, 68, 68, 0.35);
       }
       .pagination-btn:disabled {
         opacity: 0.35;
@@ -599,7 +600,7 @@
         gap: 6px;
       }
       .pagination-num-btn {
-        background: var(--bg-card);
+        background: rgba(20, 20, 23, 0.9);
         border: 1px solid var(--border-color);
         color: var(--text-main);
         width: 34px;
@@ -614,14 +615,25 @@
         transition: all 0.2s;
       }
       .pagination-num-btn:hover:not(.active) {
-        border-color: #ef4444;
+        border-color: rgba(239, 68, 68, 0.55);
         color: #ef4444;
+        box-shadow: 0 0 12px rgba(239, 68, 68, 0.35);
       }
+      /* Página activa: mismo "glow" rojo tenue sobre fondo oscuro que usa
+         el enlace activo del menú (Propiedades), en vez de un relleno sólido */
       .pagination-num-btn.active {
-        background: #ef4444;
-        border-color: #ef4444;
-        color: #fff;
+        background: rgba(239, 68, 68, 0.12);
+        border: 1px solid #ef4444;
+        color: #ef4444;
+        box-shadow: 0 0 14px rgba(239, 68, 68, 0.55), inset 0 0 8px rgba(239, 68, 68, 0.15);
         cursor: default;
+      }
+
+      /* En modo claro el fondo oscuro de las pastillas se reemplaza por el
+         color de tarjeta claro, conservando el mismo acento de brillo rojo */
+      [data-theme="light"] .pagination-btn,
+      [data-theme="light"] .pagination-num-btn {
+        background: var(--bg-card);
       }
       .pagination-ellipsis {
         color: var(--text-muted);
