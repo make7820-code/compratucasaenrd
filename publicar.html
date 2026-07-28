@@ -341,41 +341,101 @@
         border-radius: 999px;
       }
 
-      /* ===== Paginación (Cuadrícula 4x4) ===== */
+      /* ===== Paginación (Cuadrícula 4x2 = 8 por página) ===== */
       .pagination-controls-wrap {
         display: flex;
         justify-content: center;
         align-items: center;
-        gap: 16px;
-        margin-top: 35px;
-      }
-      .pagination-btn {
+        gap: 6px;
+        margin: 35px auto 0 auto;
+        padding: 8px 10px;
         background: var(--card-bg);
         border: 1px solid var(--card-border);
+        border-radius: 999px;
+        width: fit-content;
+        flex-wrap: wrap;
+      }
+      .pagination-edge-btn {
+        background: transparent;
+        border: none;
         color: var(--text-main);
-        padding: 10px 20px;
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+        transition: all 0.2s;
+      }
+      .pagination-edge-btn:hover:not(:disabled) {
+        background: rgba(245, 158, 11, 0.15);
+        color: #f59e0b;
+      }
+      .pagination-edge-btn:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+      }
+      .pagination-btn {
+        background: transparent;
+        border: none;
+        color: var(--text-main);
+        padding: 9px 16px;
         border-radius: 999px;
         font-weight: 700;
         font-size: 13px;
         cursor: pointer;
         display: inline-flex;
         align-items: center;
-        gap: 8px;
+        gap: 6px;
         transition: all 0.2s;
+        white-space: nowrap;
       }
       .pagination-btn:hover:not(:disabled) {
-        border-color: #f59e0b;
+        background: rgba(245, 158, 11, 0.12);
         color: #f59e0b;
       }
       .pagination-btn:disabled {
         opacity: 0.35;
         cursor: not-allowed;
       }
-      .pagination-page-label {
-        font-size: 13px;
-        font-weight: 700;
+      .pagination-numbers {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        margin: 0 4px;
+      }
+      .pagination-number-btn {
+        background: transparent;
+        border: 2px solid transparent;
         color: var(--text-muted);
-        min-width: 90px;
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        font-weight: 700;
+        font-size: 13px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+        flex-shrink: 0;
+      }
+      .pagination-number-btn:hover {
+        color: #f59e0b;
+        background: rgba(245, 158, 11, 0.08);
+      }
+      .pagination-number-btn.active {
+        border-color: #f59e0b;
+        color: #f59e0b;
+        background: rgba(245, 158, 11, 0.12);
+      }
+      .pagination-ellipsis {
+        color: var(--text-muted);
+        padding: 0 2px;
+        font-weight: 700;
+        min-width: 16px;
         text-align: center;
       }
 
@@ -1928,8 +1988,8 @@
         }
       }
 
-      /* ===== Estado de Paginación (Cuadrícula 4x4 = 16 por página) ===== */
-      const ITEMS_POR_PAGINA_GESTION = 16;
+      /* ===== Estado de Paginación (Cuadrícula 4x2 = 8 por página) ===== */
+      const ITEMS_POR_PAGINA_GESTION = 8;
       let paginaActualGestion = 1;
       let listaFiltradaGestionActual = [];
       let esArchivadaGestionActual = false;
@@ -2001,6 +2061,20 @@
         renderizarControlesPaginacionGestion();
       }
 
+      function generarNumerosPaginaGestion(paginaActual, totalPaginas) {
+        const paginas = [];
+        for (let i = 1; i <= totalPaginas; i++) {
+          const esExtremo = (i === 1 || i === totalPaginas);
+          const esCercana = (i >= paginaActual - 1 && i <= paginaActual + 1);
+          if (esExtremo || esCercana) {
+            paginas.push(i);
+          } else if (paginas[paginas.length - 1] !== '...') {
+            paginas.push('...');
+          }
+        }
+        return paginas;
+      }
+
       function renderizarControlesPaginacionGestion() {
         let controles = document.getElementById('paginacionGestionWrap');
         const contenedorPadre = document.querySelector('.publicaciones-container');
@@ -2021,34 +2095,41 @@
           return;
         }
 
+        const numerosPagina = generarNumerosPaginaGestion(paginaActualGestion, totalPaginas);
+        const numerosHtml = numerosPagina.map(n => {
+          if (n === '...') return `<span class="pagination-ellipsis">…</span>`;
+          return `<button type="button" class="pagination-number-btn ${n === paginaActualGestion ? 'active' : ''}" data-page="${n}">${n}</button>`;
+        }).join('');
+
         controles.innerHTML = `
+          <button type="button" class="pagination-edge-btn" id="btnPrimeraPaginaGestion" title="Primera página" ${!hayPaginaAnterior ? 'disabled' : ''}>⏮</button>
           <button type="button" class="pagination-btn" id="btnPaginaAnteriorGestion" ${!hayPaginaAnterior ? 'disabled' : ''}>❮ Anterior</button>
-          <span class="pagination-page-label">Página ${paginaActualGestion} de ${totalPaginas}</span>
+          <div class="pagination-numbers">${numerosHtml}</div>
           <button type="button" class="pagination-btn" id="btnPaginaSiguienteGestion" ${!hayPaginaSiguiente ? 'disabled' : ''}>Siguiente ❯</button>
+          <button type="button" class="pagination-edge-btn" id="btnUltimaPaginaGestion" title="Última página" ${!hayPaginaSiguiente ? 'disabled' : ''}>⏭</button>
         `;
 
+        const irAPagina = (num) => {
+          const totalPag = Math.max(1, Math.ceil(listaFiltradaGestionActual.length / ITEMS_POR_PAGINA_GESTION));
+          if (num < 1 || num > totalPag || num === paginaActualGestion) return;
+          paginaActualGestion = num;
+          renderizarPaginaGestion();
+          contenedorPadre.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        };
+
+        const btnPrimera = document.getElementById('btnPrimeraPaginaGestion');
+        const btnUltima = document.getElementById('btnUltimaPaginaGestion');
         const btnAnterior = document.getElementById('btnPaginaAnteriorGestion');
         const btnSiguiente = document.getElementById('btnPaginaSiguienteGestion');
 
-        if (btnAnterior) {
-          btnAnterior.addEventListener('click', () => {
-            if (paginaActualGestion > 1) {
-              paginaActualGestion--;
-              renderizarPaginaGestion();
-              contenedorPadre.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
-          });
-        }
-        if (btnSiguiente) {
-          btnSiguiente.addEventListener('click', () => {
-            const totalPag = Math.max(1, Math.ceil(listaFiltradaGestionActual.length / ITEMS_POR_PAGINA_GESTION));
-            if (paginaActualGestion < totalPag) {
-              paginaActualGestion++;
-              renderizarPaginaGestion();
-              contenedorPadre.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
-          });
-        }
+        if (btnPrimera) btnPrimera.addEventListener('click', () => irAPagina(1));
+        if (btnUltima) btnUltima.addEventListener('click', () => irAPagina(totalPaginas));
+        if (btnAnterior) btnAnterior.addEventListener('click', () => irAPagina(paginaActualGestion - 1));
+        if (btnSiguiente) btnSiguiente.addEventListener('click', () => irAPagina(paginaActualGestion + 1));
+
+        controles.querySelectorAll('.pagination-number-btn').forEach(btn => {
+          btn.addEventListener('click', () => irAPagina(parseInt(btn.dataset.page, 10)));
+        });
       }
 
       function dibujarTarjetas(fuenteDatos, contenedor, esArchivada) {
