@@ -557,6 +557,10 @@
         grid-column: 1 / -1;
         flex-wrap: wrap;
       }
+      #paginacionPropiedadesWrapTop {
+        margin-top: 0;
+        margin-bottom: 25px;
+      }
       .pagination-btn {
         background: rgba(20, 20, 23, 0.9);
         border: 1px solid var(--border-color);
@@ -1213,6 +1217,7 @@
 
         <!-- LISTADO DE PROPIEDADES -->
         <main class="properties-content-area">
+          <div class="pagination-controls-wrap" id="paginacionPropiedadesWrapTop" style="display:none;"></div>
           <div class="properties-grid" id="propertiesGrid">
             <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #a1a1aa;">
               Cargando propiedades desde la base de datos...
@@ -1783,18 +1788,23 @@
         }
 
         /* Pinta los controles de paginación: Primera página, Anterior, números
-           de página clicables (con elipsis si hay muchas), Siguiente y Última página */
+           de página clicables (con elipsis si hay muchas), Siguiente y Última página.
+           Se pinta tanto en el contenedor de arriba como en el de abajo del listado. */
         function renderizarControlesPaginacionPropiedades(totalCoincidentes, totalPaginas) {
-          const wrap = document.getElementById('paginacionPropiedadesWrap');
-          if (!wrap) return;
+          const wraps = [
+            document.getElementById('paginacionPropiedadesWrapTop'),
+            document.getElementById('paginacionPropiedadesWrap')
+          ].filter(Boolean);
+          if (wraps.length === 0) return;
 
           if (totalCoincidentes <= ITEMS_POR_PAGINA_PROPIEDADES) {
-            wrap.style.display = 'none';
-            wrap.innerHTML = '';
+            wraps.forEach(wrap => {
+              wrap.style.display = 'none';
+              wrap.innerHTML = '';
+            });
             return;
           }
 
-          wrap.style.display = 'flex';
           const hayAnterior = paginaActualPropiedades > 1;
           const haySiguiente = paginaActualPropiedades < totalPaginas;
 
@@ -1817,50 +1827,53 @@
             anterior = p;
           });
 
-          wrap.innerHTML = `
-            <button type="button" class="pagination-btn pagination-btn-icon" id="btnPropPagPrimera" title="Primera página" ${!hayAnterior ? 'disabled' : ''}>⏮</button>
-            <button type="button" class="pagination-btn" id="btnPropPagAnterior" ${!hayAnterior ? 'disabled' : ''}>❮ Anterior</button>
-            <div class="pagination-numbers">${numerosHtml}</div>
-            <button type="button" class="pagination-btn" id="btnPropPagSiguiente" ${!haySiguiente ? 'disabled' : ''}>Siguiente ❯</button>
-            <button type="button" class="pagination-btn pagination-btn-icon" id="btnPropPagUltima" title="Última página" ${!haySiguiente ? 'disabled' : ''}>⏭</button>
-          `;
-
-          const irAPagina = (numeroPagina) => {
+          const irAPagina = (numeroPagina, wrap) => {
             paginaActualPropiedades = numeroPagina;
             ejecutarFiltros(false);
             wrap.scrollIntoView({ behavior: 'smooth', block: 'center' });
           };
 
-          const btnPrimera = document.getElementById('btnPropPagPrimera');
-          const btnAnt = document.getElementById('btnPropPagAnterior');
-          const btnSig = document.getElementById('btnPropPagSiguiente');
-          const btnUltima = document.getElementById('btnPropPagUltima');
+          wraps.forEach(wrap => {
+            wrap.style.display = 'flex';
+            wrap.innerHTML = `
+              <button type="button" class="pagination-btn pagination-btn-icon" data-accion="primera" title="Primera página" ${!hayAnterior ? 'disabled' : ''}>⏮</button>
+              <button type="button" class="pagination-btn" data-accion="anterior" ${!hayAnterior ? 'disabled' : ''}>❮ Anterior</button>
+              <div class="pagination-numbers">${numerosHtml}</div>
+              <button type="button" class="pagination-btn" data-accion="siguiente" ${!haySiguiente ? 'disabled' : ''}>Siguiente ❯</button>
+              <button type="button" class="pagination-btn pagination-btn-icon" data-accion="ultima" title="Última página" ${!haySiguiente ? 'disabled' : ''}>⏭</button>
+            `;
 
-          if (btnPrimera) {
-            btnPrimera.addEventListener('click', () => {
-              if (paginaActualPropiedades > 1) irAPagina(1);
-            });
-          }
-          if (btnAnt) {
-            btnAnt.addEventListener('click', () => {
-              if (paginaActualPropiedades > 1) irAPagina(paginaActualPropiedades - 1);
-            });
-          }
-          if (btnSig) {
-            btnSig.addEventListener('click', () => {
-              if (paginaActualPropiedades < totalPaginas) irAPagina(paginaActualPropiedades + 1);
-            });
-          }
-          if (btnUltima) {
-            btnUltima.addEventListener('click', () => {
-              if (paginaActualPropiedades < totalPaginas) irAPagina(totalPaginas);
-            });
-          }
+            const btnPrimera = wrap.querySelector('[data-accion="primera"]');
+            const btnAnt = wrap.querySelector('[data-accion="anterior"]');
+            const btnSig = wrap.querySelector('[data-accion="siguiente"]');
+            const btnUltima = wrap.querySelector('[data-accion="ultima"]');
 
-          wrap.querySelectorAll('.pagination-num-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-              const numeroPagina = parseInt(btn.getAttribute('data-pagina'), 10);
-              if (numeroPagina !== paginaActualPropiedades) irAPagina(numeroPagina);
+            if (btnPrimera) {
+              btnPrimera.addEventListener('click', () => {
+                if (paginaActualPropiedades > 1) irAPagina(1, wrap);
+              });
+            }
+            if (btnAnt) {
+              btnAnt.addEventListener('click', () => {
+                if (paginaActualPropiedades > 1) irAPagina(paginaActualPropiedades - 1, wrap);
+              });
+            }
+            if (btnSig) {
+              btnSig.addEventListener('click', () => {
+                if (paginaActualPropiedades < totalPaginas) irAPagina(paginaActualPropiedades + 1, wrap);
+              });
+            }
+            if (btnUltima) {
+              btnUltima.addEventListener('click', () => {
+                if (paginaActualPropiedades < totalPaginas) irAPagina(totalPaginas, wrap);
+              });
+            }
+
+            wrap.querySelectorAll('.pagination-num-btn').forEach(btn => {
+              btn.addEventListener('click', () => {
+                const numeroPagina = parseInt(btn.getAttribute('data-pagina'), 10);
+                if (numeroPagina !== paginaActualPropiedades) irAPagina(numeroPagina, wrap);
+              });
             });
           });
         }
