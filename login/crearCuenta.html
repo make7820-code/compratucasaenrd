@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Crear Cuenta Completa | Compra tu casa en RD</title>
-     <link rel="icon" type="image/x-icon" href="assets/icono.ico">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
     <!-- Hoja de Estilos Principal -->
@@ -255,6 +254,8 @@
         <h2>Crear Cuenta Completa</h2>
         <p style="font-size: 13px; color: #a1a1aa; margin-bottom: 20px;">Completa tus datos para registrarte en la plataforma.</p>
         
+        <div id="errorRegistroBanner" style="display:none; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.4); color: #fca5a5; padding: 14px 16px; border-radius: 12px; font-size: 13.5px; line-height: 1.5; margin-bottom: 18px;"></div>
+
         <form id="registroCompletoForm">
           
           <!-- SECCIÓN 1: CUENTA -->
@@ -386,9 +387,36 @@
       import { doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
       const form = document.getElementById('registroCompletoForm');
+      const bannerError = document.getElementById('errorRegistroBanner');
+
+      function mostrarErrorRegistro(error) {
+        console.error("Error detallado al registrar en Firebase:", error);
+        const codigo = error.code || '';
+        let mensaje = 'Ocurrió un error al registrar tu cuenta. Inténtalo de nuevo.';
+
+        if (codigo === 'auth/email-already-in-use') {
+          mensaje = `Este correo ya está registrado. Si es tu cuenta, <a href="../login.html" style="color:#f59e0b; font-weight:700;">inicia sesión aquí</a>. Si no puedes acceder, usa la opción de "olvidé mi contraseña" en el login, o registra con otro correo.`;
+        } else if (codigo === 'auth/invalid-email') {
+          mensaje = 'El correo electrónico ingresado no es válido. Revisa que esté bien escrito.';
+        } else if (codigo === 'auth/weak-password') {
+          mensaje = 'La contraseña es muy débil. Usa al menos 6 caracteres.';
+        } else if (codigo === 'auth/network-request-failed') {
+          mensaje = 'Hubo un problema de conexión. Revisa tu internet e intenta de nuevo.';
+        } else if (codigo === 'auth/too-many-requests') {
+          mensaje = 'Se detectaron demasiados intentos. Espera un momento e inténtalo de nuevo.';
+        } else if (error.message) {
+          mensaje = 'Error al registrar: ' + error.message;
+        }
+
+        bannerError.innerHTML = mensaje;
+        bannerError.style.display = 'block';
+        bannerError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
 
       form.addEventListener('submit', async function(e) {
         e.preventDefault();
+        bannerError.style.display = 'none';
+        bannerError.innerHTML = '';
 
         const nombreUsuario = document.getElementById('nombreUsuario').value.trim();
         const email = document.getElementById('email').value.trim();
@@ -446,8 +474,7 @@
           window.location.href = '../comunidad.html';
 
         } catch (error) {
-          console.error("Error detallado al registrar en Firebase:", error);
-          alert("Error al registrar: " + error.message);
+          mostrarErrorRegistro(error);
         }
       });
     </script>
