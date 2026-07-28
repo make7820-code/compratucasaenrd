@@ -1001,7 +1001,7 @@
               <span id="favCtaIcon">❤️</span> <span id="favCtaText">Ver Mis Favoritos</span>
             </button>
 
-            <button type="button" id="btnCatalogoPremium" class="premium-cta">
+            <button type="button" id="btnCatalogoPremium" class="premium-cta" style="border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; background: linear-gradient(135deg, #fde047, #f59e0b); color: #fff; padding: 12px 24px; border-radius: 30px; font-weight: 700; font-size: 16px; font-family: inherit; text-decoration: none; box-shadow: 0 10px 25px rgba(245, 158, 11, 0.4);">
               <span id="premiumCtaIcon">💎</span> <span id="premiumCtaText">Catálogo Premium</span>
             </button>
           </div>
@@ -1817,7 +1817,7 @@
               if (premiumText) premiumText.textContent = 'Ver Todas las Propiedades';
             } else {
               btnCatalogoPremium.style.background = 'linear-gradient(135deg, #fde047, #f59e0b)';
-              btnCatalogoPremium.style.color = '#1a1a1a';
+              btnCatalogoPremium.style.color = '#fff';
               if (premiumIcon) premiumIcon.textContent = '💎';
               if (premiumText) premiumText.textContent = 'Catálogo Premium';
             }
