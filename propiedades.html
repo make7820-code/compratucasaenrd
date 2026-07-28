@@ -1348,7 +1348,11 @@
           const propPrice = prop.precio || '0';
           const propHabs = prop.habitaciones || prop.habs || '0';
           const propBanos = prop.banos || '0';
-          const propNivel = prop.nivel || prop.altura || prop.piso || '';
+          const rawNivel = (prop.nivel || prop.altura || prop.piso || '').toString().trim();
+          /* El nivel/piso no se muestra si está vacío, es "0" o dice "N/D"
+             (no disponible), ya que en esos casos no existe ese dato real */
+          const nivelInvalido = rawNivel === '' || rawNivel === '0' || rawNivel.toLowerCase() === 'n/d';
+          const propNivel = nivelInvalido ? '' : rawNivel;
           const propParqueos = prop.parqueos || prop.parking || prop.parqueo || '0';
           const propDescripcion = prop.descripcion || prop.description || '';
 
