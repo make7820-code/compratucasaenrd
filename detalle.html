@@ -248,9 +248,16 @@
         display: flex;
         justify-content: space-between;
         align-items: flex-start;
+        gap: 20px;
         margin-bottom: 20px;
         border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         padding-bottom: 20px;
+        flex-wrap: wrap;
+      }
+
+      .property-header-text {
+        flex: 1 1 260px;
+        min-width: 0;
       }
 
       .property-tag-badge {
@@ -269,6 +276,7 @@
         font-weight: 800;
         color: #fff;
         margin-bottom: 8px;
+        word-break: break-word;
       }
 
       .property-location-main {
@@ -280,8 +288,11 @@
       }
 
       .property-price-main {
-        font-size: 32px;
+        font-size: clamp(20px, 4vw, 32px);
         font-weight: 800;
+        white-space: nowrap;
+        flex-shrink: 0;
+        text-align: right;
       }
 
       /* Cuadrícula de Especificaciones */
@@ -944,7 +955,7 @@
               ` : ''}
 
               <div class="property-header-info">
-                <div>
+                <div class="property-header-text">
                   <h1 class="property-title-main">${title}</h1>
                   <p class="property-location-main">📍 ${location}</p>
                 </div>
