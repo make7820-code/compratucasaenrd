@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Detalle de Propiedad | Compra tu casa en RD</title>
+    <link rel="icon" type="image/x-icon" href="assets/icono.ico">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
     <!-- Hoja de Estilos -->
@@ -911,7 +912,7 @@
 
           const imgs = (selectedProperty.imagenes && selectedProperty.imagenes.length > 0) ? selectedProperty.imagenes : [selectedProperty.image || 'assets/puerto-marina.png'];
           const description = selectedProperty.descripcion || selectedProperty.description || selectedProperty.detalles || 'Sin descripción detallada.';
-          const agente = "Daniel Decena";
+          const agente = "Compra Tu Casa En RD";
 
           const whatsappMessage = `¡Hola! Vi esta propiedad en https://www.compratucasard.com/ y estoy interesado(a) en ella. Me gustaría recibir más información (${window.location.href}) y, si es posible, coordinar una visita para conocerla. Quedo atent@. ¡Muchas gracias!`;
 
@@ -977,7 +978,7 @@
               <div class="property-sidebar-box">
                 <h3>Contactar Asesor</h3>
                 <div class="agent-profile">
-                  <img src="assets/onlybladi-avatar.png" alt="Asesor" class="agent-avatar" onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=onlybladi'">
+                  <img src="assets/icono.ico" alt="Asesor" class="agent-avatar" onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=onlybladi'">
                   <div>
                     <div class="agent-name">${agente}</div>
                     <div class="agent-role">Asesor Inmobiliario Senior</div>
