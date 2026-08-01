@@ -754,6 +754,11 @@
             </div>
 
             <div class="solicitud-field">
+              <label for="solNombre">Nombre y Apellido *</label>
+              <input type="text" id="solNombre" placeholder="Ej. Juan Pérez" required>
+            </div>
+
+            <div class="solicitud-field">
               <label for="solTipoOferta">Tipo de Oferta *</label>
               <select id="solTipoOferta" required>
                 <option value="Cualquiera">Cualquiera</option>
@@ -797,9 +802,14 @@
               </select>
             </div>
 
-            <div class="solicitud-field full-width">
+            <div class="solicitud-field">
               <label for="solTelefono">Número de Teléfono *</label>
               <input type="tel" id="solTelefono" placeholder="Ej. 809-555-1234" required>
+            </div>
+
+            <div class="solicitud-field">
+              <label for="solNacionalidad">Nacionalidad *</label>
+              <input type="text" id="solNacionalidad" placeholder="Ej. Dominicana" required>
             </div>
 
             <div class="solicitud-field full-width">
@@ -1118,15 +1128,17 @@
         }
 
         const zona = document.getElementById('solZona').value.trim();
+        const nombre = document.getElementById('solNombre').value.trim();
         const tipoOferta = document.getElementById('solTipoOferta').value;
         const presupuesto = document.getElementById('solPresupuesto').value.trim();
         const moneda = document.getElementById('solMoneda').value;
         const habitaciones = document.getElementById('solHabitaciones').value;
         const banos = document.getElementById('solBanos').value;
         const telefono = document.getElementById('solTelefono').value.trim();
+        const nacionalidad = document.getElementById('solNacionalidad').value.trim();
         const descripcion = document.getElementById('solDescripcion').value.trim();
 
-        if (!zona || !presupuesto || !telefono || !descripcion) {
+        if (!zona || !nombre || !presupuesto || !telefono || !nacionalidad || !descripcion) {
           alert("Por favor completa todos los campos obligatorios.");
           return;
         }
@@ -1139,12 +1151,14 @@
           const solicitudId = `solicitud_${Date.now()}`;
           const mensajeCompleto =
             `📋 Nueva Solicitud de Búsqueda\n\n` +
+            `👤 Nombre y Apellido: ${nombre}\n` +
             `📍 Ubicación/Zona: ${zona}\n` +
             `🏷️ Tipo de Oferta: ${tipoOferta}\n` +
             `💰 Presupuesto Máximo: ${presupuesto} ${moneda}\n` +
             `🛏️ Habitaciones: ${habitaciones}\n` +
             `🛁 Baños: ${banos}\n` +
-            `📞 Teléfono: ${telefono}\n\n` +
+            `📞 Teléfono: ${telefono}\n` +
+            `🌎 Nacionalidad: ${nacionalidad}\n\n` +
             `📝 Descripción:\n${descripcion}`;
 
           await addDoc(collection(db, "mensajes"), {
@@ -1153,7 +1167,9 @@
             propertyTitle: `Solicitud: ${zona}`,
             propertyImage: 'assets/puerto-marina.png',
             propertyPrice: `${presupuesto} ${moneda}`,
+            nombreSolicitante: nombre,
             telefono: telefono,
+            nacionalidad: nacionalidad,
             mensaje: mensajeCompleto,
             sender: 'user',
             leidoPorUsuario: true,
