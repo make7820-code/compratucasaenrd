@@ -798,6 +798,11 @@
             </div>
 
             <div class="solicitud-field full-width">
+              <label for="solTelefono">Número de Teléfono *</label>
+              <input type="tel" id="solTelefono" placeholder="Ej. 809-555-1234" required>
+            </div>
+
+            <div class="solicitud-field full-width">
               <label for="solDescripcion">Descripción de tu Búsqueda *</label>
               <textarea id="solDescripcion" placeholder="Describe detalladamente lo que buscas (ej. con patio, cerca del metro, seguridad 24/7, etc.)" required></textarea>
             </div>
@@ -1118,9 +1123,10 @@
         const moneda = document.getElementById('solMoneda').value;
         const habitaciones = document.getElementById('solHabitaciones').value;
         const banos = document.getElementById('solBanos').value;
+        const telefono = document.getElementById('solTelefono').value.trim();
         const descripcion = document.getElementById('solDescripcion').value.trim();
 
-        if (!zona || !presupuesto || !descripcion) {
+        if (!zona || !presupuesto || !telefono || !descripcion) {
           alert("Por favor completa todos los campos obligatorios.");
           return;
         }
@@ -1137,7 +1143,8 @@
             `🏷️ Tipo de Oferta: ${tipoOferta}\n` +
             `💰 Presupuesto Máximo: ${presupuesto} ${moneda}\n` +
             `🛏️ Habitaciones: ${habitaciones}\n` +
-            `🛁 Baños: ${banos}\n\n` +
+            `🛁 Baños: ${banos}\n` +
+            `📞 Teléfono: ${telefono}\n\n` +
             `📝 Descripción:\n${descripcion}`;
 
           await addDoc(collection(db, "mensajes"), {
@@ -1146,6 +1153,7 @@
             propertyTitle: `Solicitud: ${zona}`,
             propertyImage: 'assets/puerto-marina.png',
             propertyPrice: `${presupuesto} ${moneda}`,
+            telefono: telefono,
             mensaje: mensajeCompleto,
             sender: 'user',
             leidoPorUsuario: true,
