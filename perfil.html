@@ -1083,11 +1083,12 @@
           }
         }
 
-        // --- VISIBILIDAD DEL BOTÓN DE GESTIÓN (solo agente) ---
+        // --- VISIBILIDAD DEL BOTÓN DE GESTIÓN (agente, admin y superadmin) ---
+        const rolesGestion = ['agente', 'admin', 'superadmin'];
         const btnGestion = document.getElementById('btnGestion');
 
         if (btnGestion) {
-          if (rolUsuario === 'agente') {
+          if (rolesGestion.includes(rolUsuario)) {
             btnGestion.style.display = 'inline-flex';
           } else {
             btnGestion.style.display = 'none';
