@@ -511,6 +511,16 @@
             <span>🏠</span> Publicar Propiedad
           </button>
 
+          <!-- Botón de Mensajes Agente, solo para superadmin/admin -->
+          <button type="button" class="profile-action-btn-publish" id="btnMensajesAgente" style="display: none;" onclick="window.location.href='mensajes/mensajesempresa.html'">
+            <span>💬</span> Mensajes Agente
+          </button>
+
+          <!-- Botón de Gestión, solo para agente -->
+          <button type="button" class="profile-action-btn-publish" id="btnGestion" style="display: none;" onclick="window.location.href='gestiondeagente.html'">
+            <span>📋</span> Gestión
+          </button>
+
           <!-- Botón de Atrás en Color Verde -->
           <button type="button" class="profile-action-btn-back" onclick="window.history.back()">
             <span>⬅️</span> Atrás
@@ -1058,6 +1068,29 @@
             btnPublicar.style.display = 'inline-flex';
           } else {
             btnPublicar.style.display = 'none';
+          }
+        }
+
+        // --- VISIBILIDAD DEL BOTÓN DE MENSAJES AGENTE (solo superadmin/admin) ---
+        const rolesMensajesAgente = ['superadmin', 'admin'];
+        const btnMensajesAgente = document.getElementById('btnMensajesAgente');
+
+        if (btnMensajesAgente) {
+          if (rolesMensajesAgente.includes(rolUsuario)) {
+            btnMensajesAgente.style.display = 'inline-flex';
+          } else {
+            btnMensajesAgente.style.display = 'none';
+          }
+        }
+
+        // --- VISIBILIDAD DEL BOTÓN DE GESTIÓN (solo agente) ---
+        const btnGestion = document.getElementById('btnGestion');
+
+        if (btnGestion) {
+          if (rolUsuario === 'agente') {
+            btnGestion.style.display = 'inline-flex';
+          } else {
+            btnGestion.style.display = 'none';
           }
         }
 
