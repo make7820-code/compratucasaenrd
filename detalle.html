@@ -928,9 +928,17 @@
 
           const imgs = (selectedProperty.imagenes && selectedProperty.imagenes.length > 0) ? selectedProperty.imagenes : [selectedProperty.image || 'assets/puerto-marina.png'];
           const description = selectedProperty.descripcion || selectedProperty.description || selectedProperty.detalles || 'Sin descripción detallada.';
-          const agente = "Compra Tu Casa En RD";
 
-          const whatsappMessage = `¡Hola! Vi esta propiedad en https://www.compratucasard.com/ y estoy interesado(a) en ella. Me gustaría recibir más información (${window.location.href}) y, si es posible, coordinar una visita para conocerla. Quedo atent@. ¡Muchas gracias!`;
+          // Datos del agente que publicó esta propiedad (si la publicación no tiene agente asignado,
+          // se usa el contacto general del sitio como respaldo).
+          const agente = selectedProperty.agente || "Compra Tu Casa En RD";
+          const agenteFoto = selectedProperty.agenteFotoCreador || "assets/icono.ico";
+          const agenteWhatsappNumero = (selectedProperty.agenteWhatsapp && selectedProperty.agenteWhatsapp.trim() !== '')
+            ? selectedProperty.agenteWhatsapp.replace(/[^0-9]/g, '')
+            : '18498572321';
+          const agenteUidDestino = selectedProperty.creadoPorUid || "3VUuf3bJLKfAWqAlT94L1VlvaHB3";
+
+          const whatsappMessage = `¡Hola ${agente}! Vi esta propiedad en https://www.compratucasard.com/ y estoy interesado(a) en ella. Me gustaría recibir más información (${window.location.href}) y, si es posible, coordinar una visita para conocerla. Quedo atent@. ¡Muchas gracias!`;
 
           container.innerHTML = `
             <div class="property-main-content">
@@ -994,17 +1002,17 @@
               <div class="property-sidebar-box">
                 <h3>Contactar Asesor</h3>
                 <div class="agent-profile">
-                  <img src="assets/icono.ico" alt="Asesor" class="agent-avatar" onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=onlybladi'">
+                  <img src="${agenteFoto}" alt="Asesor" class="agent-avatar" onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(agente)}'">
                   <div>
                     <div class="agent-name">${agente}</div>
-                    <div class="agent-role">Asesor Inmobiliario Senior</div>
+                    <div class="agent-role">Asesor Inmobiliario</div>
                   </div>
                 </div>
 
                 <a href="#" id="btnEnviarMensaje" class="contact-btn">
                   <span>💬</span> Enviar Mensaje
                 </a>
-                <a href="https://wa.me/18498572321?text=${encodeURIComponent(whatsappMessage)}" target="_blank" class="contact-btn whatsapp-btn">
+                <a href="https://wa.me/${agenteWhatsappNumero}?text=${encodeURIComponent(whatsappMessage)}" target="_blank" class="contact-btn whatsapp-btn">
                   <span>📱</span> Contactar por WhatsApp
                 </a>
               </div>
@@ -1016,12 +1024,12 @@
           if (btnEnviarMensaje) {
             btnEnviarMensaje.addEventListener('click', (e) => {
               e.preventDefault();
-              const ANFITRION_UID = "3VUuf3bJLKfAWqAlT94L1VlvaHB3";
-              
+              // Se envía al agente que publicó la propiedad (agenteUidDestino).
+              // Si la publicación es antigua y no tiene dueño asignado, cae al contacto general del sitio.
               const propertyTitleEncoded = encodeURIComponent(title);
               const propertyUrlEncoded = encodeURIComponent(window.location.href);
               
-              window.location.href = `mensajes.html?destinatario=${ANFITRION_UID}&propiedadId=${propertyId}&titulo=${propertyTitleEncoded}&url=${propertyUrlEncoded}`;
+              window.location.href = `mensajes.html?destinatario=${agenteUidDestino}&propiedadId=${propertyId}&titulo=${propertyTitleEncoded}&url=${propertyUrlEncoded}`;
             });
           }
 
