@@ -1192,6 +1192,7 @@
               <option value="">Todas</option>
               <option value="Venta">Venta</option>
               <option value="Alquiler">Alquiler</option>
+              <option value="Compra/Alquiler">Compra/Alquiler</option>
             </select>
           </div>
 
@@ -1345,8 +1346,16 @@
           const rawOffer = (prop.operacion || prop.oferta || prop.offer || prop.tipoOferta || prop.status || 'Venta').toString().toLowerCase();
           const incluyeVenta = rawOffer.includes('venta');
           const incluyeAlquiler = rawOffer.includes('alquiler');
+          /* Alquiler con opción a compra: se marca aparte de "Venta & Alquiler"
+             porque es una modalidad distinta (no es venta directa) */
+          const incluyeCompraAlquiler = rawOffer.includes('compra/alquiler') ||
+                                         rawOffer.includes('compra / alquiler') ||
+                                         rawOffer.includes('opcion a compra') ||
+                                         rawOffer.includes('opción a compra');
           let propOffer = 'Venta';
-          if (incluyeVenta && incluyeAlquiler) {
+          if (incluyeCompraAlquiler) {
+            propOffer = 'Compra/Alquiler';
+          } else if (incluyeVenta && incluyeAlquiler) {
             propOffer = 'Venta & Alquiler';
           } else if (incluyeAlquiler) {
             propOffer = 'Alquiler';
@@ -1399,6 +1408,8 @@
             badgeBg = '#3b82f6'; // azul
           } else if (propOffer === 'Alquiler') {
             badgeBg = '#eab308'; // amarillo
+          } else if (propOffer === 'Compra/Alquiler') {
+            badgeBg = '#f97316'; // naranja
           }
           const esFavorito = favoritos.includes(propId);
 
