@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Pagos | Compra tu casa en RD</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+      body {
+        background-color: #0b0b0e;
+        color: #fff;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        margin: 0;
+        font-family: 'Inter', sans-serif;
+      }
+
+      .site-header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        z-index: 1000;
+        background: rgba(11, 11, 14, 0.95);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .header-inner {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 15px 20px;
+      }
+
+      .panel-wrapper {
+        flex: 1;
+        max-width: 1000px;
+        width: 100%;
+        margin: 0 auto;
+        padding: 140px 20px 60px 20px;
+      }
+
+      .panel-wrapper h1 {
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 4px;
+        font-family: var(--font-display, 'Poppins', sans-serif);
+      }
+
+      .panel-sub {
+        font-size: 13px;
+        color: #a1a1aa;
+        margin-bottom: 26px;
+      }
+
+      .filtros {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 22px;
+        flex-wrap: wrap;
+      }
+
+      .filtro-btn {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: #d4d4d8;
+        padding: 8px 16px;
+        border-radius: 999px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .filtro-btn.activo {
+        background: #3b82f6;
+        border-color: #3b82f6;
+        color: #fff;
+      }
+
+      #listaSolicitudes {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .solicitud-card {
+        background: rgba(18, 18, 20, 0.92);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 18px;
+        padding: 22px;
+        display: grid;
+        grid-template-columns: 160px 1fr;
+        gap: 20px;
+      }
+
+      .solicitud-card .comprobante-thumb {
+        width: 160px;
+        height: 160px;
+        object-fit: cover;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        cursor: pointer;
+        background: rgba(255, 255, 255, 0.03);
+      }
+
+      .comprobante-thumb-pdf {
+        width: 160px;
+        height: 160px;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.04);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+        color: #a1a1aa;
+        text-align: center;
+        text-decoration: none;
+        padding: 10px;
+        box-sizing: border-box;
+      }
+
+      .solicitud-info .nombre {
+        font-size: 16px;
+        font-weight: 700;
+      }
+
+      .solicitud-info .detalle {
+        font-size: 13px;
+        color: #a1a1aa;
+        margin-top: 3px;
+        line-height: 1.6;
+      }
+
+      .estado-pill {
+        display: inline-block;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        margin-top: 8px;
+      }
+
+      .estado-pendiente { background: rgba(234, 179, 8, 0.15); color: #facc15; }
+      .estado-aprobado { background: rgba(34, 197, 94, 0.15); color: #4ade80; }
+      .estado-rechazado { background: rgba(239, 68, 68, 0.15); color: #f87171; }
+
+      .solicitud-acciones {
+        display: flex;
+        gap: 10px;
+        margin-top: 14px;
+      }
+
+      .btn-accion {
+        border: none;
+        padding: 9px 16px;
+        border-radius: 10px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      .btn-aprobar { background: #22c55e; color: #052e12; }
+      .btn-aprobar:hover { background: #16a34a; }
+      .btn-rechazar { background: rgba(239, 68, 68, 0.15); color: #fca5a5; }
+      .btn-rechazar:hover { background: rgba(239, 68, 68, 0.28); }
+      .btn-accion:disabled { opacity: 0.5; cursor: not-allowed; }
+
+      #estadoVacio, #estadoCargando {
+        text-align: center;
+        color: #a1a1aa;
+        font-size: 14px;
+        padding: 60px 20px;
+      }
+
+      #pantallaSinAcceso {
+        display: none;
+        text-align: center;
+        padding: 160px 20px 60px 20px;
+      }
+
+      #pantallaSinAcceso h2 { font-size: 22px; margin-bottom: 8px; }
+      #pantallaSinAcceso p { color: #a1a1aa; font-size: 14px; }
+
+      @media (max-width: 600px) {
+        .solicitud-card { grid-template-columns: 1fr; }
+        .solicitud-card .comprobante-thumb,
+        .comprobante-thumb-pdf { width: 100%; height: 200px; }
+      }
+    </style>
+</head>
+<body>
+
+    <header class="site-header">
+      <div class="header-inner">
+        <a href="index.html" class="brand" style="text-decoration: none; display: flex; align-items: center; gap: 8px;">
+          <span style="color: #fff; font-weight: 800; font-size: 16px;">Compra tu casa en RD</span>
+        </a>
+      </div>
+    </header>
+
+    <div id="pantallaSinAcceso">
+      <h2>🔒 Acceso restringido</h2>
+      <p>Esta página solo está disponible para el superadministrador de la plataforma.</p>
+    </div>
+
+    <div class="panel-wrapper" id="panelWrapper" style="display:none;">
+      <h1>Comprobantes de membresía</h1>
+      <p class="panel-sub">Revisa y aprueba los pagos de Agente / Agente Pro subidos por los usuarios.</p>
+
+      <div class="filtros">
+        <button class="filtro-btn activo" data-filtro="pendiente">Pendientes</button>
+        <button class="filtro-btn" data-filtro="aprobado">Aprobados</button>
+        <button class="filtro-btn" data-filtro="rechazado">Rechazados</button>
+        <button class="filtro-btn" data-filtro="todos">Todos</button>
+      </div>
+
+      <div id="estadoCargando">Cargando solicitudes...</div>
+      <div id="estadoVacio" style="display:none;">No hay solicitudes en esta categoría.</div>
+      <div id="listaSolicitudes"></div>
+    </div>
+
+    <script type="module">
+      import { auth, db } from './firebase-config.js';
+      import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+      import {
+        doc, getDoc, setDoc, collection, query, orderBy, getDocs, updateDoc
+      } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+      const PLANES_LABEL = { agente: 'Agente Inmobiliario', agentepro: 'Agente Pro' };
+
+      let solicitudesCache = [];
+      let filtroActual = 'pendiente';
+
+      onAuthStateChanged(auth, async (user) => {
+        if (!user) {
+          window.location.href = 'login.html';
+          return;
+        }
+
+        try {
+          const snap = await getDoc(doc(db, "usuarios", user.uid));
+          const rol = snap.exists() ? snap.data().rol : null;
+
+          if (rol !== 'superadmin') {
+            document.getElementById('pantallaSinAcceso').style.display = 'block';
+            return;
+          }
+
+          document.getElementById('panelWrapper').style.display = 'block';
+          await cargarSolicitudes();
+
+        } catch (err) {
+          console.error('Error verificando permisos:', err);
+          document.getElementById('pantallaSinAcceso').style.display = 'block';
+        }
+      });
+
+      async function cargarSolicitudes() {
+        document.getElementById('estadoCargando').style.display = 'block';
+        document.getElementById('estadoVacio').style.display = 'none';
+
+        try {
+          const q = query(collection(db, "solicitudesPago"), orderBy("fecha", "desc"));
+          const snap = await getDocs(q);
+          solicitudesCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        } catch (err) {
+          console.error('Error cargando solicitudes:', err);
+        }
+
+        document.getElementById('estadoCargando').style.display = 'none';
+        renderizarLista();
+      }
+
+      function renderizarLista() {
+        const cont = document.getElementById('listaSolicitudes');
+        cont.innerHTML = '';
+
+        const filtradas = filtroActual === 'todos'
+          ? solicitudesCache
+          : solicitudesCache.filter(s => s.estado === filtroActual);
+
+        document.getElementById('estadoVacio').style.display = filtradas.length ? 'none' : 'block';
+
+        filtradas.forEach(sol => {
+          cont.appendChild(crearTarjeta(sol));
+        });
+      }
+
+      function crearTarjeta(sol) {
+        const card = document.createElement('div');
+        card.className = 'solicitud-card';
+
+        const esPdf = (sol.comprobanteURL || '').toLowerCase().includes('.pdf');
+        const previewHTML = esPdf
+          ? `<a class="comprobante-thumb-pdf" href="${sol.comprobanteURL}" target="_blank" rel="noopener">📄 Ver comprobante (PDF)</a>`
+          : `<img class="comprobante-thumb" src="${sol.comprobanteURL}" alt="Comprobante" onclick="window.open('${sol.comprobanteURL}', '_blank')">`;
+
+        const nombre = sol.nombreCompleto || sol.nombreUsuario || sol.email || 'Usuario';
+        const plan = PLANES_LABEL[sol.rolSolicitado] || sol.rolSolicitado || '-';
+        const fecha = sol.fecha ? new Date(sol.fecha).toLocaleString('es-DO') : '-';
+
+        card.innerHTML = `
+          ${previewHTML}
+          <div class="solicitud-info">
+            <div class="nombre">${nombre}</div>
+            <div class="detalle">
+              ${sol.email || ''}${sol.telefono ? ' · ' + sol.telefono : ''}<br>
+              Plan: <b>${plan}</b>${sol.monto ? ' · RD$ ' + sol.monto : ''}<br>
+              ${sol.referencia ? 'Referencia: ' + sol.referencia + '<br>' : ''}
+              Enviado: ${fecha}
+            </div>
+            <span class="estado-pill estado-${sol.estado}">${sol.estado}</span>
+            <div class="solicitud-acciones"></div>
+          </div>
+        `;
+
+        const acciones = card.querySelector('.solicitud-acciones');
+
+        if (sol.estado === 'pendiente') {
+          const btnAprobar = document.createElement('button');
+          btnAprobar.className = 'btn-accion btn-aprobar';
+          btnAprobar.textContent = 'Aprobar';
+          btnAprobar.onclick = () => procesarSolicitud(sol, 'aprobado', btnAprobar, btnRechazar);
+
+          const btnRechazar = document.createElement('button');
+          btnRechazar.className = 'btn-accion btn-rechazar';
+          btnRechazar.textContent = 'Rechazar';
+          btnRechazar.onclick = () => procesarSolicitud(sol, 'rechazado', btnAprobar, btnRechazar);
+
+          acciones.appendChild(btnAprobar);
+          acciones.appendChild(btnRechazar);
+        }
+
+        return card;
+      }
+
+      async function procesarSolicitud(sol, nuevoEstado, btnAprobar, btnRechazar) {
+        btnAprobar.disabled = true;
+        btnRechazar.disabled = true;
+
+        try {
+          // 1. Actualizar la solicitud
+          await updateDoc(doc(db, "solicitudesPago", sol.id), { estado: nuevoEstado });
+
+          // 2. Actualizar el perfil del usuario según la decisión
+          if (nuevoEstado === 'aprobado') {
+            await setDoc(doc(db, "usuarios", sol.uid), {
+              rol: sol.rolSolicitado,
+              pagado: true,
+              estadoMembresia: 'activo'
+            }, { merge: true });
+          } else {
+            await setDoc(doc(db, "usuarios", sol.uid), {
+              estadoMembresia: 'rechazado'
+            }, { merge: true });
+          }
+
+          sol.estado = nuevoEstado;
+          renderizarLista();
+
+        } catch (err) {
+          console.error('Error al procesar la solicitud:', err);
+          alert('No se pudo actualizar la solicitud. Intenta de nuevo.');
+          btnAprobar.disabled = false;
+          btnRechazar.disabled = false;
+        }
+      }
+
+      document.querySelectorAll('.filtro-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.filtro-btn').forEach(b => b.classList.remove('activo'));
+          btn.classList.add('activo');
+          filtroActual = btn.dataset.filtro;
+          renderizarLista();
+        });
+      });
+    </script>
+</body>
+</html>
