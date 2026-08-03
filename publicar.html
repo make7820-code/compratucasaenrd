@@ -1692,7 +1692,7 @@
             // rol 'agente'        -> solo ve/gestiona SUS PROPIAS publicaciones.
             rolUsuarioActual = userData.rol || '';
             esModoAdmin = UIDS_AUTORIZADOS.includes(user.uid) || rolUsuarioActual === 'admin' || rolUsuarioActual === 'superadmin';
-            const esAgenteAutorizado = esModoAdmin || rolUsuarioActual === 'agente';
+            const esAgenteAutorizado = esModoAdmin || rolUsuarioActual === 'agente' || rolUsuarioActual === 'agentepro';
 
             if (!esAgenteAutorizado) {
               alert("Acceso denegado. No tienes permiso para publicar propiedades. Contacta a un administrador para que te asigne el rol de agente.");
