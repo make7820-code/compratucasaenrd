@@ -284,18 +284,6 @@
             <button type="submit" class="btn-submit" id="btnEnviarComprobante">Enviar comprobante para revisión</button>
           </form>
         </div>
-
-        <!-- Pantalla 2: confirmación -->
-        <div id="pantallaEnviado">
-          <div class="icono">✅</div>
-          <h2>¡Comprobante recibido!</h2>
-          <p style="font-size: 14px; color: #a1a1aa; line-height: 1.6;">
-            Estamos revisando tu pago. En cuanto se confirme, tu cuenta pasará a rol de <b id="rolConfirmado">Agente</b> automáticamente y podrás publicar propiedades.
-          </p>
-          <a href="comunidad.html" class="btn-submit" style="display:inline-block; text-decoration:none; margin-top: 10px;">Ir a la comunidad</a>
-        </div>
-
-      </div>
     </div>
 
     <footer class="site-footer">
@@ -330,18 +318,27 @@
       document.getElementById('planNombre').textContent = PLANES[rolSolicitado].nombre;
       document.getElementById('planMonto').innerHTML = PLANES[rolSolicitado].label.replace(' / ', ' <span>/ ') + '</span>';
       document.getElementById('tituloPlan').textContent = `Activar membresía: ${PLANES[rolSolicitado].nombre}`;
-      document.getElementById('rolConfirmado').textContent = PLANES[rolSolicitado].nombre;
+
+      // Número de WhatsApp que recibe los comprobantes (formato: código de país + número, sin + ni espacios)
+      const WHATSAPP_DESTINO = '18495962321';
 
       const storage = getStorage(getApp());
       let usuarioActual = null;
+      let datosUsuario = null;
 
-      onAuthStateChanged(auth, (user) => {
+      onAuthStateChanged(auth, async (user) => {
         if (!user) {
           // Si no hay sesión activa, lo mandamos a iniciar sesión primero
           window.location.href = 'login.html';
           return;
         }
         usuarioActual = user;
+        try {
+          const snap = await getDoc(doc(db, "usuarios", user.uid));
+          if (snap.exists()) datosUsuario = snap.data();
+        } catch (err) {
+          console.error('No se pudo leer el perfil del usuario:', err);
+        }
       });
 
       const form = document.getElementById('formComprobante');
@@ -373,6 +370,11 @@
         btn.disabled = true;
         btn.textContent = 'Enviando...';
 
+        // Abrimos la pestaña de WhatsApp de inmediato (mientras aún es un clic
+        // directo del usuario) para que el navegador no la bloquee como pop-up;
+        // más abajo, cuando ya tengamos el link de la foto, la redirigimos ahí.
+        const ventanaWhatsApp = window.open('', '_blank');
+
         try {
           // 1. Subir el comprobante a Firebase Storage
           const rutaArchivo = `comprobantes/${usuarioActual.uid}/${Date.now()}_${archivo.name}`;
@@ -384,6 +386,9 @@
           await addDoc(collection(db, "solicitudesPago"), {
             uid: usuarioActual.uid,
             email: usuarioActual.email,
+            nombreUsuario: datosUsuario ? (datosUsuario.nombreUsuario || null) : null,
+            nombreCompleto: datosUsuario ? `${datosUsuario.nombres || ''} ${datosUsuario.apellidos || ''}`.trim() : null,
+            telefono: datosUsuario ? (datosUsuario.telefono || null) : null,
             rolSolicitado: rolSolicitado,
             monto: PLANES[rolSolicitado].monto,
             referencia: referencia || null,
@@ -397,11 +402,37 @@
             estadoMembresia: 'en_revision'
           }, { merge: true });
 
-          document.getElementById('pantallaFormulario').style.display = 'none';
-          document.getElementById('pantallaEnviado').style.display = 'block';
+          // 4. Armar el mensaje y abrir WhatsApp con todo pre-escrito.
+          //    WhatsApp no permite adjuntar el archivo automáticamente desde una
+          //    página web, así que en su lugar mandamos el link directo a la
+          //    foto (ya está alojada en Firebase Storage) para que se pueda
+          //    ver con solo tocarlo. Solo falta que la persona toque "Enviar".
+          const nombreCompleto = datosUsuario
+            ? `${datosUsuario.nombres || ''} ${datosUsuario.apellidos || ''}`.trim()
+            : (usuarioActual.email || 'Usuario');
+
+          const mensaje =
+            `Hola, envío mi comprobante de pago de membresía.\n` +
+            `Nombre: ${nombreCompleto}\n` +
+            `Plan: ${PLANES[rolSolicitado].nombre}\n` +
+            `Monto: ${PLANES[rolSolicitado].label}\n` +
+            (referencia ? `Referencia: ${referencia}\n` : '') +
+            `Comprobante: ${comprobanteURL}`;
+
+          const urlWhatsApp = `https://wa.me/${WHATSAPP_DESTINO}?text=${encodeURIComponent(mensaje)}`;
+
+          if (ventanaWhatsApp) {
+            ventanaWhatsApp.location.href = urlWhatsApp;
+          } else {
+            window.open(urlWhatsApp, '_blank');
+          }
+
+          // 5. Llevamos al usuario a su perfil con el mensaje de estado
+          window.location.href = 'perfil.html?bauche=enviado';
 
         } catch (error) {
           console.error('Error al enviar comprobante:', error);
+          if (ventanaWhatsApp) ventanaWhatsApp.close();
           mostrarEstado('Ocurrió un error al enviar tu comprobante. Intenta de nuevo.', 'error');
           btn.disabled = false;
           btn.textContent = 'Enviar comprobante para revisión';
