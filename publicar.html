@@ -928,6 +928,7 @@
       <div class="publish-page-hero">
         <h1 class="publish-page-title">Gestión Profesional de Publicaciones</h1>
         <p class="publish-page-subtitle">Administra, edita, archiva o publica tus inmuebles con control total en la nube.</p>
+        <p id="badgeModoGestion" style="display:none; font-size:13px; font-weight:700; margin-bottom:15px;"></p>
         
         <div class="hero-buttons-wrapper">
           <button type="button" class="btn-open-publish-modal" onclick="abrirModalPublicar()">
@@ -1034,6 +1035,13 @@
             <div class="publish-form-group">
               <label>Nombre del Agente</label>
               <input type="text" id="propAgente" class="publish-control" placeholder="Ej. Carlos Ruiz" required>
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="publish-form-group">
+              <label>WhatsApp del Agente (quien publica)</label>
+              <input type="text" id="propAgenteWhatsapp" class="publish-control" placeholder="Ej. 18091234567 (código país + número, sin + ni espacios)" required>
             </div>
           </div>
 
@@ -1257,7 +1265,9 @@
         doc, 
         getDoc,
         updateDoc, 
-        deleteDoc 
+        deleteDoc,
+        query,
+        where
       } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
       import { 
         ref as storageRefFn, 
@@ -1269,6 +1279,9 @@
       let imagenesEditandoActuales = []; 
       let cachePropiedadesActuales = {};
 
+      // UIDs con control TOTAL fija de fábrica (superadmin / admins de confianza).
+      // Estos usuarios siempre pueden ver, editar y borrar TODAS las publicaciones,
+      // sin importar lo que diga su documento en Firestore.
       const UIDS_AUTORIZADOS = [
         "2E7tIaEfdGeVERzDtWvaXQEmPG02", 
         "3VUuf3bJLKfAWqAlT94L1VlvaHB3",
@@ -1276,6 +1289,12 @@
         "6pJApysgZfQu9Z59W7nUDryS37w2",
           
       ];
+
+      // Estado de sesión y permisos del usuario actual, se rellena en onAuthStateChanged.
+      let usuarioActualUid = null;
+      let esModoAdmin = false;       // true = ve y gestiona TODAS las publicaciones
+      let rolUsuarioActual = '';     // 'agente' | 'admin' | 'superadmin'
+      let perfilUsuarioActual = { nombre: '', foto: null, whatsapp: '' };
 
       /* =========================================================
          DATOS GEOGRÁFICOS: Provincia -> Municipio -> Distritos
@@ -1649,29 +1668,44 @@
               return;
             }
 
-            if (!UIDS_AUTORIZADOS.includes(user.uid)) {
-              alert("Acceso denegado. No tienes permiso para publicar propiedades.");
-              window.location.href = 'index.html';
-              return;
-            }
-
             const savedTheme = localStorage.getItem('site_theme') || 'dark';
             if (savedTheme === 'light') document.body.classList.add('light-mode');
 
             let nombreCompleto = user.email.split('@')[0];
             let fotoGuardada = null;
+            let userData = {};
 
             try {
               const docRef = doc(db, "usuarios", user.uid);
               const docSnap = await getDoc(docRef);
               if (docSnap.exists()) {
-                const userData = docSnap.data();
+                userData = docSnap.data();
                 nombreCompleto = userData.nombres || userData.nombre || nombreCompleto;
                 fotoGuardada = userData.fotoPerfil || userData.foto || null;
               }
             } catch (error) {
               console.error("Error al obtener datos de Firestore:", error);
             }
+
+            // --- Control de acceso y roles ---
+            // esModoAdmin = true  -> ve/gestiona TODAS las publicaciones de TODOS los agentes.
+            // rol 'agente'        -> solo ve/gestiona SUS PROPIAS publicaciones.
+            rolUsuarioActual = userData.rol || '';
+            esModoAdmin = UIDS_AUTORIZADOS.includes(user.uid) || rolUsuarioActual === 'admin' || rolUsuarioActual === 'superadmin';
+            const esAgenteAutorizado = esModoAdmin || rolUsuarioActual === 'agente';
+
+            if (!esAgenteAutorizado) {
+              alert("Acceso denegado. No tienes permiso para publicar propiedades. Contacta a un administrador para que te asigne el rol de agente.");
+              window.location.href = 'index.html';
+              return;
+            }
+
+            usuarioActualUid = user.uid;
+            perfilUsuarioActual = {
+              nombre: nombreCompleto,
+              foto: fotoGuardada,
+              whatsapp: userData.whatsapp || ''
+            };
 
             const authContainer = document.getElementById('authContainer');
             
@@ -1764,6 +1798,18 @@
               });
             }
 
+            const badgeModo = document.getElementById('badgeModoGestion');
+            if (badgeModo) {
+              badgeModo.style.display = 'block';
+              if (esModoAdmin) {
+                badgeModo.textContent = '🛡️ Modo Administrador: viendo y gestionando las publicaciones de TODOS los agentes.';
+                badgeModo.style.color = '#f59e0b';
+              } else {
+                badgeModo.textContent = '👤 Viendo únicamente tus propias publicaciones como agente.';
+                badgeModo.style.color = 'var(--text-muted)';
+              }
+            }
+
             actualizarContadorArchivadas();
             renderizarPublicaciones();
           } catch (e) {
@@ -1817,6 +1863,12 @@
 
         document.querySelectorAll('.extra-checkbox').forEach(chk => { chk.checked = false; });
 
+        // Publicación nueva: precargamos nombre y WhatsApp del agente con los datos de su perfil.
+        if (!editarObj) {
+          document.getElementById('propAgente').value = perfilUsuarioActual.nombre || '';
+          document.getElementById('propAgenteWhatsapp').value = perfilUsuarioActual.whatsapp || '';
+        }
+
         document.getElementById('propMunicipio').innerHTML = '<option value="">Selecciona</option>';
         document.getElementById('propMunicipio').disabled = true;
         document.getElementById('propDistrito').innerHTML = '<option value="">Selecciona</option>';
@@ -1829,6 +1881,7 @@
           document.getElementById('propTipoPropiedad').value = editarObj.tipo || 'Casa';
           document.getElementById('propOperacion').value = editarObj.operacion || 'Venta';
           document.getElementById('propAgente').value = editarObj.agente || '';
+          document.getElementById('propAgenteWhatsapp').value = editarObj.agenteWhatsapp || '';
           document.getElementById('propDeposito').value = editarObj.deposito || '';
           document.getElementById('propComision').value = editarObj.comision || '';
           
@@ -1920,6 +1973,15 @@
         event.preventDefault();
         const editId = document.getElementById('propEditId').value;
         const archivosInput = document.getElementById('propArchivos');
+
+        // Seguridad: si se está editando, solo el dueño de la publicación o un admin pueden guardar cambios.
+        if (editId) {
+          const propOriginal = cachePropiedadesActuales[editId];
+          if (propOriginal && propOriginal.creadoPorUid && propOriginal.creadoPorUid !== usuarioActualUid && !esModoAdmin) {
+            alert("No tienes permiso para modificar esta propiedad. Solo el agente que la publicó o un administrador pueden editarla.");
+            return;
+          }
+        }
         
         try {
           alert("Procesando y subiendo archivos a la nube...");
@@ -1952,6 +2014,7 @@
             precio: precioFmt,
             moneda: monedaVal,
             agente: document.getElementById('propAgente').value,
+            agenteWhatsapp: (document.getElementById('propAgenteWhatsapp').value || '').replace(/[^0-9]/g, ''),
             deposito: document.getElementById('propDeposito').value || '',
             comision: document.getElementById('propComision').value || '',
             extranjeros: document.getElementById('propExtranjeros').checked,
@@ -1980,6 +2043,10 @@
             alert("¡Propiedad actualizada con éxito en la nube!");
           } else {
             datosPropiedad.fechaCreacion = new Date().toISOString();
+            // Se registra quién publicó la propiedad: solo el dueño (o un admin) podrá editarla/borrarla después,
+            // y detalle.html usará estos datos para dirigir los contactos al agente correcto.
+            datosPropiedad.creadoPorUid = usuarioActualUid;
+            datosPropiedad.agenteFotoCreador = perfilUsuarioActual.foto || '';
             await addDoc(collection(db, "propiedades"), datosPropiedad);
             alert("¡Propiedad publicada con éxito en la nube!");
           }
@@ -2022,7 +2089,12 @@
 
         try {
           contenedor.innerHTML = `<p style="color: var(--text-muted); text-align: center; grid-column: 1 / -1; padding: 40px;">Cargando propiedades desde Firebase...</p>`;
-          const querySnapshot = await getDocs(collection(db, "propiedades"));
+          // Los administradores/superadmin ven TODAS las publicaciones (moderación).
+          // Un agente normal solo ve las que él mismo publicó (creadoPorUid).
+          const consultaPropiedades = esModoAdmin
+            ? collection(db, "propiedades")
+            : query(collection(db, "propiedades"), where("creadoPorUid", "==", usuarioActualUid));
+          const querySnapshot = await getDocs(consultaPropiedades);
           let listaPropiedades = [];
 
           querySnapshot.forEach((docSnap) => {
@@ -2184,6 +2256,7 @@
                   <span class="card-prop-price">${prop.precio}</span>
                 </div>
                 <p class="card-prop-ubicacion">📍 ${prop.ubicacion}</p>
+                ${esModoAdmin ? `<p class="card-prop-ubicacion" style="opacity:0.8;">🧑‍💼 Agente: ${prop.agente || 'N/D'}</p>` : ''}
                 
                 <div class="card-features-grid">
                   <span>🛏️ ${prop.habitaciones} hab</span>
@@ -2217,20 +2290,39 @@
         contenedor.innerHTML = html;
       }
 
+      // Confirma que el usuario actual puede gestionar (editar/borrar/archivar) esta propiedad:
+      // debe ser quien la publicó, o un admin/superadmin.
+      function puedeGestionar(prop) {
+        if (esModoAdmin) return true;
+        if (!prop.creadoPorUid) return true; // publicaciones antiguas sin dueño asignado
+        return prop.creadoPorUid === usuarioActualUid;
+      }
+
       window.editarPublicacionPorId = function(id) {
         const prop = cachePropiedadesActuales[id];
-        if (prop) abrirModalPublicar(prop);
+        if (!prop) return;
+        if (!puedeGestionar(prop)) {
+          alert("No tienes permiso para editar esta propiedad. Solo el agente que la publicó o un administrador pueden hacerlo.");
+          return;
+        }
+        abrirModalPublicar(prop);
       }
 
       window.duplicarPublicacionPorId = async function(id) {
         const prop = cachePropiedadesActuales[id];
         if (!prop) return;
+        if (!puedeGestionar(prop)) {
+          alert("No tienes permiso para duplicar esta propiedad.");
+          return;
+        }
         try {
           alert("Duplicando propiedad en la nube...");
           const nuevaProp = { ...prop };
           delete nuevaProp.id;
           nuevaProp.titulo = `${prop.titulo} (Copia)`;
           nuevaProp.fechaCreacion = new Date().toISOString();
+          nuevaProp.creadoPorUid = usuarioActualUid;
+          nuevaProp.agenteFotoCreador = perfilUsuarioActual.foto || '';
 
           await addDoc(collection(db, "propiedades"), nuevaProp);
           alert("¡Propiedad duplicada con éxito!");
@@ -2244,6 +2336,10 @@
       window.archivarPublicacionPorId = async function(id) {
         const prop = cachePropiedadesActuales[id];
         if (!prop) return;
+        if (!puedeGestionar(prop)) {
+          alert("No tienes permiso para archivar esta propiedad.");
+          return;
+        }
         try {
           let archivadas = JSON.parse(localStorage.getItem('lista_archivadas')) || [];
           archivadas.push(prop);
@@ -2305,6 +2401,11 @@
       }
 
       window.eliminarPublicacionActiva = async function(id) {
+        const prop = cachePropiedadesActuales[id];
+        if (prop && !puedeGestionar(prop)) {
+          alert("No tienes permiso para eliminar esta propiedad.");
+          return;
+        }
         if (!confirm("¿Estás seguro de eliminar permanentemente esta propiedad de la base de datos?")) return;
         try {
           await deleteDoc(doc(db, "propiedades", id));
