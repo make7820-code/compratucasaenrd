@@ -1776,7 +1776,8 @@
             let cumpleMun = munVal === '' || location.includes(munVal);
             let cumpleDis = disVal === '' || location.includes(disVal);
             let cumpleTipo = tipoVal === '' || type === tipoVal;
-            let cumpleOferta = ofertaVal === '' || offer === ofertaVal || offer.includes(ofertaVal);
+            let cumpleOferta = ofertaVal === '' || offer === ofertaVal || offer.includes(ofertaVal) ||
+              (ofertaVal === 'Compra/Alquiler' && offer === 'Venta & Alquiler');
             let cumpleHabs = habsVal === '' || (habsVal === '3' ? parseInt(habs) >= 3 : habs === habsVal);
             let cumpleExtranjeros = !soloExtranjerosActivo || extranjeros;
             let cumpleAmueblado = !soloAmuebladoActivo || amueblado;
