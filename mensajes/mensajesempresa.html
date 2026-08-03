@@ -133,7 +133,8 @@
         border: 1px solid var(--border-color);
         border-radius: 20px;
         overflow: hidden;
-        height: 720px;
+        height: min(720px, calc(100vh - 170px));
+        min-height: 480px;
         box-shadow: 0 25px 50px rgba(0, 0, 0, 0.7);
       }
 
@@ -747,13 +748,21 @@
                     propertyImage: data.propertyImage || '../assets/puerto-marina.png',
                     propertyPrice: data.propertyPrice || '',
                     propertyLink: propertyLink,
-                    noLeido: false
+                    noLeido: false,
+                    lastActivity: 0
                   });
                 }
 
                 // Un mensaje del cliente sin marcar como leído por el agente activa el punto
                 if (data.sender === 'user' && data.tipo !== 'sistema' && data.leidoPorAgente !== true) {
                   conversationsMap.get(compositeKey).noLeido = true;
+                }
+
+                // Guarda la marca de tiempo del mensaje más reciente de esta conversación
+                const msgMillis = data.timestamp?.toMillis ? data.timestamp.toMillis() : 0;
+                const conv = conversationsMap.get(compositeKey);
+                if (msgMillis > conv.lastActivity) {
+                  conv.lastActivity = msgMillis;
                 }
               });
 
@@ -767,8 +776,10 @@
                 c.clientPhoto = info.clientPhoto || '../assets/onlybladi-avatar.png';
               });
 
-              const activas = convs.filter(c => c.estado !== 'finalizada');
-              const finalizadas = convs.filter(c => c.estado === 'finalizada');
+              const porMasReciente = (a, b) => b.lastActivity - a.lastActivity;
+
+              const activas = convs.filter(c => c.estado !== 'finalizada').sort(porMasReciente);
+              const finalizadas = convs.filter(c => c.estado === 'finalizada').sort(porMasReciente);
 
               renderConversations(activas, finalizadas);
 
