@@ -232,10 +232,12 @@
 
     <header class="site-header">
       <div class="header-inner">
+        <!-- Logo actualizado apuntando a assets/mi-logo.png -->
         <a href="index.html" class="brand" style="text-decoration: none; display: flex; align-items: center; gap: 8px;">
-          <span style="color: #fff; font-weight: 800; font-size: 16px;">Compra tu casa en RD</span>
+          <img src="assets/mi-logo.png" alt="Mi Logo" style="height: 38px; width: auto; display: block;">
         </a>
         <nav class="main-nav" style="display: flex; gap: 20px;">
+          <!-- Enlaces de navegación corregidos y asegurados -->
           <a href="index.html" class="nav-link" style="color: #fff; text-decoration: none; font-size: 14px;">🏠 Inicio</a>
           <a href="propiedades.html" class="nav-link" style="color: #fff; text-decoration: none; font-size: 14px;">🏢 Propiedades</a>
           <a href="comunidad.html" class="nav-link" style="color: #fff; text-decoration: none; font-size: 14px;">👥 Comunidad</a>
@@ -337,7 +339,7 @@
 
       onAuthStateChanged(auth, (user) => {
         if (!user) {
-          // Si no hay sesión activa, lo mandamos a iniciar sesión primero
+          // Si no hay sesión activa, lo mandamos a iniciar sesión primero apuntando correctamente a login.html
           window.location.href = 'login.html';
           return;
         }
