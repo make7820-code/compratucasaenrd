@@ -438,7 +438,7 @@
           await uploadBytes(archivoRef, archivo);
           const comprobanteURL = await getDownloadURL(archivoRef);
 
-          // 2. Registrar la solicitud de pago para revisión manual asociando el UID exacto
+          // 2. Registrar la solicitud de pago en Firestore con estado "pendiente" para que se refleje en admin-pagos.html
           await addDoc(collection(db, "solicitudesPago"), {
             uid: usuarioActual.uid,
             email: usuarioActual.email,
