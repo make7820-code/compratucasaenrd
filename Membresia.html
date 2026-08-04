@@ -37,6 +37,19 @@
         padding: 15px 20px;
       }
 
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        text-decoration: none;
+      }
+
+      .brand-logo {
+        height: 36px;
+        width: auto;
+        object-fit: contain;
+      }
+
       .membresia-wrapper {
         flex: 1;
         display: flex;
@@ -245,7 +258,8 @@
 
     <header class="site-header">
       <div class="header-inner">
-        <a href="index.html" class="brand" style="text-decoration: none; display: flex; align-items: center; gap: 8px;">
+        <a href="index.html" class="brand">
+          <img src="logo.png" alt="Compra tu casa en RD" class="brand-logo">
           <span style="color: #fff; font-weight: 800; font-size: 16px;">Compra tu casa en RD</span>
         </a>
         <nav class="main-nav" style="display: flex; gap: 20px;">
@@ -347,7 +361,7 @@
           <div class="icono">✅</div>
           <h2>¡Comprobante recibido!</h2>
           <p style="font-size: 14px; color: #a1a1aa; line-height: 1.6;">
-            Estamos revisando tu pago[cite: 5]. En cuanto se confirme, tu cuenta pasará a rol de <b id="rolConfirmado">Agente</b> automáticamente y podrás publicar propiedades.
+            Estamos revisando tu pago. En cuanto se confirme, tu cuenta pasará a rol de <b id="rolConfirmado">Agente</b> automáticamente y podrás publicar propiedades.
           </p>
           <a href="perfil.html" class="btn-submit" style="display:inline-block; text-decoration:none; margin-top: 10px;">Ir a mi perfil</a>
         </div>
