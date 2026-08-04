@@ -1043,6 +1043,10 @@
               <label>WhatsApp del Agente (quien publica)</label>
               <input type="text" id="propAgenteWhatsapp" class="publish-control" placeholder="Ej. 18091234567 (código país + número, sin + ni espacios) — si se deja vacío se usará el número por defecto">
             </div>
+            <div class="publish-form-group">
+              <label>Dueño de la Propiedad</label>
+              <input type="text" id="propDueno" class="publish-control" placeholder="Ej. Juan Pérez (uso interno, solo visible para admin)">
+            </div>
           </div>
 
           <div class="form-grid-2">
@@ -1819,22 +1823,28 @@
         });
       });
 
-      function actualizarContadorArchivadas() {
+      async function actualizarContadorArchivadas() {
         try {
-          const archivadas = JSON.parse(localStorage.getItem('lista_archivadas')) || [];
+          const consultaPropiedades = esModoAdmin
+            ? collection(db, "propiedades")
+            : query(collection(db, "propiedades"), where("creadoPorUid", "==", usuarioActualUid));
+          const snap = await getDocs(consultaPropiedades);
+          let total = 0;
+          snap.forEach(d => { if (d.data().archivada === true) total++; });
           const contadorEl = document.getElementById('contadorArchivadas');
-          if (contadorEl) {
-            contadorEl.innerText = archivadas.length;
-          }
-        } catch(e) {}
+          if (contadorEl) contadorEl.innerText = total;
+          return total;
+        } catch(e) {
+          console.error("Error al contar archivadas:", e);
+          return 0;
+        }
       }
 
-      window.alternarVistaArchivadas = function() {
+      window.alternarVistaArchivadas = async function() {
         mostrandoArchivadas = !mostrandoArchivadas;
         const btn = document.getElementById('btnAlternarArchivadas');
         const tituloSeccion = document.getElementById('tituloSeccionActual');
         const toolbar = document.getElementById('toolbarBusqueda');
-        const totalArchivadas = (JSON.parse(localStorage.getItem('lista_archivadas')) || []).length;
 
         if (mostrandoArchivadas) {
           btn.innerHTML = '<span>🏠</span> Ver Activas';
@@ -1842,6 +1852,7 @@
           tituloSeccion.innerHTML = '<span>🗄️ Propiedades Archivadas</span>';
           if(toolbar) toolbar.style.display = 'none';
         } else {
+          const totalArchivadas = await actualizarContadorArchivadas();
           btn.innerHTML = `<span>🗄️</span> Ver Archivadas (<span id="contadorArchivadas">${totalArchivadas}</span>)`;
           btn.style.borderColor = '';
           tituloSeccion.innerHTML = '<span>📋 Propiedades Activas</span>';
@@ -1881,6 +1892,7 @@
           document.getElementById('propOperacion').value = editarObj.operacion || 'Venta';
           document.getElementById('propAgente').value = editarObj.agente || '';
           document.getElementById('propAgenteWhatsapp').value = editarObj.agenteWhatsapp || '';
+          document.getElementById('propDueno').value = editarObj.dueno || '';
           document.getElementById('propDeposito').value = editarObj.deposito || '';
           document.getElementById('propComision').value = editarObj.comision || '';
           
@@ -2014,6 +2026,7 @@
             moneda: monedaVal,
             agente: document.getElementById('propAgente').value,
             agenteWhatsapp: (document.getElementById('propAgenteWhatsapp').value || '').replace(/[^0-9]/g, '') || '18498572321',
+            dueno: document.getElementById('propDueno').value || '',
             deposito: document.getElementById('propDeposito').value || '',
             comision: document.getElementById('propComision').value || '',
             extranjeros: document.getElementById('propExtranjeros').checked,
@@ -2046,6 +2059,7 @@
             // y detalle.html usará estos datos para dirigir los contactos al agente correcto.
             datosPropiedad.creadoPorUid = usuarioActualUid;
             datosPropiedad.agenteFotoCreador = perfilUsuarioActual.foto || '';
+            datosPropiedad.archivada = false;
             await addDoc(collection(db, "propiedades"), datosPropiedad);
             alert("¡Propiedad publicada con éxito en la nube!");
           }
@@ -2071,24 +2085,10 @@
 
         paginaActualGestion = 1;
 
-        if (mostrandoArchivadas) {
-          let fuenteArchivadas = JSON.parse(localStorage.getItem('lista_archivadas')) || [];
-          fuenteArchivadas.sort((a, b) => new Date(b.fechaCreacion || 0) - new Date(a.fechaCreacion || 0));
-          esArchivadaGestionActual = true;
-          listaFiltradaGestionActual = fuenteArchivadas;
-
-          if (fuenteArchivadas.length === 0) {
-            contenedor.innerHTML = `<p style="color: var(--text-muted); text-align: center; grid-column: 1 / -1; padding: 40px;">No hay propiedades archivadas.</p>`;
-            renderizarControlesPaginacionGestion();
-            return;
-          }
-          renderizarPaginaGestion();
-          return;
-        }
-
         try {
           contenedor.innerHTML = `<p style="color: var(--text-muted); text-align: center; grid-column: 1 / -1; padding: 40px;">Cargando propiedades desde Firebase...</p>`;
-          // Los administradores/superadmin ven TODAS las publicaciones (moderación).
+          // Los administradores/superadmin ven TODAS las publicaciones (moderación),
+          // incluyendo archivadas, sin importar qué agente las haya creado.
           // Un agente normal solo ve las que él mismo publicó (creadoPorUid).
           const consultaPropiedades = esModoAdmin
             ? collection(db, "propiedades")
@@ -2099,6 +2099,10 @@
           querySnapshot.forEach((docSnap) => {
             listaPropiedades.push({ id: docSnap.id, ...docSnap.data() });
           });
+
+          // El archivado ahora vive en Firestore (campo "archivada"), no en localStorage,
+          // así admin/superadmin pueden ver y restaurar archivadas de cualquier agente.
+          listaPropiedades = listaPropiedades.filter(p => mostrandoArchivadas ? p.archivada === true : p.archivada !== true);
 
           listaPropiedades.sort((a, b) => new Date(b.fechaCreacion || 0) - new Date(a.fechaCreacion || 0));
 
@@ -2111,11 +2115,11 @@
             );
           }
 
-          esArchivadaGestionActual = false;
+          esArchivadaGestionActual = mostrandoArchivadas;
           listaFiltradaGestionActual = listaPropiedades;
 
           if (listaPropiedades.length === 0) {
-            contenedor.innerHTML = `<p style="color: var(--text-muted); text-align: center; grid-column: 1 / -1; padding: 40px;">No se encontraron propiedades publicadas.</p>`;
+            contenedor.innerHTML = `<p style="color: var(--text-muted); text-align: center; grid-column: 1 / -1; padding: 40px;">${mostrandoArchivadas ? 'No hay propiedades archivadas.' : 'No se encontraron propiedades publicadas.'}</p>`;
             renderizarControlesPaginacionGestion();
             return;
           }
@@ -2256,6 +2260,7 @@
                 </div>
                 <p class="card-prop-ubicacion">📍 ${prop.ubicacion}</p>
                 ${esModoAdmin ? `<p class="card-prop-ubicacion" style="opacity:0.8;">🧑‍💼 Agente: ${prop.agente || 'N/D'}</p>` : ''}
+                ${esModoAdmin ? `<p class="card-prop-ubicacion" style="opacity:0.8;">🏠 Dueño: ${prop.dueno || 'N/D'}</p>` : ''}
                 
                 <div class="card-features-grid">
                   <span>🛏️ ${prop.habitaciones} hab</span>
@@ -2322,6 +2327,7 @@
           nuevaProp.fechaCreacion = new Date().toISOString();
           nuevaProp.creadoPorUid = usuarioActualUid;
           nuevaProp.agenteFotoCreador = perfilUsuarioActual.foto || '';
+          nuevaProp.archivada = false;
 
           await addDoc(collection(db, "propiedades"), nuevaProp);
           alert("¡Propiedad duplicada con éxito!");
@@ -2340,14 +2346,11 @@
           return;
         }
         try {
-          let archivadas = JSON.parse(localStorage.getItem('lista_archivadas')) || [];
-          archivadas.push(prop);
-          localStorage.setItem('lista_archivadas', JSON.stringify(archivadas));
-
-          await deleteDoc(doc(db, "propiedades", prop.id));
+          // El archivado ya no borra el documento: solo marca "archivada: true" en Firestore,
+          // así queda visible para admin/superadmin y se puede restaurar desde cualquier lugar.
+          await updateDoc(doc(db, "propiedades", prop.id), { archivada: true });
 
           alert("¡Propiedad archivada correctamente!");
-          actualizarContadorArchivadas();
           renderizarPublicaciones();
         } catch (error) {
           console.error("Error al archivar:", error);
@@ -2377,21 +2380,15 @@
       }
 
       window.desarchivarPublicacion = async function(id) {
+        const prop = cachePropiedadesActuales[id];
+        if (prop && !puedeGestionar(prop)) {
+          alert("No tienes permiso para restaurar esta propiedad.");
+          return;
+        }
         try {
-          let archivadas = JSON.parse(localStorage.getItem('lista_archivadas')) || [];
-          const index = archivadas.findIndex(p => p.id === id);
-          if (index === -1) return;
-
-          const prop = archivadas[index];
-          const propData = { ...prop };
-          delete propData.id;
-          await addDoc(collection(db, "propiedades"), propData);
-
-          archivadas.splice(index, 1);
-          localStorage.setItem('lista_archivadas', JSON.stringify(archivadas));
+          await updateDoc(doc(db, "propiedades", id), { archivada: false });
 
           alert("¡Propiedad desarchivada y restaurada con éxito!");
-          actualizarContadorArchivadas();
           renderizarPublicaciones();
         } catch (error) {
           console.error("Error al desarchivar:", error);
@@ -2416,13 +2413,21 @@
         }
       }
 
-      window.eliminarDefinitivoArchivada = function(id) {
+      window.eliminarDefinitivoArchivada = async function(id) {
+        const prop = cachePropiedadesActuales[id];
+        if (prop && !puedeGestionar(prop)) {
+          alert("No tienes permiso para eliminar esta propiedad.");
+          return;
+        }
         if (!confirm("¿Estás seguro de eliminar permanentemente esta propiedad archivada?")) return;
-        let archivadas = JSON.parse(localStorage.getItem('lista_archivadas')) || [];
-        archivadas = archivadas.filter(p => p.id !== id);
-        localStorage.setItem('lista_archivadas', JSON.stringify(archivadas));
-        actualizarContadorArchivadas();
-        renderizarPublicaciones();
+        try {
+          await deleteDoc(doc(db, "propiedades", id));
+          alert("¡Propiedad eliminada permanentemente!");
+          renderizarPublicaciones();
+        } catch (error) {
+          console.error("Error al eliminar definitivamente:", error);
+          alert("Hubo un error al eliminar la propiedad.");
+        }
       }
     </script>
 </body>
