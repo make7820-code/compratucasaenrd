@@ -182,6 +182,31 @@
         z-index: 1;
       }
 
+      /* Estilo específico para Banco Popular */
+      .datos-bancarios.popular-card {
+        position: relative;
+        overflow: hidden;
+      }
+
+      .datos-bancarios.popular-card::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-image: url('assets/popular.png');
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: contain;
+        opacity: 0.15;
+        filter: saturate(1.2);
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      .datos-bancarios.popular-card .fila {
+        position: relative;
+        z-index: 1;
+      }
+
       .datos-bancarios .fila {
         display: flex;
         justify-content: space-between;
@@ -354,7 +379,7 @@
               <div class="fila"><span>Titular</span><span>Daniel Toussaint Decena</span></div>
             </div>
             <!-- Banco Popular -->
-            <div class="datos-bancarios">
+            <div class="datos-bancarios popular-card">
               <div class="fila"><span>Banco</span><span>Banco Popular Dominicano</span></div>
               <div class="fila"><span>Tipo de cuenta</span><span>Ahorro</span></div>
               <div class="fila"><span>Número de cuenta</span><span>33643350016</span></div>
