@@ -38,6 +38,24 @@
         padding: 15px 20px;
       }
 
+      /* Estilos para el logo con imagen idéntico al index */
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+      }
+      .brand-logo {
+        height: 38px;
+        width: auto;
+        object-fit: contain;
+      }
+      .brand-demo-badge {
+        height: 20px;
+        width: auto;
+        object-fit: contain;
+      }
+
       .registro-hero {
         position: relative;
         flex: 1;
@@ -114,7 +132,6 @@
         box-sizing: border-box;
       }
 
-      /* Corrección clave para que las opciones del select se vean con texto blanco y fondo oscuro */
       select.form-control {
         color: #ffffff;
         background-color: #18181b;
@@ -169,8 +186,10 @@
 
     <header class="site-header">
       <div class="header-inner">
-        <a href="../index.html" class="brand" style="text-decoration: none; display: flex; align-items: center; gap: 8px;">
-          <span style="color: #fff; font-weight: 800; font-size: 16px;">Compra tu casa en RD</span>
+        <!-- Logo con imagen idéntico al index.html -->
+        <a href="../index.html" class="brand">
+          <img src="../assets/mi-logo.png" alt="Compra tu casa en RD" class="brand-logo">
+          <img src="../assets/demo.png" alt="DEMO" class="brand-demo-badge">
         </a>
         <nav class="main-nav" style="display: flex; gap: 20px;">
           <a href="../index.html" class="nav-link" style="color: #fff; text-decoration: none; font-size: 14px;">🏠 Inicio</a>
@@ -240,6 +259,7 @@
 
           <button type="submit" class="btn-submit" id="btnRegistrar">Registrarse y Acceder ➔</button>
 
+          <!-- Enlace corregido estrictamente a login.html -->
           <p style="text-align: center; font-size: 13px; color: #a1a1aa; margin-top: 15px;">
             ¿Ya tienes una cuenta? <a href="login.html" style="color: #3b82f6; text-decoration: none;">Inicia sesión aquí</a>
           </p>
