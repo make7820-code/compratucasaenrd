@@ -252,7 +252,7 @@
           <button type="submit" class="btn-submit" id="btnRegistrar">Registrarse y Acceder ➔</button>
 
           <p style="text-align: center; font-size: 13px; color: #a1a1aa; margin-top: 15px;">
-            ¿Ya tienes una cuenta? <a href="login.html" style="color: #3b82f6; text-decoration: none;">Inicia sesión aquí</a>
+            ¿Ya tienes una cuenta? <a href="https://www.compratucasard.com/login.html" style="color: #3b82f6; text-decoration: none;">Inicia sesión aquí</a>
           </p>
 
         </form>
@@ -285,9 +285,11 @@
         const sector = document.getElementById('sector').value;
 
         try {
+          // 1. Crear cuenta en Firebase Auth
           const userCredential = await createUserWithEmailAndPassword(auth, email, password);
           const user = userCredential.user;
 
+          // 2. Guardar documento en Firestore cumpliendo las reglas de seguridad
           await setDoc(doc(db, "usuarios", user.uid), {
             nombres,
             apellidos,
@@ -301,11 +303,16 @@
             fechaCreacion: new Date().toISOString()
           });
 
-          if (rolSeleccionado === 'agente' || rolSeleccionado === 'agentepro') {
-            window.location.href = `Membresía.html?rol=${rolSeleccionado}`;
+          // 3. Redirección según la selección del usuario
+          if (rolSeleccionado === 'agente') {
+            // Precio de agente inmobiliario (Ej: 1500 DOP o USD según aplique)
+            window.location.href = `Membresía.html?rol=agente&precio=1500`;
+          } else if (rolSeleccionado === 'agentepro') {
+            // Precio de agente pro (Ej: 3000 DOP o USD según aplique)
+            window.location.href = `Membresía.html?rol=agentepro&precio=3000`;
           } else {
-            alert("¡Cuenta creada con éxito! Por favor, inicia sesión con tus credenciales.");
-            window.location.href = 'login.html';
+            alert("¡Cuenta creada con éxito! Por favor, inicia sesión.");
+            window.location.href = 'https://www.compratucasard.com/login.html';
           }
 
         } catch (error) {
