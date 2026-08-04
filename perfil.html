@@ -938,8 +938,28 @@
         idioma: '',
         zonaHoraria: '',
         fotoPerfil: '',
-        fechaCreacion: 'dic 2025'
+        fechaCreacion: 'ago 2026'
       };
+
+      // Función auxiliar robusta para limpiar y formatear cualquier fecha a "mes año"
+      function formatearMesAnio(fechaInput) {
+        if (!fechaInput) return 'ago 2026';
+        let fechaObj;
+        try {
+          if (typeof fechaInput.toDate === 'function') {
+            fechaObj = fechaInput.toDate();
+          } else {
+            fechaObj = new Date(fechaInput);
+          }
+          if (isNaN(fechaObj.getTime())) {
+            return String(fechaInput); // Si viene como texto plano o personalizado
+          }
+          const meses = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
+          return `${meses[fechaObj.getMonth()]} ${fechaObj.getFullYear()}`;
+        } catch (e) {
+          return 'ago 2026';
+        }
+      }
 
       window.addEventListener('DOMContentLoaded', () => {
         if (firebase.auth) {
@@ -948,9 +968,7 @@
               usuarioActualData.uid = user.uid;
               usuarioActualData.email = user.email;
               if (user.metadata && user.metadata.creationTime) {
-                const fechaCreacionObj = new Date(user.metadata.creationTime);
-                const meses = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
-                usuarioActualData.fechaCreacion = `${meses[fechaCreacionObj.getMonth()]} ${fechaCreacionObj.getFullYear()}`;
+                usuarioActualData.fechaCreacion = formatearMesAnio(user.metadata.creationTime);
               }
               await cargarDatosDesdeFirestore(user.uid);
             } else {
@@ -985,9 +1003,7 @@
             const data = doc.data();
             usuarioActualData = { ...usuarioActualData, ...data };
             if (data.createdAt) {
-              const fechaObj = data.createdAt.toDate ? data.createdAt.toDate() : new Date(data.createdAt);
-              const meses = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
-              usuarioActualData.fechaCreacion = `${meses[fechaObj.getMonth()]} ${fechaObj.getFullYear()}`;
+              usuarioActualData.fechaCreacion = formatearMesAnio(data.createdAt);
             }
             localStorage.setItem('usuario_activo', data.nombreUsuario || data.email || 'usuario');
             localStorage.setItem('sesion_activa', 'true');
@@ -1012,19 +1028,14 @@
         usuarioActualData.fotoPerfil = localStorage.getItem(`${username}_perfil_foto`) || '';
         usuarioActualData.rol = localStorage.getItem(`${username}_perfil_rol`) || 'cliente';
         
-        let fechaGuardada = localStorage.getItem(`${username}_perfil_creacion`) || 'dic 2025';
-        // Asegurar que si hay una fecha vieja guardada completa, se simplifique solo a mes y año
-        if (fechaGuardada.includes(',')) {
-          fechaGuardada = 'dic 2025';
-        }
-        usuarioActualData.fechaCreacion = fechaGuardada;
+        let fechaGuardada = localStorage.getItem(`${username}_perfil_creacion`) || 'ago 2026';
+        usuarioActualData.fechaCreacion = formatearMesAnio(fechaGuardada);
       }
 
       function obtenerUsuarioActual() {
         return usuarioActualData.nombreUsuario || usuarioActualData.email || localStorage.getItem('usuario_activo') || 'onlybladi';
       }
 
-      // Función para redirigir a membresía pasando el plan seleccionado
       function irAMembresia() {
         const selectElem = document.getElementById('selectTipoAgente');
         const tipoElegido = selectElem ? selectElem.value : 'agente';
@@ -1158,7 +1169,7 @@
         // --- RENDERIZAR FECHA DE CREACIÓN (Solo mes y año) ---
         const elemFechaCreacion = document.getElementById('valFechaCreacion');
         if (elemFechaCreacion) {
-          elemFechaCreacion.innerText = usuarioActualData.fechaCreacion || 'dic 2025';
+          elemFechaCreacion.innerText = formatearMesAnio(usuarioActualData.fechaCreacion);
         }
 
         // --- RENDERIZAR ROL Y VISIBILIDAD DE BOTONES ---
