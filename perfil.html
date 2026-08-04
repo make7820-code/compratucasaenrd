@@ -236,26 +236,67 @@
         color: #111827;
       }
 
-      /* Estilo para el botón de Ser Agente debajo del perfil (solo clientes) */
+      /* Contenedor para elegir tipo de agente y botón (Solo clientes) */
+      .ser-agente-container {
+        width: 100%;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 16px;
+        padding: 15px;
+        margin-bottom: 25px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        align-items: center;
+      }
+      body.light-mode .ser-agente-container {
+        background: rgba(0, 0, 0, 0.02);
+        border-color: rgba(0, 0, 0, 0.08);
+      }
+      .ser-agente-select {
+        width: 100%;
+        background: rgba(255, 255, 255, 0.07);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 10px;
+        padding: 10px 12px;
+        color: #fff;
+        font-size: 13px;
+        font-weight: 600;
+        outline: none;
+      }
+      body.light-mode .ser-agente-select {
+        background: rgba(0, 0, 0, 0.05);
+        border-color: rgba(0, 0, 0, 0.12);
+        color: #111827;
+      }
+      .ser-agente-select option {
+        background: #121212;
+        color: #fff;
+      }
+      body.light-mode .ser-agente-select option {
+        background: #ffffff;
+        color: #111827;
+      }
       .btn-ser-agente {
+        width: 100%;
         background: linear-gradient(135deg, #2563eb, #1d4ed8);
         color: #fff;
         border: none;
-        padding: 10px 20px;
-        border-radius: 999px;
+        padding: 10px 15px;
+        border-radius: 10px;
         font-size: 13px;
         font-weight: 700;
         cursor: pointer;
         display: inline-flex;
         align-items: center;
+        justify-content: center;
         gap: 6px;
-        margin-bottom: 25px;
         transition: all 0.2s;
         box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
         text-decoration: none;
       }
       .btn-ser-agente:hover {
-        background: linear-gradient(135deg, #1d4ed8, #1e40af;);
+        background: linear-gradient(135deg, #1d4ed8, #1e40af);
         transform: translateY(-1px);
       }
 
@@ -565,10 +606,17 @@
           <!-- Badge del rol con ID para actualizarlo dinámicamente -->
           <div class="profile-role-badge" id="textRolBadge">Usuario</div>
 
-          <!-- Botón para ser agente / entrar a Membresia.html (Visible SOLO para clientes) -->
-          <a href="Membresia.html" class="btn-ser-agente" id="btnSerAgente" style="display: none;">
-            <span>⭐</span> Ser Agente (Elegir Membresía)
-          </a>
+          <!-- Selector de tipo de Agente y botón (Visible SOLO para clientes) -->
+          <div class="ser-agente-container" id="contenedorSerAgente" style="display: none;">
+            <label for="selectTipoAgente" style="font-size: 11px; font-weight: 700; color: #9ca3af; text-transform: uppercase; align-self: flex-start; margin-bottom: 2px;">Selecciona tu Plan:</label>
+            <select id="selectTipoAgente" class="ser-agente-select">
+              <option value="agente">Agente Estándar</option>
+              <option value="agentepro">Agente Pro</option>
+            </select>
+            <button type="button" class="btn-ser-agente" onclick="irAMembresia()">
+              <span>⭐</span> Obtener Membresía
+            </button>
+          </div>
 
           <div class="profile-meta-box">
             <div class="profile-meta-row">
@@ -963,11 +1011,24 @@
         usuarioActualData.zonaHoraria = localStorage.getItem(`${username}_perfil_zona`) || '';
         usuarioActualData.fotoPerfil = localStorage.getItem(`${username}_perfil_foto`) || '';
         usuarioActualData.rol = localStorage.getItem(`${username}_perfil_rol`) || 'cliente';
-        usuarioActualData.fechaCreacion = localStorage.getItem(`${username}_perfil_creacion`) || 'dic 2025';
+        
+        let fechaGuardada = localStorage.getItem(`${username}_perfil_creacion`) || 'dic 2025';
+        // Asegurar que si hay una fecha vieja guardada completa, se simplifique solo a mes y año
+        if (fechaGuardada.includes(',')) {
+          fechaGuardada = 'dic 2025';
+        }
+        usuarioActualData.fechaCreacion = fechaGuardada;
       }
 
       function obtenerUsuarioActual() {
         return usuarioActualData.nombreUsuario || usuarioActualData.email || localStorage.getItem('usuario_activo') || 'onlybladi';
+      }
+
+      // Función para redirigir a membresía pasando el plan seleccionado
+      function irAMembresia() {
+        const selectElem = document.getElementById('selectTipoAgente');
+        const tipoElegido = selectElem ? selectElem.value : 'agente';
+        window.location.href = `Membresia.html?tipo=${tipoElegido}`;
       }
 
       function abrirModalEdicion() {
@@ -1094,7 +1155,7 @@
         document.getElementById('displayNombreCompleto').innerText = nombreMostrado;
         document.getElementById('displayUsernameSub').innerText = "@" + (usuarioActualData.nombreUsuario || username);
 
-        // --- RENDERIZAR FECHA DE CREACIÓN ---
+        // --- RENDERIZAR FECHA DE CREACIÓN (Solo mes y año) ---
         const elemFechaCreacion = document.getElementById('valFechaCreacion');
         if (elemFechaCreacion) {
           elemFechaCreacion.innerText = usuarioActualData.fechaCreacion || 'dic 2025';
@@ -1107,13 +1168,13 @@
           badgeRol.innerText = rolUsuario;
         }
 
-        // --- BOTÓN SER AGENTE (SOLO CUANDO ES CLIENTE) ---
-        const btnSerAgente = document.getElementById('btnSerAgente');
-        if (btnSerAgente) {
+        // --- CONTENEDOR SELECTOR DE TIPO DE AGENTE (SOLO CUANDO ES CLIENTE) ---
+        const contenedorSerAgente = document.getElementById('contenedorSerAgente');
+        if (contenedorSerAgente) {
           if (rolUsuario === 'cliente') {
-            btnSerAgente.style.display = 'inline-flex';
+            contenedorSerAgente.style.display = 'flex';
           } else {
-            btnSerAgente.style.display = 'none';
+            contenedorSerAgente.style.display = 'none';
           }
         }
 
