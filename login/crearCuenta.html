@@ -38,7 +38,6 @@
         padding: 15px 20px;
       }
 
-      /* Fondo con la Plaza de la Bandera igual que el index.html */
       .registro-hero {
         position: relative;
         flex: 1;
@@ -113,6 +112,18 @@
         outline: none;
         transition: all 0.3s ease;
         box-sizing: border-box;
+      }
+
+      /* Corrección clave para que las opciones del select se vean con texto blanco y fondo oscuro */
+      select.form-control {
+        color: #ffffff;
+        background-color: #18181b;
+      }
+
+      select.form-control option {
+        background-color: #18181b;
+        color: #ffffff;
+        padding: 10px;
       }
 
       .form-control:focus {
@@ -219,7 +230,7 @@
 
           <div class="form-group" style="margin-top: 15px;">
             <label for="email">Correo electrónico *</label>
-            <input type="email5" id="email" class="form-control" placeholder="correo@domain.com" required>
+            <input type="email" id="email" class="form-control" placeholder="correo@domain.com" required>
           </div>
 
           <div class="form-group">
@@ -263,7 +274,6 @@
           const userCredential = await createUserWithEmailAndPassword(auth, email, password);
           const user = userCredential.user;
 
-          // Guardar datos básicos en Firestore
           await setDoc(doc(db, "usuarios", user.uid), {
             nombres,
             apellidos,
@@ -272,7 +282,6 @@
             fechaCreacion: new Date().toISOString()
           });
 
-          // Redirección según rol seleccionado
           if (rol === 'agente' || rol === 'agentepro') {
             window.location.href = `Membresía.html?rol=${rol}`;
           } else {
