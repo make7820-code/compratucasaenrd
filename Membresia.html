@@ -156,6 +156,14 @@
         background: rgba(255, 255, 255, 0.08);
       }
 
+      /* Estilo exclusivo para campos bloqueados */
+      .form-control:disabled {
+        background: rgba(255, 255, 255, 0.02);
+        color: #94a3b8;
+        border-color: rgba(255, 255, 255, 0.06);
+        cursor: not-allowed;
+      }
+
       input[type="file"].form-control { padding: 10px 14px; }
 
       .btn-submit {
@@ -232,12 +240,10 @@
 
     <header class="site-header">
       <div class="header-inner">
-        <!-- Logo actualizado apuntando a assets/mi-logo.png -->
         <a href="index.html" class="brand" style="text-decoration: none; display: flex; align-items: center; gap: 8px;">
-          <img src="assets/mi-logo.png" alt="Mi Logo" style="height: 38px; width: auto; display: block;">
+          <span style="color: #fff; font-weight: 800; font-size: 16px;">Compra tu casa en RD</span>
         </a>
         <nav class="main-nav" style="display: flex; gap: 20px;">
-          <!-- Enlaces de navegación corregidos y asegurados -->
           <a href="index.html" class="nav-link" style="color: #fff; text-decoration: none; font-size: 14px;">🏠 Inicio</a>
           <a href="propiedades.html" class="nav-link" style="color: #fff; text-decoration: none; font-size: 14px;">🏢 Propiedades</a>
           <a href="comunidad.html" class="nav-link" style="color: #fff; text-decoration: none; font-size: 14px;">👥 Comunidad</a>
@@ -251,7 +257,7 @@
         <!-- Pantalla 1: formulario de pago -->
         <div id="pantallaFormulario">
           <h2 id="tituloPlan">Activar membresía</h2>
-          <p style="font-size: 13px; color: #a1a1aa; margin-bottom: 4px;">Tu cuenta ya fue creada. Solo falta confirmar el pago de tu membresía para habilitar tu perfil.</p>
+          <p style="font-size: 13px; color: #a1a1aa; margin-bottom: 4px;">Tu cuenta ya fue creada[cite: 5]. Solo falta confirmar el pago de tu membresía para habilitar tu perfil[cite: 5].</p>
 
           <div class="plan-precio-box">
             <div>
@@ -271,13 +277,13 @@
             <div class="fila"><span>Titular</span><span>[NOMBRE DEL TITULAR]</span></div>
             <div class="fila"><span>Cédula / RNC</span><span>[CÉDULA O RNC]</span></div>
           </div>
-          <p class="aviso">Realiza la transferencia por el monto exacto de tu plan. Luego sube el comprobante (foto o captura del bauche) abajo para que validemos tu pago manualmente. La activación puede tardar hasta 24 horas.</p>
+          <p class="aviso">Realiza la transferencia por el monto exacto de tu plan. Luego sube el comprobante (foto o captura del bauche) abajo para que validemos tu pago manualmente[cite: 5]. La activación puede tardar hasta 24 horas[cite: 5].</p>
 
           <div class="section-title">2. Sube tu comprobante</div>
           <form id="formComprobante">
             <div class="form-group">
-              <label for="referencia">Número de referencia / confirmación (opcional)</label>
-              <input type="text" id="referencia" class="form-control" placeholder="Ej. 000123456">
+              <label for="referencia">Número de UID de referencia (Asignado Automáticamente)</label>
+              <input type="text" id="referencia" class="form-control" readonly disabled placeholder="Cargando UID...">
             </div>
             <div class="form-group">
               <label for="comprobanteArchivo">Foto o captura del bauche *</label>
@@ -292,9 +298,9 @@
           <div class="icono">✅</div>
           <h2>¡Comprobante recibido!</h2>
           <p style="font-size: 14px; color: #a1a1aa; line-height: 1.6;">
-            Estamos revisando tu pago. En cuanto se confirme, tu cuenta pasará a rol de <b id="rolConfirmado">Agente</b> automáticamente y podrás publicar propiedades.
+            Estamos revisando tu pago[cite: 5]. En cuanto se confirme, tu cuenta pasará a rol de <b id="rolConfirmado">Agente</b> automáticamente y podrás publicar propiedades.
           </p>
-          <a href="comunidad.html" class="btn-submit" style="display:inline-block; text-decoration:none; margin-top: 10px;">Ir a la comunidad</a>
+          <a href="perfil.html" class="btn-submit" style="display:inline-block; text-decoration:none; margin-top: 10px;">Ir a mi perfil</a>
         </div>
 
       </div>
@@ -315,14 +321,14 @@
     <script type="module">
       import { auth, db } from './firebase-config.js';
       import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-      import { doc, setDoc, addDoc, collection, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+      import { doc, setDoc, addDoc, collection } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
       import { getApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
       import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
-      // --- Configuración de precios por rol (edita aquí los montos reales) ---
+      // --- Configuración de precios por rol ---
       const PLANES = {
         agente: { nombre: 'Agente Inmobiliario', monto: 1500, label: 'RD$ 1,500 / mes' },
-        agentepro: { nombre: 'Agente Pro', monto: 2500, label: 'RD$ 2,500 / mes' }
+        agentepro: { nombre: 'Agente Pro', monto: 3000, label: 'RD$ 3,000 / mes' }
       };
 
       const params = new URLSearchParams(window.location.search);
@@ -339,11 +345,13 @@
 
       onAuthStateChanged(auth, (user) => {
         if (!user) {
-          // Si no hay sesión activa, lo mandamos a iniciar sesión primero apuntando correctamente a login.html
           window.location.href = 'login.html';
           return;
         }
         usuarioActual = user;
+        // Se coloca automáticamente el UID en el campo de referencia bloqueado
+        const inputReferencia = document.getElementById('referencia');
+        inputReferencia.value = user.uid;
       });
 
       const form = document.getElementById('formComprobante');
@@ -365,10 +373,10 @@
         }
 
         const archivo = document.getElementById('comprobanteArchivo').files[0];
-        const referencia = document.getElementById('referencia').value.trim();
+        const referenciaUid = usuarioActual.uid; // Se toma directamente el UID de Firestore autenticado
 
         if (!archivo) {
-          mostrarEstado('Debes adjuntar la foto o captura del comprobante.', 'error');
+          mostrarEstado('Debes adjuntar la foto o captura del comprobante[cite: 5].', 'error');
           return;
         }
 
@@ -382,13 +390,13 @@
           await uploadBytes(archivoRef, archivo);
           const comprobanteURL = await getDownloadURL(archivoRef);
 
-          // 2. Registrar la solicitud de pago para revisión manual
+          // 2. Registrar la solicitud de pago para revisión manual asociando el UID exacto
           await addDoc(collection(db, "solicitudesPago"), {
             uid: usuarioActual.uid,
             email: usuarioActual.email,
             rolSolicitado: rolSolicitado,
             monto: PLANES[rolSolicitado].monto,
-            referencia: referencia || null,
+            referencia: referenciaUid,
             comprobanteURL: comprobanteURL,
             estado: 'pendiente',
             fecha: new Date().toISOString()
@@ -399,8 +407,13 @@
             estadoMembresia: 'en_revision'
           }, { merge: true });
 
+          // 4. Mostrar pantalla de éxito y redirigir automáticamente a perfil.html manteniendo sesión
           document.getElementById('pantallaFormulario').style.display = 'none';
           document.getElementById('pantallaEnviado').style.display = 'block';
+
+          setTimeout(() => {
+            window.location.href = 'perfil.html';
+          }, 2000);
 
         } catch (error) {
           console.error('Error al enviar comprobante:', error);
