@@ -611,13 +611,27 @@
       import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
       import { doc, getDoc, setDoc, deleteDoc, collection, query, getDocs, addDoc, onSnapshot, orderBy, serverTimestamp, where, updateDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-      const ALLOWED_UIDS = [
-  "3VUuf3bJLKfAWqAlT94L1VlvaHB3",
-  "2E7tIaEfdGeVERzDtWvaXQEmPG02",
-  "6pJApysgZfQu9Z59W7nUDryS37w2",
-          
-];
-        
+      const ALLOWED_ROLES = ["agente", "agentepro", "admin", "superadmin"];
+
+      let miUid = null;
+      let miRol = '';
+      const cacheCreadorPropiedad = {};
+
+      // Devuelve quién creó la propiedad (uid y rol) usando una caché para no repetir consultas.
+      async function obtenerCreadorPropiedad(propId) {
+        if (!propId || propId === 'general') return { creadoPorUid: null, creadorRol: '' };
+        if (cacheCreadorPropiedad[propId]) return cacheCreadorPropiedad[propId];
+        let info = { creadoPorUid: null, creadorRol: '' };
+        try {
+          const propSnap = await getDoc(doc(db, "propiedades", propId));
+          if (propSnap.exists()) {
+            const pData = propSnap.data();
+            info = { creadoPorUid: pData.creadoPorUid || null, creadorRol: pData.creadorRol || '' };
+          }
+        } catch (e) { /* ignorar */ }
+        cacheCreadorPropiedad[propId] = info;
+        return info;
+      }
 
       window.addEventListener('DOMContentLoaded', () => {
         const authContainer = document.getElementById('authContainer');
@@ -636,7 +650,16 @@
             return;
           }
 
-          if (!ALLOWED_UIDS.includes(user.uid)) {
+          miUid = user.uid;
+          try {
+            const docRefRol = doc(db, "usuarios", user.uid);
+            const docSnapRol = await getDoc(docRefRol);
+            miRol = docSnapRol.exists() ? (docSnapRol.data().rol || '').toLowerCase() : '';
+          } catch (error) {
+            console.error("Error al obtener el rol del usuario:", error);
+          }
+
+          if (!ALLOWED_ROLES.includes(miRol)) {
             alert("Acceso denegado. Esta sección es exclusiva para agentes inmobiliarios autorizados.");
             window.location.href = '../index.html';
             return;
@@ -664,7 +687,7 @@
               <div style="position: relative; display: inline-block;">
                 <button id="profileBtn" style="background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 12px; padding: 4px 8px 4px 4px; border-radius: 999px;">
                   <img src="${avatarSrc}" alt="Avatar" style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 2px solid #ef4444;" onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=${user.uid}'">
-                  <span style="color: #fff; font-weight: 600; font-size: 15px;">${displayName} (Agente)</span>
+                  <span style="color: #fff; font-weight: 600; font-size: 15px;">${displayName} (${miRol.charAt(0).toUpperCase() + miRol.slice(1)})</span>
                 </button>
                 <div id="profileMenu" style="display:none; position: absolute; right: 0; top: 50px; background: #18181b; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 10px; width: 180px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 1000;">
                   <button class="profile-menu-item" onclick="window.location.href='../perfil.html'" style="width:100%; background:none; border:none; color:#fff; text-align:left; padding:8px; cursor:pointer; border-radius:6px;">Ir al Perfil</button>
@@ -800,7 +823,17 @@
                 }
               });
 
-              const convs = Array.from(conversationsMap.values());
+              let convs = Array.from(conversationsMap.values());
+
+              // Si quien ve el panel tiene rol de agente/agentepro, solo debe ver las
+              // conversaciones de las propiedades que él mismo publicó (mensajería privada).
+              // Admin y superadmin siguen viendo todas las conversaciones, como hasta ahora.
+              const esAdminOSuperadmin = miRol === 'admin' || miRol === 'superadmin';
+              if (!esAdminOSuperadmin) {
+                const propietarios = await Promise.all(convs.map(c => obtenerCreadorPropiedad(c.propertyId)));
+                convs = convs.filter((c, i) => propietarios[i].creadoPorUid === miUid);
+              }
+
               const datosAdicionales = await cargarDatosAdicionalesConvs(convs);
               
               convs.forEach(c => {
