@@ -2230,6 +2230,14 @@
         const badgeRol = document.getElementById('textRolBadge');
         if (badgeRol) {
           badgeRol.innerText = rolUsuario;
+          const coloresRolBadge = {
+            cliente: '#22c55e',
+            agente: '#ef4444',
+            agentepro: '#ef4444',
+            admin: '#eab308',
+            superadmin: '#eab308'
+          };
+          badgeRol.style.color = coloresRolBadge[rolUsuario] || '#ffffff';
         }
 
         // --- CONTENEDOR SELECTOR DE TIPO DE AGENTE (SOLO CUANDO ES CLIENTE) ---
