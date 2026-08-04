@@ -132,6 +132,31 @@
         padding: 14px 18px;
       }
 
+      /* Estilo específico para Banreservas con la imagen de fondo integrada profesionalmente */
+      .datos-bancarios.banreservas-card {
+        position: relative;
+        overflow: hidden;
+      }
+
+      .datos-bancarios.banreservas-card::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-image: url('assets/banreservas.png');
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: contain;
+        opacity: 0.15;
+        filter: saturate(1.2);
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      .datos-bancarios.banreservas-card .fila {
+        position: relative;
+        z-index: 1;
+      }
+
       .datos-bancarios .fila {
         display: flex;
         justify-content: space-between;
@@ -289,8 +314,8 @@
 
           <div class="section-title">1. Realiza la transferencia</div>
           <div class="datos-bancarios-container">
-            <!-- Banreservas -->
-            <div class="datos-bancarios">
+            <!-- Banreservas (Con la imagen de fondo integrada profesionalmente) -->
+            <div class="datos-bancarios banreservas-card">
               <div class="fila"><span>Banco</span><span>Banreservas</span></div>
               <div class="fila"><span>Tipo de cuenta</span><span>Ahorro</span></div>
               <div class="fila"><span>Número de cuenta</span><span>9601352264</span></div>
