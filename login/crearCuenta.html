@@ -285,11 +285,9 @@
         const sector = document.getElementById('sector').value;
 
         try {
-          // 1. Crear el usuario en Firebase Auth
           const userCredential = await createUserWithEmailAndPassword(auth, email, password);
           const user = userCredential.user;
 
-          // 2. Guardar en Firestore cumpliendo estrictamente con las reglas (rol cliente, pagado false)
           await setDoc(doc(db, "usuarios", user.uid), {
             nombres,
             apellidos,
@@ -297,16 +295,16 @@
             telefono,
             provincia,
             sector,
-            rol: 'cliente',       // Se crea como cliente por defecto por seguridad de reglas
-            pagado: false,        // Requerido por Firestore inicialmente
-            rolDeseado: rolSeleccionado, // Guardamos el rol que pidió para cuando envíe el comprobante
+            rol: 'cliente',
+            pagado: false,
+            rolDeseado: rolSeleccionado,
             fechaCreacion: new Date().toISOString()
           });
 
-          // 3. Redirección según la selección
           if (rolSeleccionado === 'agente' || rolSeleccionado === 'agentepro') {
             window.location.href = `Membresía.html?rol=${rolSeleccionado}`;
           } else {
+            alert("¡Cuenta creada con éxito! Por favor, inicia sesión con tus credenciales.");
             window.location.href = 'login.html';
           }
 
