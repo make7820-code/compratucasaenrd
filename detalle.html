@@ -931,8 +931,12 @@
 
           // Datos del agente que publicó esta propiedad (si la publicación no tiene agente asignado,
           // se usa el contacto general del sitio como respaldo).
-          const agente = selectedProperty.agente || "Compra Tu Casa En RD";
-          const agenteFoto = selectedProperty.agenteFotoCreador || "assets/icono.ico";
+          // Si quien publicó era admin o superadmin (o es una publicación antigua sin ese dato
+          // registrado), se muestra el perfil de la empresa en vez del agente individual.
+          const rolCreador = selectedProperty.creadorRol || '';
+          const esPublicadoPorEmpresa = rolCreador === 'admin' || rolCreador === 'superadmin' || rolCreador === '';
+          const agente = esPublicadoPorEmpresa ? "Compra tu casa en RD" : (selectedProperty.agente || "Compra Tu Casa En RD");
+          const agenteFoto = esPublicadoPorEmpresa ? "assets/mi-logo.png" : (selectedProperty.agenteFotoCreador || "assets/icono.ico");
           const agenteWhatsappNumero = (selectedProperty.agenteWhatsapp && selectedProperty.agenteWhatsapp.trim() !== '')
             ? selectedProperty.agenteWhatsapp.replace(/[^0-9]/g, '')
             : '18498572321';
