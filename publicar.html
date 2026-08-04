@@ -2018,14 +2018,20 @@
           const monedaVal = document.getElementById('propMoneda').value;
           const precioFmt = `${monedaVal === 'USD' ? '$' : 'RD$'} ${Number(precioVal).toLocaleString()}`;
 
+          // Si quien publica es admin o superadmin, el perfil de contacto se muestra
+          // como la empresa (Compra tu casa en RD) en vez del agente individual.
+          const esAdminOSuperadmin = rolUsuarioActual === 'admin' || rolUsuarioActual === 'superadmin';
+          const nombreAgenteFinal = esAdminOSuperadmin ? 'Compra tu casa en RD' : document.getElementById('propAgente').value;
+
           const datosPropiedad = {
             titulo: document.getElementById('propTitulo').value,
             tipo: document.getElementById('propTipoPropiedad').value || 'Casa',
             operacion: document.getElementById('propOperacion').value,
             precio: precioFmt,
             moneda: monedaVal,
-            agente: document.getElementById('propAgente').value,
+            agente: nombreAgenteFinal,
             agenteWhatsapp: (document.getElementById('propAgenteWhatsapp').value || '').replace(/[^0-9]/g, '') || '18498572321',
+            creadorRol: rolUsuarioActual,
             dueno: document.getElementById('propDueno').value || '',
             deposito: document.getElementById('propDeposito').value || '',
             comision: document.getElementById('propComision').value || '',
@@ -2050,6 +2056,9 @@
           };
 
           if (editId) {
+            if (esAdminOSuperadmin) {
+              datosPropiedad.agenteFotoCreador = 'assets/mi-logo.png';
+            }
             const docRef = doc(db, "propiedades", editId);
             await updateDoc(docRef, datosPropiedad);
             alert("¡Propiedad actualizada con éxito en la nube!");
@@ -2058,7 +2067,7 @@
             // Se registra quién publicó la propiedad: solo el dueño (o un admin) podrá editarla/borrarla después,
             // y detalle.html usará estos datos para dirigir los contactos al agente correcto.
             datosPropiedad.creadoPorUid = usuarioActualUid;
-            datosPropiedad.agenteFotoCreador = perfilUsuarioActual.foto || '';
+            datosPropiedad.agenteFotoCreador = esAdminOSuperadmin ? 'assets/mi-logo.png' : (perfilUsuarioActual.foto || '');
             datosPropiedad.archivada = false;
             await addDoc(collection(db, "propiedades"), datosPropiedad);
             alert("¡Propiedad publicada con éxito en la nube!");
