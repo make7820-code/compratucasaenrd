@@ -1336,6 +1336,10 @@
 
         querySnapshot.forEach((docSnap) => {
           const prop = docSnap.data();
+
+          // Las propiedades archivadas no deben mostrarse en el catálogo público.
+          if (prop.archivada) return;
+
           const propId = docSnap.id;
           const ownerId = prop.usuarioId || prop.ownerId || '';
 
