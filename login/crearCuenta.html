@@ -303,13 +303,11 @@
             fechaCreacion: new Date().toISOString()
           });
 
-          // 3. Redirección según la selección del usuario
+          // 3. Redirección corregida apuntando a la raíz (../Membresia.html) en lugar de la carpeta actual
           if (rolSeleccionado === 'agente') {
-            // Precio de agente inmobiliario (Ej: 1500 DOP o USD según aplique)
-            window.location.href = `Membresía.html?rol=agente&precio=1500`;
+            window.location.href = `../Membresia.html?rol=agente&precio=1500`;
           } else if (rolSeleccionado === 'agentepro') {
-            // Precio de agente pro (Ej: 3000 DOP o USD según aplique)
-            window.location.href = `Membresía.html?rol=agentepro&precio=3000`;
+            window.location.href = `../Membresia.html?rol=agentepro&precio=3000`;
           } else {
             alert("¡Cuenta creada con éxito! Por favor, inicia sesión.");
             window.location.href = 'https://www.compratucasard.com/login.html';
