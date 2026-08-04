@@ -227,13 +227,36 @@
         font-weight: 700;
         letter-spacing: 0.5px;
         color: #fff;
-        margin-bottom: 30px;
+        margin-bottom: 15px;
         text-transform: uppercase;
       }
       body.light-mode .profile-role-badge {
         background: rgba(0, 0, 0, 0.04);
         border-color: rgba(0, 0, 0, 0.1);
         color: #111827;
+      }
+
+      /* Estilo para el botón de Ser Agente debajo del perfil (solo clientes) */
+      .btn-ser-agente {
+        background: linear-gradient(135deg, #2563eb, #1d4ed8);
+        color: #fff;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 999px;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 25px;
+        transition: all 0.2s;
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        text-decoration: none;
+      }
+      .btn-ser-agente:hover {
+        background: linear-gradient(135deg, #1d4ed8, #1e40af;);
+        transform: translateY(-1px);
       }
 
       .profile-meta-box {
@@ -542,6 +565,11 @@
           <!-- Badge del rol con ID para actualizarlo dinámicamente -->
           <div class="profile-role-badge" id="textRolBadge">Usuario</div>
 
+          <!-- Botón para ser agente / entrar a Membresia.html (Visible SOLO para clientes) -->
+          <a href="Membresia.html" class="btn-ser-agente" id="btnSerAgente" style="display: none;">
+            <span>⭐</span> Ser Agente (Elegir Membresía)
+          </a>
+
           <div class="profile-meta-box">
             <div class="profile-meta-row">
               <span class="profile-meta-label">Estado</span>
@@ -549,7 +577,7 @@
             </div>
             <div class="profile-meta-row">
               <span class="profile-meta-label">Miembro desde</span>
-              <span class="profile-meta-val">dic 2025</span>
+              <span class="profile-meta-val" id="valFechaCreacion">dic 2025</span>
             </div>
           </div>
         </div>
@@ -861,7 +889,8 @@
         codigoPostal: '',
         idioma: '',
         zonaHoraria: '',
-        fotoPerfil: ''
+        fotoPerfil: '',
+        fechaCreacion: 'dic 2025'
       };
 
       window.addEventListener('DOMContentLoaded', () => {
@@ -870,6 +899,11 @@
             if (user) {
               usuarioActualData.uid = user.uid;
               usuarioActualData.email = user.email;
+              if (user.metadata && user.metadata.creationTime) {
+                const fechaCreacionObj = new Date(user.metadata.creationTime);
+                const meses = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
+                usuarioActualData.fechaCreacion = `${meses[fechaCreacionObj.getMonth()]} ${fechaCreacionObj.getFullYear()}`;
+              }
               await cargarDatosDesdeFirestore(user.uid);
             } else {
               const localUser = localStorage.getItem('usuario_activo');
@@ -902,6 +936,11 @@
           if (doc.exists) {
             const data = doc.data();
             usuarioActualData = { ...usuarioActualData, ...data };
+            if (data.createdAt) {
+              const fechaObj = data.createdAt.toDate ? data.createdAt.toDate() : new Date(data.createdAt);
+              const meses = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
+              usuarioActualData.fechaCreacion = `${meses[fechaObj.getMonth()]} ${fechaObj.getFullYear()}`;
+            }
             localStorage.setItem('usuario_activo', data.nombreUsuario || data.email || 'usuario');
             localStorage.setItem('sesion_activa', 'true');
           }
@@ -924,6 +963,7 @@
         usuarioActualData.zonaHoraria = localStorage.getItem(`${username}_perfil_zona`) || '';
         usuarioActualData.fotoPerfil = localStorage.getItem(`${username}_perfil_foto`) || '';
         usuarioActualData.rol = localStorage.getItem(`${username}_perfil_rol`) || 'cliente';
+        usuarioActualData.fechaCreacion = localStorage.getItem(`${username}_perfil_creacion`) || 'dic 2025';
       }
 
       function obtenerUsuarioActual() {
@@ -1016,6 +1056,7 @@
             localStorage.setItem(`${nuevoUsername}_perfil_idioma`, usuarioActualData.idioma);
             localStorage.setItem(`${nuevoUsername}_perfil_zona`, usuarioActualData.zonaHoraria);
             localStorage.setItem(`${nuevoUsername}_perfil_rol`, usuarioActualData.rol || 'cliente');
+            localStorage.setItem(`${nuevoUsername}_perfil_creacion`, usuarioActualData.fechaCreacion);
             if (usuarioActualData.fotoPerfil) {
               localStorage.setItem(`${nuevoUsername}_perfil_foto`, usuarioActualData.fotoPerfil);
             }
@@ -1053,11 +1094,27 @@
         document.getElementById('displayNombreCompleto').innerText = nombreMostrado;
         document.getElementById('displayUsernameSub').innerText = "@" + (usuarioActualData.nombreUsuario || username);
 
-        // --- RENDERIZAR ROL Y VISIBILIDAD DEL BOTÓN DE PUBLICAR ---
+        // --- RENDERIZAR FECHA DE CREACIÓN ---
+        const elemFechaCreacion = document.getElementById('valFechaCreacion');
+        if (elemFechaCreacion) {
+          elemFechaCreacion.innerText = usuarioActualData.fechaCreacion || 'dic 2025';
+        }
+
+        // --- RENDERIZAR ROL Y VISIBILIDAD DE BOTONES ---
         const rolUsuario = (usuarioActualData.rol || 'cliente').toLowerCase();
         const badgeRol = document.getElementById('textRolBadge');
         if (badgeRol) {
           badgeRol.innerText = rolUsuario;
+        }
+
+        // --- BOTÓN SER AGENTE (SOLO CUANDO ES CLIENTE) ---
+        const btnSerAgente = document.getElementById('btnSerAgente');
+        if (btnSerAgente) {
+          if (rolUsuario === 'cliente') {
+            btnSerAgente.style.display = 'inline-flex';
+          } else {
+            btnSerAgente.style.display = 'none';
+          }
         }
 
         const rolesPermitidos = ['superadmin', 'admin', 'agentepro', 'agente'];
