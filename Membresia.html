@@ -232,7 +232,7 @@
         z-index: 1;
       }
 
-      /* Estilo específico para Qik Banco Digital (Centrado perfecto al 50%) */
+      /* Estilo específico para Qik Banco Digital */
       .datos-bancarios.qik-card {
         position: relative;
         overflow: hidden;
@@ -253,6 +253,31 @@
       }
 
       .datos-bancarios.qik-card .fila {
+        position: relative;
+        z-index: 1;
+      }
+
+      /* Estilo específico para Banfondesa (Centrado perfecto al 50%) */
+      .datos-bancarios.banfondesa-card {
+        position: relative;
+        overflow: hidden;
+      }
+
+      .datos-bancarios.banfondesa-card::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-image: url('assets/Banfondesa.png');
+        background-repeat: no-repeat;
+        background-position: center center;
+        background-size: 50%;
+        opacity: 0.15;
+        filter: saturate(1.2);
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      .datos-bancarios.banfondesa-card .fila {
         position: relative;
         z-index: 1;
       }
@@ -442,15 +467,15 @@
               <div class="fila"><span>Número de cuenta</span><span>63800006306</span></div>
               <div class="fila"><span>Titular</span><span>Daniel Toussaint Decena</span></div>
             </div>
-            <!-- Qik Banco Digital (Centrado) -->
+            <!-- Qik Banco Digital -->
             <div class="datos-bancarios qik-card">
               <div class="fila"><span>Banco</span><span>Qik Banco Digital</span></div>
               <div class="fila"><span>Tipo de cuenta</span><span>Ahorro</span></div>
               <div class="fila"><span>Número de cuenta</span><span>1001164216</span></div>
               <div class="fila"><span>Titular</span><span>Daniel Toussaint Decena</span></div>
             </div>
-            <!-- Banfondesa -->
-            <div class="datos-bancarios">
+            <!-- Banfondesa (Centrado) -->
+            <div class="datos-bancarios banfondesa-card">
               <div class="fila"><span>Banco</span><span>Banfondesa</span></div>
               <div class="fila"><span>Tipo de cuenta</span><span>Corriente</span></div>
               <div class="fila"><span>Número de cuenta</span><span>52-71-1003740560</span></div>
