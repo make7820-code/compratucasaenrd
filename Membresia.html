@@ -257,7 +257,7 @@
         z-index: 1;
       }
 
-      /* Estilo específico para Banfondesa (Aumentado al 105% para compensar tamaño natural y proporciones del logo) */
+      /* Estilo específico para Banfondesa */
       .datos-bancarios.banfondesa-card {
         position: relative;
         overflow: hidden;
@@ -278,6 +278,31 @@
       }
 
       .datos-bancarios.banfondesa-card .fila {
+        position: relative;
+        z-index: 1;
+      }
+
+      /* Estilo específico para Banco Ademi */
+      .datos-bancarios.ademi-card {
+        position: relative;
+        overflow: hidden;
+      }
+
+      .datos-bancarios.ademi-card::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-image: url('assets/ademi.png');
+        background-repeat: no-repeat;
+        background-position: center center;
+        background-size: 75%;
+        opacity: 0.15;
+        filter: saturate(1.2);
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      .datos-bancarios.ademi-card .fila {
         position: relative;
         z-index: 1;
       }
@@ -474,7 +499,7 @@
               <div class="fila"><span>Número de cuenta</span><span>1001164216</span></div>
               <div class="fila"><span>Titular</span><span>Daniel Toussaint Decena</span></div>
             </div>
-            <!-- Banfondesa (Logo aumentado al 105% para que luzca proporcional al resto) -->
+            <!-- Banfondesa -->
             <div class="datos-bancarios banfondesa-card">
               <div class="fila"><span>Banco</span><span>Banfondesa</span></div>
               <div class="fila"><span>Tipo de cuenta</span><span>Corriente</span></div>
@@ -482,7 +507,7 @@
               <div class="fila"><span>Titular</span><span>Daniel Toussaint Decena</span></div>
             </div>
             <!-- Banco Ademi -->
-            <div class="datos-bancarios">
+            <div class="datos-bancarios ademi-card">
               <div class="fila"><span>Banco</span><span>Banco Ademi</span></div>
               <div class="fila"><span>Tipo de cuenta</span><span>Ahorro</span></div>
               <div class="fila"><span>Número de cuenta</span><span>50812006682711</span></div>
