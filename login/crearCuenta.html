@@ -277,27 +277,39 @@
         e.preventDefault();
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
-        const rol = document.getElementById('tipoRol').value;
+        const rolSeleccionado = document.getElementById('tipoRol').value;
         const nombres = document.getElementById('nombres').value;
         const apellidos = document.getElementById('apellidos').value;
+        const telefono = document.getElementById('telefono').value;
+        const provincia = document.getElementById('provincia').value;
+        const sector = document.getElementById('sector').value;
 
         try {
+          // 1. Crear el usuario en Firebase Auth
           const userCredential = await createUserWithEmailAndPassword(auth, email, password);
           const user = userCredential.user;
 
+          // 2. Guardar en Firestore cumpliendo estrictamente con las reglas (rol cliente, pagado false)
           await setDoc(doc(db, "usuarios", user.uid), {
             nombres,
             apellidos,
             email,
-            rol,
+            telefono,
+            provincia,
+            sector,
+            rol: 'cliente',       // Se crea como cliente por defecto por seguridad de reglas
+            pagado: false,        // Requerido por Firestore inicialmente
+            rolDeseado: rolSeleccionado, // Guardamos el rol que pidió para cuando envíe el comprobante
             fechaCreacion: new Date().toISOString()
           });
 
-          if (rol === 'agente' || rol === 'agentepro') {
-            window.location.href = `Membresía.html?rol=${rol}`;
+          // 3. Redirección según la selección
+          if (rolSeleccionado === 'agente' || rolSeleccionado === 'agentepro') {
+            window.location.href = `Membresía.html?rol=${rolSeleccionado}`;
           } else {
-            window.location.href = '../index.html';
+            window.location.href = 'login.html';
           }
+
         } catch (error) {
           alert("Error al crear cuenta: " + error.message);
         }
