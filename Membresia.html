@@ -157,7 +157,7 @@
         z-index: 1;
       }
 
-      /* Estilo específico para Banco BHD (Ajustado al 55% para que encaje bien) */
+      /* Estilo específico para Banco BHD */
       .datos-bancarios.bhd-card {
         position: relative;
         overflow: hidden;
@@ -203,6 +203,31 @@
       }
 
       .datos-bancarios.popular-card .fila {
+        position: relative;
+        z-index: 1;
+      }
+
+      /* Estilo específico para Scotiabank */
+      .datos-bancarios.scotiabank-card {
+        position: relative;
+        overflow: hidden;
+      }
+
+      .datos-bancarios.scotiabank-card::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-image: url('assets/scotiabank.png');
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: 60%;
+        opacity: 0.18;
+        filter: saturate(1.2);
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      .datos-bancarios.scotiabank-card .fila {
         position: relative;
         z-index: 1;
       }
@@ -386,7 +411,7 @@
               <div class="fila"><span>Titular</span><span>Daniel Toussaint Decena</span></div>
             </div>
             <!-- Scotiabank -->
-            <div class="datos-bancarios">
+            <div class="datos-bancarios scotiabank-card">
               <div class="fila"><span>Banco</span><span>Scotiabank</span></div>
               <div class="fila"><span>Tipo de cuenta</span><span>Corriente</span></div>
               <div class="fila"><span>Número de cuenta</span><span>63800006306</span></div>
