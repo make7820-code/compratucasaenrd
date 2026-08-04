@@ -207,7 +207,7 @@
         z-index: 1;
       }
 
-      /* Estilo específico para Scotiabank (Ajustado al 75% para que se vea un poco más grande) */
+      /* Estilo específico para Scotiabank */
       .datos-bancarios.scotiabank-card {
         position: relative;
         overflow: hidden;
@@ -228,6 +228,31 @@
       }
 
       .datos-bancarios.scotiabank-card .fila {
+        position: relative;
+        z-index: 1;
+      }
+
+      /* Estilo específico para Qik Banco Digital (Ajustado al 75% para que se vea un poco más grande) */
+      .datos-bancarios.qik-card {
+        position: relative;
+        overflow: hidden;
+      }
+
+      .datos-bancarios.qik-card::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-image: url('assets/Qik.png');
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: 75%;
+        opacity: 0.18;
+        filter: saturate(1.2);
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      .datos-bancarios.qik-card .fila {
         position: relative;
         z-index: 1;
       }
@@ -418,7 +443,7 @@
               <div class="fila"><span>Titular</span><span>Daniel Toussaint Decena</span></div>
             </div>
             <!-- Qik Banco Digital -->
-            <div class="datos-bancarios">
+            <div class="datos-bancarios qik-card">
               <div class="fila"><span>Banco</span><span>Qik Banco Digital</span></div>
               <div class="fila"><span>Tipo de cuenta</span><span>Ahorro</span></div>
               <div class="fila"><span>Número de cuenta</span><span>1001164216</span></div>
