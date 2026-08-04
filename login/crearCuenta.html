@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Membresía | Compra tu casa en RD</title>
+    <title>Crear Cuenta | Compra tu casa en RD</title>
+    <link rel="icon" type="image/x-icon" href="../assets/icono.ico">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="../styles.css">
     <style>
       body {
         background-color: #0b0b0e;
@@ -37,99 +38,63 @@
         padding: 15px 20px;
       }
 
-      .membresia-wrapper {
+      /* Fondo con la Plaza de la Bandera igual que el index.html */
+      .registro-hero {
+        position: relative;
         flex: 1;
         display: flex;
         align-items: center;
         justify-content: center;
-        padding: 140px 20px 60px 20px;
+        padding: 120px 20px 60px 20px;
+        background: url('../assets/hero-plaza-bandera.jpg') no-repeat center center/cover !important;
       }
 
-      .membresia-card {
+      .registro-hero::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.65);
+        z-index: 1;
+      }
+
+      .registro-card {
+        position: relative;
+        z-index: 2;
         width: 100%;
-        max-width: 760px;
+        max-width: 650px;
         background: rgba(18, 18, 20, 0.92);
         border: 1px solid rgba(255, 255, 255, 0.1);
         border-radius: 24px;
-        padding: 40px;
+        padding: 35px;
         box-shadow: 0 25px 50px rgba(0,0,0,0.7);
-      }
-
-      .membresia-card h2 {
-        font-size: 24px;
-        font-weight: 700;
-        margin-bottom: 6px;
-        font-family: var(--font-display, 'Poppins', sans-serif);
-      }
-
-      .plan-precio-box {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        background: rgba(59, 130, 246, 0.1);
-        border: 1px solid rgba(59, 130, 246, 0.35);
-        border-radius: 16px;
-        padding: 18px 22px;
-        margin: 20px 0 28px 0;
-      }
-
-      .plan-precio-box .plan-nombre {
-        font-size: 13px;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        color: #93c5fd;
-        font-weight: 700;
-        margin-bottom: 4px;
-      }
-
-      .plan-precio-box .plan-monto {
-        font-size: 28px;
-        font-weight: 800;
-        font-family: var(--font-display, 'Poppins', sans-serif);
-      }
-
-      .plan-precio-box .plan-monto span {
-        font-size: 13px;
-        font-weight: 500;
-        color: #a1a1aa;
+        backdrop-filter: blur(10px);
       }
 
       .section-title {
-        font-size: 14px;
+        font-size: 13px;
         color: #3b82f6;
         text-transform: uppercase;
         font-weight: 700;
         letter-spacing: 1px;
-        margin-top: 24px;
+        margin-top: 20px;
         margin-bottom: 12px;
         border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         padding-bottom: 6px;
       }
 
-      .datos-bancarios {
-        background: rgba(255, 255, 255, 0.04);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 14px;
-        padding: 18px 20px;
-      }
-
-      .datos-bancarios .fila {
+      .form-row {
         display: flex;
-        justify-content: space-between;
-        padding: 8px 0;
-        border-bottom: 1px dashed rgba(255, 255, 255, 0.08);
-        font-size: 14px;
+        gap: 15px;
       }
 
-      .datos-bancarios .fila:last-child { border-bottom: none; }
-      .datos-bancarios .fila span:first-child { color: #a1a1aa; }
-      .datos-bancarios .fila span:last-child { font-weight: 600; }
-
-      .form-group { margin-bottom: 15px; }
+      .form-group {
+        margin-bottom: 15px;
+        flex: 1;
+      }
 
       .form-group label {
         display: block;
-        font-size: 12px;
+        font-size: 11px;
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.5px;
@@ -141,7 +106,7 @@
         width: 100%;
         background: rgba(255, 255, 255, 0.05);
         border: 1px solid rgba(255, 255, 255, 0.1);
-        padding: 12px 14px;
+        padding: 11px 14px;
         border-radius: 12px;
         color: #fff;
         font-size: 14px;
@@ -156,255 +121,165 @@
         background: rgba(255, 255, 255, 0.08);
       }
 
-      input[type="file"].form-control { padding: 10px 14px; }
-
       .btn-submit {
         width: 100%;
         background: #3b82f6;
         color: #fff;
         border: none;
-        padding: 14px;
+        padding: 13px;
         border-radius: 12px;
-        font-size: 15px;
+        font-size: 14px;
         font-weight: 600;
         cursor: pointer;
         transition: all 0.3s ease;
         box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
-        margin-top: 10px;
+        margin-top: 15px;
       }
 
       .btn-submit:hover {
         background: #2563eb;
         transform: translateY(-2px);
-        box-shadow: 0 12px 25px rgba(59, 130, 246, 0.6);
       }
-
-      .btn-submit:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-        transform: none;
-      }
-
-      .aviso {
-        font-size: 12.5px;
-        line-height: 1.5;
-        color: #a1a1aa;
-        margin-top: 10px;
-      }
-
-      #estadoEnvio {
-        display: none;
-        border-radius: 12px;
-        padding: 14px 16px;
-        font-size: 13.5px;
-        line-height: 1.5;
-        margin-bottom: 18px;
-      }
-
-      #estadoEnvio.ok {
-        background: rgba(34, 197, 94, 0.1);
-        border: 1px solid rgba(34, 197, 94, 0.4);
-        color: #86efac;
-      }
-
-      #estadoEnvio.error {
-        background: rgba(239, 68, 68, 0.1);
-        border: 1px solid rgba(239, 68, 68, 0.4);
-        color: #fca5a5;
-      }
-
-      #pantallaEnviado { display: none; text-align: center; }
-      #pantallaEnviado .icono { font-size: 44px; margin-bottom: 10px; }
 
       .site-footer {
         background: #0b0b0e;
         border-top: 1px solid rgba(255, 255, 255, 0.08);
-        padding: 40px 20px;
+        padding: 30px 20px;
         color: #a1a1aa;
+        text-align: center;
+        position: relative;
+        z-index: 2;
       }
       .footer-container { max-width: 1200px; margin: 0 auto; }
-      .footer-brand-title { font-size: 18px; font-weight: 800; color: #fff; margin-bottom: 10px; }
       .highlight-red { color: #ef4444; }
-      .footer-bottom { max-width: 1200px; margin: 30px auto 0 auto; border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 20px; font-size: 13px; text-align: center; }
     </style>
 </head>
 <body>
 
     <header class="site-header">
       <div class="header-inner">
-        <a href="index.html" class="brand" style="text-decoration: none; display: flex; align-items: center; gap: 8px;">
+        <a href="../index.html" class="brand" style="text-decoration: none; display: flex; align-items: center; gap: 8px;">
           <span style="color: #fff; font-weight: 800; font-size: 16px;">Compra tu casa en RD</span>
         </a>
         <nav class="main-nav" style="display: flex; gap: 20px;">
-          <a href="index.html" class="nav-link" style="color: #fff; text-decoration: none; font-size: 14px;">🏠 Inicio</a>
-          <a href="propiedades.html" class="nav-link" style="color: #fff; text-decoration: none; font-size: 14px;">🏢 Propiedades</a>
-          <a href="comunidad.html" class="nav-link" style="color: #fff; text-decoration: none; font-size: 14px;">👥 Comunidad</a>
+          <a href="../index.html" class="nav-link" style="color: #fff; text-decoration: none; font-size: 14px;">🏠 Inicio</a>
+          <a href="../propiedades.html" class="nav-link" style="color: #fff; text-decoration: none; font-size: 14px;">🏢 Propiedades</a>
+          <a href="../comunidad.html" class="nav-link" style="color: #fff; text-decoration: none; font-size: 14px;">👥 Comunidad</a>
         </nav>
       </div>
     </header>
 
-    <div class="membresia-wrapper">
-      <div class="membresia-card">
-
-        <!-- Pantalla 1: formulario de pago -->
-        <div id="pantallaFormulario">
-          <h2 id="tituloPlan">Activar membresía</h2>
-          <p style="font-size: 13px; color: #a1a1aa; margin-bottom: 4px;">Tu cuenta ya fue creada. Solo falta confirmar el pago de tu membresía para habilitar tu perfil.</p>
-
-          <div class="plan-precio-box">
-            <div>
-              <div class="plan-nombre" id="planNombre">Agente Inmobiliario</div>
-              <div class="plan-monto" id="planMonto">RD$ 1,500 <span>/ mes</span></div>
-            </div>
-            <div style="font-size: 30px;">🏷️</div>
-          </div>
-
-          <div id="estadoEnvio"></div>
-
-          <div class="section-title">1. Realiza la transferencia</div>
-          <div class="datos-bancarios">
-            <div class="fila"><span>Banco</span><span>[NOMBRE DEL BANCO]</span></div>
-            <div class="fila"><span>Tipo de cuenta</span><span>[Ahorros / Corriente]</span></div>
-            <div class="fila"><span>Número de cuenta</span><span>[NÚMERO DE CUENTA]</span></div>
-            <div class="fila"><span>Titular</span><span>[NOMBRE DEL TITULAR]</span></div>
-            <div class="fila"><span>Cédula / RNC</span><span>[CÉDULA O RNC]</span></div>
-          </div>
-          <p class="aviso">Realiza la transferencia por el monto exacto de tu plan. Luego sube el comprobante (foto o captura del bauche) abajo para que validemos tu pago manualmente. La activación puede tardar hasta 24 horas.</p>
-
-          <div class="section-title">2. Sube tu comprobante</div>
-          <form id="formComprobante">
+    <div class="registro-hero">
+      <div class="registro-card">
+        <form id="formCrearCuenta">
+          
+          <div class="section-title" style="margin-top: 0;">2. Información Personal</div>
+          <div class="form-row">
             <div class="form-group">
-              <label for="referencia">Número de referencia / confirmación (opcional)</label>
-              <input type="text" id="referencia" class="form-control" placeholder="Ej. 000123456">
+              <label for="nombres">Nombres *</label>
+              <input type="text" id="nombres" class="form-control" placeholder="Tus nombres" required>
             </div>
             <div class="form-group">
-              <label for="comprobanteArchivo">Foto o captura del bauche *</label>
-              <input type="file" id="comprobanteArchivo" class="form-control" accept="image/*,.pdf" required>
+              <label for="apellidos">Apellidos *</label>
+              <input type="text" id="apellidos" class="form-control" placeholder="Tus apellidos" required>
             </div>
-            <button type="submit" class="btn-submit" id="btnEnviarComprobante">Enviar comprobante para revisión</button>
-          </form>
-        </div>
+          </div>
 
-        <!-- Pantalla 2: confirmación -->
-        <div id="pantallaEnviado">
-          <div class="icono">✅</div>
-          <h2>¡Comprobante recibido!</h2>
-          <p style="font-size: 14px; color: #a1a1aa; line-height: 1.6;">
-            Estamos revisando tu pago. En cuanto se confirme, tu cuenta pasará a rol de <b id="rolConfirmado">Agente</b> automáticamente y podrás publicar propiedades.
+          <div class="form-group">
+            <label for="telefono">Teléfono / Celular *</label>
+            <div style="display: flex; gap: 10px;">
+              <select class="form-control" style="width: 130px;" id="prefijoPais">
+                <option value="DO +1">DO +1 (RD)</option>
+              </select>
+              <input type="text" id="telefono" class="form-control" placeholder="809 000 0000" required>
+            </div>
+          </div>
+
+          <div class="section-title">3. Ubicación</div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="provincia">Provincia / Ciudad *</label>
+              <input type="text" id="provincia" class="form-control" placeholder="Ej. Santo Domingo" required>
+            </div>
+            <div class="form-group">
+              <label for="sector">Sector / Sector Residencial *</label>
+              <input type="text" id="sector" class="form-control" placeholder="Ej. Piantini" required>
+            </div>
+          </div>
+
+          <div class="section-title">4. Tipo de Perfil Deseado</div>
+          <div class="form-group">
+            <label for="tipoRol">Selecciona tu rol en la plataforma *</label>
+            <select id="tipoRol" class="form-control" required>
+              <option value="cliente">Cliente / Buscador de Propiedades (Gratis)</option>
+              <option value="agente">Agente Inmobiliario (Requiere Membresía)</option>
+              <option value="agentepro">Agente Pro (Requiere Membresía)</option>
+            </select>
+          </div>
+
+          <div class="form-group" style="margin-top: 15px;">
+            <label for="email">Correo electrónico *</label>
+            <input type="email5" id="email" class="form-control" placeholder="correo@domain.com" required>
+          </div>
+
+          <div class="form-group">
+            <label for="password">Contraseña *</label>
+            <input type="password" id="password" class="form-control" placeholder="Mínimo 6 caracteres" required>
+          </div>
+
+          <button type="submit" class="btn-submit" id="btnRegistrar">Registrarse y Acceder ➔</button>
+
+          <p style="text-align: center; font-size: 13px; color: #a1a1aa; margin-top: 15px;">
+            ¿Ya tienes una cuenta? <a href="login.html" style="color: #3b82f6; text-decoration: none;">Inicia sesión aquí</a>
           </p>
-          <a href="comunidad.html" class="btn-submit" style="display:inline-block; text-decoration:none; margin-top: 10px;">Ir a la comunidad</a>
-        </div>
 
+        </form>
       </div>
     </div>
 
     <footer class="site-footer">
       <div class="footer-container">
-        <div>
-          <h2 class="footer-brand-title">Compra tu casa en <span class="highlight-red">RD</span></h2>
-          <p style="font-size: 13px; line-height: 1.5;">Tu aliado confiable en la búsqueda y adquisición de propiedades en República Dominicana.</p>
-        </div>
-      </div>
-      <div class="footer-bottom">
-        <p>© 2026 Compra tu casa en RD. Todos los derechos reservados.</p>
+        <h2 style="font-size: 16px; font-weight: 800; color: #fff; margin-bottom: 6px;">Compra tu casa en <span class="highlight-red">RD</span></h2>
+        <p style="font-size: 12px;">© 2026 Compra tu casa en RD. Todos los derechos reservados.</p>
       </div>
     </footer>
 
     <script type="module">
       import { auth, db } from './firebase-config.js';
-      import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-      import { doc, setDoc, addDoc, collection, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-      import { getApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-      import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
+      import { createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+      import { doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-      // --- Configuración de precios por rol (edita aquí los montos reales) ---
-      const PLANES = {
-        agente: { nombre: 'Agente Inmobiliario', monto: 1500, label: 'RD$ 1,500 / mes' },
-        agentepro: { nombre: 'Agente Pro', monto: 3000, label: 'RD$ 3,000 / mes' }
-      };
+      const form = document.getElementById('formCrearCuenta');
 
-      const params = new URLSearchParams(window.location.search);
-      let rolSolicitado = params.get('rol') || 'agente';
-      if (!PLANES[rolSolicitado]) rolSolicitado = 'agente';
-
-      document.getElementById('planNombre').textContent = PLANES[rolSolicitado].nombre;
-      document.getElementById('planMonto').innerHTML = PLANES[rolSolicitado].label.replace(' / ', ' <span>/ ') + '</span>';
-      document.getElementById('tituloPlan').textContent = `Activar membresía: ${PLANES[rolSolicitado].nombre}`;
-      document.getElementById('rolConfirmado').textContent = PLANES[rolSolicitado].nombre;
-
-      const storage = getStorage(getApp());
-      let usuarioActual = null;
-
-      onAuthStateChanged(auth, (user) => {
-        if (!user) {
-          // Si no hay sesión activa, lo mandamos a iniciar sesión primero
-          window.location.href = 'login.html';
-          return;
-        }
-        usuarioActual = user;
-      });
-
-      const form = document.getElementById('formComprobante');
-      const estadoEnvio = document.getElementById('estadoEnvio');
-      const btn = document.getElementById('btnEnviarComprobante');
-
-      function mostrarEstado(msg, tipo) {
-        estadoEnvio.textContent = msg;
-        estadoEnvio.className = tipo;
-        estadoEnvio.style.display = 'block';
-      }
-
-      form.addEventListener('submit', async function (e) {
+      form.addEventListener('submit', async (e) => {
         e.preventDefault();
-
-        if (!usuarioActual) {
-          mostrarEstado('No se detectó tu sesión. Vuelve a iniciar sesión e intenta de nuevo.', 'error');
-          return;
-        }
-
-        const archivo = document.getElementById('comprobanteArchivo').files[0];
-        const referencia = document.getElementById('referencia').value.trim();
-
-        if (!archivo) {
-          mostrarEstado('Debes adjuntar la foto o captura del comprobante.', 'error');
-          return;
-        }
-
-        btn.disabled = true;
-        btn.textContent = 'Enviando...';
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const rol = document.getElementById('tipoRol').value;
+        const nombres = document.getElementById('nombres').value;
+        const apellidos = document.getElementById('apellidos').value;
 
         try {
-          // 1. Subir el comprobante a Firebase Storage
-          const rutaArchivo = `comprobantes/${usuarioActual.uid}/${Date.now()}_${archivo.name}`;
-          const archivoRef = ref(storage, rutaArchivo);
-          await uploadBytes(archivoRef, archivo);
-          const comprobanteURL = await getDownloadURL(archivoRef);
+          const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+          const user = userCredential.user;
 
-          // 2. Registrar la solicitud de pago para revisión manual
-          await addDoc(collection(db, "solicitudesPago"), {
-            uid: usuarioActual.uid,
-            email: usuarioActual.email,
-            rolSolicitado: rolSolicitado,
-            monto: PLANES[rolSolicitado].monto,
-            referencia: referencia || null,
-            comprobanteURL: comprobanteURL,
-            estado: 'pendiente',
-            fecha: new Date().toISOString()
+          // Guardar datos básicos en Firestore
+          await setDoc(doc(db, "usuarios", user.uid), {
+            nombres,
+            apellidos,
+            email,
+            rol,
+            fechaCreacion: new Date().toISOString()
           });
 
-          // 3. Marcar en el perfil del usuario que su comprobante está en revisión
-          await setDoc(doc(db, "usuarios", usuarioActual.uid), {
-            estadoMembresia: 'en_revision'
-          }, { merge: true });
-
-          document.getElementById('pantallaFormulario').style.display = 'none';
-          document.getElementById('pantallaEnviado').style.display = 'block';
-
+          // Redirección según rol seleccionado
+          if (rol === 'agente' || rol === 'agentepro') {
+            window.location.href = `Membresía.html?rol=${rol}`;
+          } else {
+            window.location.href = '../index.html';
+          }
         } catch (error) {
-          console.error('Error al enviar comprobante:', error);
-          mostrarEstado('Ocurrió un error al enviar tu comprobante. Intenta de nuevo.', 'error');
-          btn.disabled = false;
-          btn.textContent = 'Enviar comprobante para revisión';
+          alert("Error al crear cuenta: " + error.message);
         }
       });
     </script>
