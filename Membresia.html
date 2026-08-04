@@ -106,17 +106,23 @@
         padding-bottom: 6px;
       }
 
+      .datos-bancarios-container {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
       .datos-bancarios {
         background: rgba(255, 255, 255, 0.04);
         border: 1px solid rgba(255, 255, 255, 0.08);
         border-radius: 14px;
-        padding: 18px 20px;
+        padding: 14px 18px;
       }
 
       .datos-bancarios .fila {
         display: flex;
         justify-content: space-between;
-        padding: 8px 0;
+        padding: 6px 0;
         border-bottom: 1px dashed rgba(255, 255, 255, 0.08);
         font-size: 14px;
       }
@@ -156,7 +162,6 @@
         background: rgba(255, 255, 255, 0.08);
       }
 
-      /* Estilo exclusivo para campos bloqueados */
       .form-control:disabled {
         background: rgba(255, 255, 255, 0.02);
         color: #94a3b8;
@@ -270,14 +275,58 @@
           <div id="estadoEnvio"></div>
 
           <div class="section-title">1. Realiza la transferencia</div>
-          <div class="datos-bancarios">
-            <div class="fila"><span>Banco</span><span>[NOMBRE DEL BANCO]</span></div>
-            <div class="fila"><span>Tipo de cuenta</span><span>[Ahorros / Corriente]</span></div>
-            <div class="fila"><span>Número de cuenta</span><span>[NÚMERO DE CUENTA]</span></div>
-            <div class="fila"><span>Titular</span><span>[NOMBRE DEL TITULAR]</span></div>
-            <div class="fila"><span>Cédula / RNC</span><span>[CÉDULA O RNC]</span></div>
+          <div class="datos-bancarios-container">
+            <!-- Banreservas -->
+            <div class="datos-bancarios">
+              <div class="fila"><span>Banco</span><span>Banreservas</span></div>
+              <div class="fila"><span>Tipo de cuenta</span><span>Ahorro</span></div>
+              <div class="fila"><span>Número de cuenta</span><span>9601352264</span></div>
+              <div class="fila"><span>Titular</span><span>Daniel Toussaint Decena</span></div>
+            </div>
+            <!-- Banco BHD -->
+            <div class="datos-bancarios">
+              <div class="fila"><span>Banco</span><span>Banco BHD</span></div>
+              <div class="fila"><span>Tipo de cuenta</span><span>Corriente</span></div>
+              <div class="fila"><span>Número de cuenta</span><span>833678931</span></div>
+              <div class="fila"><span>Titular</span><span>Daniel Toussaint Decena</span></div>
+            </div>
+            <!-- Banco Popular -->
+            <div class="datos-bancarios">
+              <div class="fila"><span>Banco</span><span>Banco Popular Dominicano</span></div>
+              <div class="fila"><span>Tipo de cuenta</span><span>Ahorro</span></div>
+              <div class="fila"><span>Número de cuenta</span><span>33643350016</span></div>
+              <div class="fila"><span>Titular</span><span>Daniel Toussaint Decena</span></div>
+            </div>
+            <!-- Scotiabank -->
+            <div class="datos-bancarios">
+              <div class="fila"><span>Banco</span><span>Scotiabank</span></div>
+              <div class="fila"><span>Tipo de cuenta</span><span>Corriente</span></div>
+              <div class="fila"><span>Número de cuenta</span><span>63800006306</span></div>
+              <div class="fila"><span>Titular</span><span>Daniel Toussaint Decena</span></div>
+            </div>
+            <!-- Qik Banco Digital -->
+            <div class="datos-bancarios">
+              <div class="fila"><span>Banco</span><span>Qik Banco Digital</span></div>
+              <div class="fila"><span>Tipo de cuenta</span><span>Ahorro</span></div>
+              <div class="fila"><span>Número de cuenta</span><span>1001164216</span></div>
+              <div class="fila"><span>Titular</span><span>Daniel Toussaint Decena</span></div>
+            </div>
+            <!-- Banfondesa -->
+            <div class="datos-bancarios">
+              <div class="fila"><span>Banco</span><span>Banfondesa</span></div>
+              <div class="fila"><span>Tipo de cuenta</span><span>Corriente</span></div>
+              <div class="fila"><span>Número de cuenta</span><span>52-71-1003740560</span></div>
+              <div class="fila"><span>Titular</span><span>Daniel Toussaint Decena</span></div>
+            </div>
+            <!-- Banco Ademi -->
+            <div class="datos-bancarios">
+              <div class="fila"><span>Banco</span><span>Banco Ademi</span></div>
+              <div class="fila"><span>Tipo de cuenta</span><span>Ahorro</span></div>
+              <div class="fila"><span>Número de cuenta</span><span>50812006682711</span></div>
+              <div class="fila"><span>Titular</span><span>Daniel Toussaint Decena</span></div>
+            </div>
           </div>
-          <p class="aviso">Realiza la transferencia por el monto exacto de tu plan. Luego sube el comprobante (foto o captura del bauche) abajo para que validemos tu pago manualmente[cite: 5]. La activación puede tardar hasta 24 horas[cite: 5].</p>
+          <p class="aviso">Realiza la transferencia por el monto exacto de tu plan a cualquiera de las cuentas indicadas a nombre del Sr. Daniel Toussaint Decena. Luego sube el comprobante (foto o captura del bauche) abajo para que validemos tu pago manualmente[cite: 5]. La activación puede tardar hasta 24 horas[cite: 5].</p>
 
           <div class="section-title">2. Sube tu comprobante</div>
           <form id="formComprobante">
@@ -349,7 +398,6 @@
           return;
         }
         usuarioActual = user;
-        // Se coloca automáticamente el UID en el campo de referencia bloqueado
         const inputReferencia = document.getElementById('referencia');
         inputReferencia.value = user.uid;
       });
@@ -373,7 +421,7 @@
         }
 
         const archivo = document.getElementById('comprobanteArchivo').files[0];
-        const referenciaUid = usuarioActual.uid; // Se toma directamente el UID de Firestore autenticado
+        const referenciaUid = usuarioActual.uid;
 
         if (!archivo) {
           mostrarEstado('Debes adjuntar la foto o captura del comprobante[cite: 5].', 'error');
