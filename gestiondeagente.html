@@ -676,8 +676,8 @@
 
           nombreAgenteActual = nombreCompleto;
 
-          // El botón "Mensajes" solo aparece si el rol es admin o superadmin
-          if (rolUsuario === 'admin' || rolUsuario === 'superadmin') {
+          // El botón "Mensajes" aparece si el rol es admin, superadmin, agente o agentepro
+          if (rolUsuario === 'admin' || rolUsuario === 'superadmin' || rolUsuario === 'agente' || rolUsuario === 'agentepro') {
             const slot = document.getElementById('navMensajesSlot');
             if (slot) {
               slot.innerHTML = `<a href="mensajes/mensajesempresa.html" class="nav-link"><span class="nav-emoji">✉️</span> Mensajes</a>`;
