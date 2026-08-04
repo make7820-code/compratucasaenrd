@@ -232,7 +232,7 @@
         z-index: 1;
       }
 
-      /* Estilo específico para Qik Banco Digital (Ajustado al 75% para que se vea un poco más grande) */
+      /* Estilo específico para Qik Banco Digital (Ajustado al 50% y desplazado hacia la derecha para que no sature el texto izquierdo) */
       .datos-bancarios.qik-card {
         position: relative;
         overflow: hidden;
@@ -244,9 +244,9 @@
         inset: 0;
         background-image: url('assets/Qik.png');
         background-repeat: no-repeat;
-        background-position: center;
-        background-size: 75%;
-        opacity: 0.18;
+        background-position: 75% center;
+        background-size: 50%;
+        opacity: 0.15;
         filter: saturate(1.2);
         pointer-events: none;
         z-index: 0;
