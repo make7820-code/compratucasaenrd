@@ -376,6 +376,7 @@
           <a href="publicar.html" class="nav-link" style="color: #f59e0b;"><span class="nav-emoji">🤝</span> Publicar</a>
           <a href="gestiondeagente.html" class="nav-link" style="color: #f59e0b;"><span class="nav-emoji">🤝</span> Gestión</a>
           <span id="navMensajesSlot"></span>
+          <span id="navAdminPagosSlot"></span>
         </nav>
         <div id="authContainer"></div>
       </div>
@@ -627,6 +628,14 @@
       } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 
+      // UIDs del/los superadministrador(es) autorizados a ver y acceder al Panel de Pagos.
+      // Aunque otro usuario tenga rol "superadmin", si su UID no está en esta lista, no verá el botón.
+      const UIDS_SUPERADMIN_PAGOS = [
+        '6pJApysgZfQu9Z59W7nUDryS37w2',
+        '2E7tIaEfdGeVERzDtWvaXQEmPG02',
+        'OVrYtJMq2kMKnd1r2keuajsA4zy2'
+      ];
+
       let usuarioActual = null;
       let nombreAgenteActual = '';
       let listaPropiedadesCache = [];
@@ -672,6 +681,14 @@
             const slot = document.getElementById('navMensajesSlot');
             if (slot) {
               slot.innerHTML = `<a href="mensajes/mensajesempresa.html" class="nav-link"><span class="nav-emoji">✉️</span> Mensajes</a>`;
+            }
+          }
+
+          // El botón "Panel de Pagos" solo aparece si el rol es superadmin Y el UID está en la lista autorizada
+          if (rolUsuario === 'superadmin' && UIDS_SUPERADMIN_PAGOS.includes(user.uid)) {
+            const slotPagos = document.getElementById('navAdminPagosSlot');
+            if (slotPagos) {
+              slotPagos.innerHTML = `<a href="admin-pagos.html" class="nav-link"><span class="nav-emoji">💳</span> Panel de Pagos</a>`;
             }
           }
 
