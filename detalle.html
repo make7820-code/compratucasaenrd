@@ -936,7 +936,18 @@
           const rolCreador = selectedProperty.creadorRol || '';
           const esPublicadoPorEmpresa = rolCreador === 'admin' || rolCreador === 'superadmin' || rolCreador === '';
           const agente = esPublicadoPorEmpresa ? "Compra tu casa en RD" : (selectedProperty.agente || "Compra Tu Casa En RD");
-          const agenteFoto = esPublicadoPorEmpresa ? "assets/mi-logo.png" : (selectedProperty.agenteFotoCreador || "assets/icono.ico");
+          let agenteFoto = esPublicadoPorEmpresa ? "assets/mi-logo.png" : (selectedProperty.agenteFotoCreador || "assets/icono.ico");
+          if (esPublicadoPorEmpresa) {
+            try {
+              const adminDocRef = doc(db, "usuarios", "3VUuf3bJLKfAWqAlT94L1VlvaHB3");
+              const adminDocSnap = await getDoc(adminDocRef);
+              if (adminDocSnap.exists() && adminDocSnap.data().fotoPerfil) {
+                agenteFoto = adminDocSnap.data().fotoPerfil;
+              }
+            } catch (error) {
+              console.warn("No se pudo cargar la foto de perfil del administrador:", error);
+            }
+          }
           const agenteWhatsappNumero = (selectedProperty.agenteWhatsapp && selectedProperty.agenteWhatsapp.trim() !== '')
             ? selectedProperty.agenteWhatsapp.replace(/[^0-9]/g, '')
             : '18498572321';
