@@ -638,6 +638,7 @@
 
       let usuarioActual = null;
       let nombreAgenteActual = '';
+      let esModoAdminGestion = false; // true si el rol es admin/superadmin: ve las propiedades de toda la empresa
       let listaPropiedadesCache = [];
       let listaCitasCache = [];
       let listaCierresCache = [];
@@ -675,6 +676,10 @@
           }
 
           nombreAgenteActual = nombreCompleto;
+
+          // Un agente normal solo ve/gestiona las propiedades que él mismo publicó (creadoPorUid).
+          // Admin y superadmin ven las propiedades de toda la empresa (todas).
+          esModoAdminGestion = (rolUsuario === 'admin' || rolUsuario === 'superadmin');
 
           // El botón "Mensajes" aparece si el rol es admin, superadmin, agente o agentepro
           if (rolUsuario === 'admin' || rolUsuario === 'superadmin' || rolUsuario === 'agente' || rolUsuario === 'agentepro') {
@@ -826,10 +831,16 @@
 
       /* =========================================================
          CARGA DE PROPIEDADES PUBLICADAS (para citas y cierres)
+         Agente normal: solo las que él publicó (creadoPorUid).
+         Admin / superadmin: todas las de la empresa.
       ========================================================= */
       async function cargarPropiedadesEnSelects() {
         try {
-          const snap = await getDocs(collection(db, "propiedades"));
+          const consultaPropiedades = esModoAdminGestion
+            ? collection(db, "propiedades")
+            : query(collection(db, "propiedades"), where("creadoPorUid", "==", usuarioActual.uid));
+
+          const snap = await getDocs(consultaPropiedades);
           listaPropiedadesCache = [];
           snap.forEach(docItem => {
             listaPropiedadesCache.push({ id: docItem.id, ...docItem.data() });
