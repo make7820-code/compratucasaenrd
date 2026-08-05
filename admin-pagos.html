@@ -46,7 +46,6 @@
         gap: 12px;
       }
 
-      /* Contenedor específico para alinear elementos de usuario y evitar desbordamientos */
       .header-right {
         position: relative;
       }
@@ -113,6 +112,46 @@
         font-size: 13.5px;
         font-weight: 600;
         text-decoration: none;
+      }
+
+      /* Estilo minimalista para el botón de perfil en el header */
+      .user-profile-menu {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+      }
+
+      .user-profile-trigger {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        padding: 6px 12px;
+        border-radius: 10px;
+        cursor: pointer;
+        color: #fff;
+        font-size: 13.5px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: background 0.2s;
+      }
+
+      .user-profile-trigger:hover {
+        background: rgba(255, 255, 255, 0.12);
+      }
+
+      .user-avatar-mini {
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        background: #3b82f6;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: 700;
       }
 
       @media (max-width: 640px) {
@@ -540,7 +579,7 @@
           <a href="gestiondeagente.html" class="top-action-btn top-action-btn-primary">
             <span>➕</span> Publicar
           </a>
-          <!-- Contenedor dinámico de autenticación, campana y perfil -->
+          <!-- Contenedor dinámico de autenticación y perfil (sin campana de notificaciones) -->
           <div id="authContainer">
             <a href="login.html" class="login-btn">
               <span>🔐</span> Iniciar sesión
@@ -664,9 +703,40 @@
       let filtroActual = 'pendiente';
 
       onAuthStateChanged(auth, async (user) => {
+        const authContainer = document.getElementById('authContainer');
+
         if (!user) {
+          authContainer.innerHTML = `
+            <a href="login.html" class="login-btn">
+              <span>🔐</span> Iniciar sesión
+            </a>
+          `;
           window.location.href = 'login.html';
           return;
+        }
+
+        // Renderizar el perfil del usuario autenticado en lugar de la campana
+        try {
+          const snapUser = await getDoc(doc(db, "usuarios", user.uid));
+          const userData = snapUser.exists() ? snapUser.data() : {};
+          const nombreUsuario = userData.nombre || userData.nombreCompleto || userData.displayName || user.email || 'Mi Cuenta';
+          const inicial = nombreUsuario.charAt(0).toUpperCase();
+
+          authContainer.innerHTML = `
+            <div class="user-profile-menu">
+              <a href="perfil.html" class="user-profile-trigger" title="Ver perfil">
+                <div class="user-avatar-mini">${inicial}</div>
+                <span>${nombreUsuario.split(' ')[0]}</span>
+              </a>
+            </div>
+          `;
+        } catch (e) {
+          authContainer.innerHTML = `
+            <a href="perfil.html" class="user-profile-trigger">
+              <div class="user-avatar-mini">U</div>
+              <span>Perfil</span>
+            </a>
+          `;
         }
 
         try {
@@ -961,6 +1031,5 @@
         renderizarUsuarios(e.target.value);
       });
     </script>
-    <script type="module" src="notifications.js"></script>
 </body>
 </html>
