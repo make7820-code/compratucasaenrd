@@ -46,6 +46,11 @@
         gap: 12px;
       }
 
+      /* Contenedor específico para alinear elementos de usuario y evitar desbordamientos */
+      .header-right {
+        position: relative;
+      }
+
       .brand {
         display: flex;
         align-items: center;
@@ -87,6 +92,13 @@
 
       .top-action-btn-primary:hover {
         background: #2563eb;
+      }
+
+      #authContainer {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        position: relative;
       }
 
       #authContainer .login-btn {
@@ -444,7 +456,7 @@
         .comprobante-thumb-pdf { width: 100%; height: 200px; }
       }
 
-      /* ===== Footer (idéntico al del resto del sitio) ===== */
+      /* ===== Footer ===== */
       .site-footer {
         background: #0b0b0e;
         border-top: 1px solid rgba(255, 255, 255, 0.08);
@@ -524,12 +536,12 @@
           </a>
         </div>
 
-        <div class="header-right" style="display: flex; align-items: center; gap: 12px;">
+        <div class="header-right">
           <a href="gestiondeagente.html" class="top-action-btn top-action-btn-primary">
             <span>➕</span> Publicar
           </a>
           <!-- Contenedor dinámico de autenticación, campana y perfil -->
-          <div id="authContainer" style="display: flex; align-items: center; gap: 12px;">
+          <div id="authContainer">
             <a href="login.html" class="login-btn">
               <span>🔐</span> Iniciar sesión
             </a>
@@ -642,7 +654,6 @@
 
       const PLANES_LABEL = { agente: 'Agente Inmobiliario', agentepro: 'Agente Pro' };
 
-      // Solo estos UIDs pueden acceder a este panel, aunque tengan rol "superadmin".
       const UIDS_SUPERADMIN_PAGOS = [
         '6pJApysgZfQu9Z59W7nUDryS37w2',
         '2E7tIaEfdGeVERzDtWvaXQEmPG02',
@@ -760,10 +771,8 @@
         btnRechazar.disabled = true;
 
         try {
-          // 1. Actualizar la solicitud
           await updateDoc(doc(db, "solicitudesPago", sol.id), { estado: nuevoEstado });
 
-          // 2. Actualizar el perfil del usuario según la decisión
           if (nuevoEstado === 'aprobado') {
             await setDoc(doc(db, "usuarios", sol.uid), {
               rol: sol.rolSolicitado,
@@ -796,7 +805,6 @@
         });
       });
 
-      // ===================== BOTÓN ATRÁS =====================
       document.getElementById('btnAtras').addEventListener('click', () => {
         if (window.history.length > 1) {
           window.history.back();
@@ -805,7 +813,6 @@
         }
       });
 
-      // ===================== PESTAÑAS (PAGOS / USUARIOS) =====================
       const tabPagos = document.getElementById('tabPagos');
       const tabUsuarios = document.getElementById('tabUsuarios');
       let usuariosCargados = false;
@@ -825,7 +832,6 @@
       tabPagos.addEventListener('click', () => cambiarTab('pagos'));
       tabUsuarios.addEventListener('click', () => cambiarTab('usuarios'));
 
-      // ===================== USUARIOS REGISTRADOS =====================
       const ROLES_DISPONIBLES = ['usuario', 'agente', 'agentepro', 'superadmin'];
       let usuariosCache = [];
 
@@ -955,8 +961,6 @@
         renderizarUsuarios(e.target.value);
       });
     </script>
-
-    <!-- Campanita de notificaciones y menú de perfil (compartido con el resto del sitio) -->
     <script type="module" src="notifications.js"></script>
 </body>
 </html>
