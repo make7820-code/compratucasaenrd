@@ -2163,7 +2163,7 @@
             linkVideo: document.getElementById('propLinkVideo').value || '',
             videoArchivo: videoArchivoUrlFinal || '',
             descripcion: document.getElementById('propDescripcion').value,
-            imagenes: imagenesUrls.length > 0 ? imagenesUrls : ['https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=600&q=80'],
+            imagenes: imagenesUrls,
             fechaActualizacion: new Date().toISOString()
           };
 
@@ -2342,12 +2342,16 @@
 
         let html = '';
         fuenteDatos.forEach(prop => {
-          const imgs = (prop.imagenes && prop.imagenes.length > 0) ? prop.imagenes : ['https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=600&q=80'];
-          
+          const imgs = prop.imagenes || [];
+
           let carouselImgsHtml = '';
-          imgs.forEach((imgSrc, idx) => {
-            carouselImgsHtml += `<img src="${imgSrc}" class="carousel-img" data-index="${idx}">`;
-          });
+          if (imgs.length > 0) {
+            imgs.forEach((imgSrc, idx) => {
+              carouselImgsHtml += `<img src="${imgSrc}" class="carousel-img" data-index="${idx}">`;
+            });
+          } else {
+            carouselImgsHtml = `<div class="carousel-img" style="display:flex;align-items:center;justify-content:center;background:#1a1a1a;color:#777;font-size:13px;">Sin foto</div>`;
+          }
 
           const propIdSeguro = prop.id;
           const opTexto = (prop.operacion || 'Venta').toLowerCase();
