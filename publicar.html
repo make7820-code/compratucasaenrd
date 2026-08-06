@@ -1228,6 +1228,20 @@
             </div>
           </div>
 
+          <!-- GESTIÓN Y SUBIDA DE VIDEO PROPIO (se reproduce dentro de la página) -->
+          <div class="publish-form-group form-group-full">
+            <label>Video Actual Subido (se reproduce directamente en tu página)</label>
+            <div id="contenedorVideoActual" class="thumbnails-edit-container">
+              <!-- Se carga dinámicamente al editar -->
+            </div>
+
+            <label style="margin-top: 10px;">Subir Video Propio (archivo, opcional — reemplaza el video actual si subes uno nuevo)</label>
+            <input type="file" id="propArchivoVideo" class="publish-control" accept="video/*" style="padding: 8px;">
+            <p style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">
+              Este video se reproduce dentro de la página (en la tarjeta y en el detalle). El link de arriba es opcional y se usa como alternativa/enlace externo.
+            </p>
+          </div>
+
           <!-- Extras / Comodidades ubicado justo encima de las fotos para mejor orden visual -->
           <div class="form-section-heading" style="margin-top: 20px;"><span>✨</span> Extras / Comodidades</div>
           <div class="publish-form-group form-group-full">
@@ -1336,6 +1350,8 @@
       let mostrandoArchivadas = false;
       let imagenesEditandoActuales = []; 
       let cachePropiedadesActuales = {};
+      let videoArchivoActualUrl = '';   // URL del video ya subido a Storage (si existe) al editar
+      let videoArchivoEliminado = false; // true si el usuario borró el video actual sin subir uno nuevo
 
       // UIDs con control TOTAL fija de fábrica (superadmin / admins de confianza).
       // Estos usuarios siempre pueden ver, editar y borrar TODAS las publicaciones,
@@ -1996,8 +2012,15 @@
             previewImgUrl = editarObj.imagenes[0] || '';
             renderizarMiniaturasEdicion();
           }
+
+          videoArchivoActualUrl = editarObj.videoArchivo || '';
+          videoArchivoEliminado = false;
+          renderizarVideoActual();
         } else {
           document.getElementById('modalTituloTexto').innerText = '🏠 Registrar Nueva Propiedad';
+          videoArchivoActualUrl = '';
+          videoArchivoEliminado = false;
+          renderizarVideoActual();
         }
 
         actualizarVistaPrevia();
@@ -2027,6 +2050,28 @@
       window.eliminarFotoEdicion = function(index) {
         imagenesEditandoActuales.splice(index, 1);
         renderizarMiniaturasEdicion();
+      }
+
+      function renderizarVideoActual() {
+        const contenedor = document.getElementById('contenedorVideoActual');
+        if (!contenedor) return;
+
+        if (!videoArchivoActualUrl || videoArchivoEliminado) {
+          contenedor.innerHTML = `<p style="font-size: 12px; color: var(--text-muted);">No hay video propio subido actualmente.</p>`;
+          return;
+        }
+
+        contenedor.innerHTML = `
+          <div class="thumbnail-item" style="width: 160px;">
+            <video src="${videoArchivoActualUrl}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;" muted></video>
+            <button type="button" class="thumbnail-delete-btn" onclick="eliminarVideoEdicion()" title="Borrar video">×</button>
+          </div>
+        `;
+      }
+
+      window.eliminarVideoEdicion = function() {
+        videoArchivoEliminado = true;
+        renderizarVideoActual();
       }
 
       window.cerrarModalPublicar = function() {
@@ -2060,6 +2105,18 @@
               const downloadURL = await getDownloadURL(snapshot.ref);
               imagenesUrls.push(downloadURL);
             }
+          }
+
+          // Video propio (archivo subido): si el usuario eligió un archivo nuevo, se sube a Storage
+          // y reemplaza cualquier video anterior. Si no eligió uno nuevo, se conserva el actual
+          // (a menos que el usuario lo haya borrado con el botón ×).
+          const archivoVideoInput = document.getElementById('propArchivoVideo');
+          let videoArchivoUrlFinal = videoArchivoEliminado ? '' : videoArchivoActualUrl;
+          if (archivoVideoInput && archivoVideoInput.files && archivoVideoInput.files.length > 0) {
+            const videoFile = archivoVideoInput.files[0];
+            const videoRef = storageRefFn(storage, `propiedades_videos/${Date.now()}_${videoFile.name}`);
+            const videoSnapshot = await uploadBytes(videoRef, videoFile);
+            videoArchivoUrlFinal = await getDownloadURL(videoSnapshot.ref);
           }
 
           const provincia = document.getElementById('propProvincia').value;
@@ -2104,6 +2161,7 @@
             metros: document.getElementById('propMetros').value || 'N/D',
             linkUbicacion: document.getElementById('propLinkUbicacion').value || '',
             linkVideo: document.getElementById('propLinkVideo').value || '',
+            videoArchivo: videoArchivoUrlFinal || '',
             descripcion: document.getElementById('propDescripcion').value,
             imagenes: imagenesUrls.length > 0 ? imagenesUrls : ['https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=600&q=80'],
             fechaActualizacion: new Date().toISOString()
