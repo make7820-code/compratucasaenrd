@@ -116,6 +116,31 @@
         transition: transform 0.3s ease;
       }
 
+      /* Cuando la propiedad no tiene fotos, el video ocupa el espacio
+         principal de la galería (donde irían las fotos) para que se
+         vea limpio y ordenado, en vez de dejar una foto genérica. */
+      .property-gallery.gallery-video-mode {
+        cursor: default;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .property-gallery.gallery-video-mode video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 0;
+        display: block;
+      }
+
+      .property-gallery.gallery-video-mode iframe {
+        width: 100%;
+        height: 100%;
+        border-radius: 0;
+        display: block;
+      }
+
       .gallery-nav-btn {
         position: absolute;
         top: 50%;
@@ -917,7 +942,20 @@
 
           const videoArchivo = selectedProperty.videoArchivo || null;
           const embedVideoHtml = generarEmbedVideo(videoArchivo, videoUrl);
-          const videoWidgetHtml = embedVideoHtml ? `
+
+          // Solo se consideran "fotos reales" las que el usuario subió; el placeholder
+          // genérico no cuenta, para poder detectar cuándo la propiedad no tiene fotos.
+          const imgs = (selectedProperty.imagenes && selectedProperty.imagenes.length > 0)
+            ? selectedProperty.imagenes
+            : (selectedProperty.image ? [selectedProperty.image] : []);
+
+          // Si no hay fotos, el video pasa a ocupar el recuadro principal de la galería
+          // (donde normalmente van las fotos) para que la página quede más limpia y
+          // ordenada, en vez de mostrar una imagen genérica de relleno. En ese caso ya
+          // no se repite el video en la barra lateral.
+          const videoEnGaleriaPrincipal = imgs.length === 0 && !!embedVideoHtml;
+
+          const videoWidgetHtml = (embedVideoHtml && !videoEnGaleriaPrincipal) ? `
             <div class="property-video-box">
               <div class="property-video-title">
                 <span>🎥</span> Video de la propiedad
@@ -925,8 +963,6 @@
               ${embedVideoHtml}
             </div>
           ` : '';
-
-          const imgs = (selectedProperty.imagenes && selectedProperty.imagenes.length > 0) ? selectedProperty.imagenes : [selectedProperty.image || 'assets/puerto-marina.png'];
           const description = selectedProperty.descripcion || selectedProperty.description || selectedProperty.detalles || 'Sin descripción detallada.';
 
           // Datos del agente que publicó esta propiedad (si la publicación no tiene agente asignado,
@@ -958,18 +994,22 @@
           container.innerHTML = `
             <div class="property-main-content">
               <!-- Galería interactiva con etiqueta de operación -->
-              <div class="property-gallery" id="propertyGalleryBox">
+              <div class="property-gallery${videoEnGaleriaPrincipal ? ' gallery-video-mode' : ''}" id="propertyGalleryBox">
                 <div style="position: absolute; top: 16px; left: 16px; z-index: 3; display: flex; gap: 8px; align-items: center;">
                   <span class="property-tag-badge" style="background: ${badgeBg};">${offer}</span>
                 </div>
-                
-                <img id="activeGalleryImg" src="${imgs[0]}" alt="${title}" onerror="this.src='assets/puerto-marina.png'">
-                
-                ${imgs.length > 1 ? `
-                  <button class="gallery-nav-btn gallery-prev" id="prevImgBtn">&#10094;</button>
-                  <button class="gallery-nav-btn gallery-next" id="nextImgBtn">&#10095;</button>
-                  <div class="gallery-counter"><span id="currentImgIndex">1</span> / ${imgs.length}</div>
-                ` : ''}
+
+                ${videoEnGaleriaPrincipal ? `
+                  ${embedVideoHtml}
+                ` : `
+                  <img id="activeGalleryImg" src="${imgs[0] || 'assets/puerto-marina.png'}" alt="${title}" onerror="this.src='assets/puerto-marina.png'">
+
+                  ${imgs.length > 1 ? `
+                    <button class="gallery-nav-btn gallery-prev" id="prevImgBtn">&#10094;</button>
+                    <button class="gallery-nav-btn gallery-next" id="nextImgBtn">&#10095;</button>
+                    <div class="gallery-counter"><span id="currentImgIndex">1</span> / ${imgs.length}</div>
+                  ` : ''}
+                `}
               </div>
 
               ${imgs.length > 1 ? `
@@ -1090,10 +1130,14 @@
           const galleryBox = document.getElementById('propertyGalleryBox');
           const closeBtn = document.getElementById('modalCloseBtn');
 
-          galleryBox.addEventListener('click', () => {
-            modal.style.display = 'flex';
-            modalImg.src = activeImgElement.src;
-          });
+          // El zoom en modal solo aplica cuando la galería muestra fotos;
+          // si está mostrando el video (sin fotos), el clic no debe abrir el modal.
+          if (activeImgElement) {
+            galleryBox.addEventListener('click', () => {
+              modal.style.display = 'flex';
+              modalImg.src = activeImgElement.src;
+            });
+          }
 
           closeBtn.addEventListener('click', () => {
             modal.style.display = 'none';
