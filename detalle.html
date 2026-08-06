@@ -915,14 +915,14 @@
                </div>` 
             : '';
 
-          const videoWidgetHtml = videoUrl ? `
+          const videoArchivo = selectedProperty.videoArchivo || null;
+          const embedVideoHtml = generarEmbedVideo(videoArchivo, videoUrl);
+          const videoWidgetHtml = embedVideoHtml ? `
             <div class="property-video-box">
               <div class="property-video-title">
                 <span>🎥</span> Video de la propiedad
               </div>
-              <a href="${videoUrl}" target="_blank" class="video-link-btn">
-                <span>▶</span> Ver Video
-              </a>
+              ${embedVideoHtml}
             </div>
           ` : '';
 
@@ -1109,6 +1109,54 @@
           mostrarError(container);
         }
       });
+
+      // Genera el HTML del reproductor de video embebido dentro de la página.
+      // Prioridad: 1) video propio subido a Storage (siempre se puede reproducir nativo),
+      // 2) link externo, detectando la plataforma para embeberlo cuando es posible
+      //    (YouTube = iframe directo; Instagram/TikTok = su propio script de embed oficial).
+      // Si no se puede embeber (plataforma no reconocida), se deja el botón de enlace como respaldo.
+      function generarEmbedVideo(videoArchivo, videoUrl) {
+        if (videoArchivo) {
+          return `<video controls style="width:100%; border-radius:12px; display:block; background:#000;" src="${videoArchivo}"></video>`;
+        }
+        if (!videoUrl) return '';
+
+        // YouTube (watch, youtu.be, shorts)
+        const ytMatch = videoUrl.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]+)/);
+        if (ytMatch) {
+          return `<iframe width="100%" height="230" style="border-radius:12px; border:none; display:block;" src="https://www.youtube.com/embed/${ytMatch[1]}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+        }
+
+        // Instagram (posts/reels)
+        if (videoUrl.includes('instagram.com')) {
+          cargarScriptEmbedUnaVez('https://www.instagram.com/embed.js', 'instgrm');
+          return `<blockquote class="instagram-media" data-instgrm-permalink="${videoUrl}" style="margin:0; width:100%;"></blockquote>`;
+        }
+
+        // TikTok
+        if (videoUrl.includes('tiktok.com')) {
+          cargarScriptEmbedUnaVez('https://www.tiktok.com/embed.js', 'tiktokEmbed');
+          return `<blockquote class="tiktok-embed" cite="${videoUrl}" style="margin:0; width:100%; min-height:500px;"><section></section></blockquote>`;
+        }
+
+        // Plataforma no reconocida: se deja el botón de enlace externo como respaldo.
+        return `<a href="${videoUrl}" target="_blank" class="video-link-btn"><span>▶</span> Ver Video</a>`;
+      }
+
+      // Carga (una sola vez por página) el script oficial de embed de Instagram/TikTok,
+      // y si ya estaba cargado, le pide reprocesar los blockquotes recién insertados.
+      function cargarScriptEmbedUnaVez(src, globalCheck) {
+        const yaExiste = document.querySelector(`script[src="${src}"]`);
+        if (yaExiste) {
+          // Reprocesa embeds nuevos insertados después de que el script ya cargó.
+          if (globalCheck === 'instgrm' && window.instgrm) window.instgrm.Embeds.process();
+          return;
+        }
+        const script = document.createElement('script');
+        script.src = src;
+        script.async = true;
+        document.body.appendChild(script);
+      }
 
       function mostrarError(container) {
         container.innerHTML = `
