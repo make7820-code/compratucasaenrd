@@ -1406,13 +1406,14 @@
           const rawPremium = prop.premium;
           const esPremium = rawPremium === true || rawPremium === "true" || rawPremium === "si" || rawPremium === "sí" || rawPremium === 1 || rawPremium === "on";
 
+          // Solo se cuentan como "fotos reales" las que el usuario subió. Si no hay
+          // ninguna, se deja la lista vacía por ahora: más abajo se decide si el video
+          // ocupa ese espacio (tarjeta más limpia) o si hay que usar la foto de relleno.
           let listaImagenes = [];
           if (prop.imagenes && Array.isArray(prop.imagenes) && prop.imagenes.length > 0) {
             listaImagenes = prop.imagenes;
           } else if (prop.image) {
             listaImagenes = [prop.image];
-          } else {
-            listaImagenes = ['assets/puerto-marina.png'];
           }
 
           let badgeBg = '#10b981'; // Venta = verde
@@ -1425,22 +1426,8 @@
           }
           const esFavorito = favoritos.includes(propId);
 
-          let slidesHtml = '';
-          let dotsHtml = '';
-
-          listaImagenes.forEach((imgUrl, index) => {
-            slidesHtml += `
-              <div class="property-carousel-slide">
-                <img src="${imgUrl}" alt="${propTitle}" onerror="this.src='assets/puerto-marina.png'">
-              </div>
-            `;
-            dotsHtml += `
-              <span class="property-dot ${index === 0 ? 'active' : ''}" data-index="${index}"></span>
-            `;
-          });
-
-          // Slide de video: se agrega como una diapositiva más al final del carrusel para que
-          // se reproduzca dentro de la misma tarjeta, sin salir de la página.
+          // Slide de video: normalmente se agrega como una diapositiva más al final del
+          // carrusel, para que se reproduzca dentro de la misma tarjeta sin salir de la página.
           // - Video propio subido: se puede reproducir directo con <video>.
           // - Link de YouTube: se muestra una miniatura con botón de play; el iframe solo se
           //   carga al hacer clic (para no cargar decenas de iframes de golpe en el listado).
@@ -1466,9 +1453,30 @@
             `;
           }
 
+          // Si no hay fotos reales, no se usa la foto de relleno genérica: el video pasa a
+          // ser la única diapositiva de la tarjeta, para que se vea limpia y ordenada.
+          // Si sí hay fotos, el video se agrega igual que antes al final del carrusel.
+          if (listaImagenes.length === 0 && !videoSlideHtml) {
+            listaImagenes = ['assets/puerto-marina.png'];
+          }
+
+          let slidesHtml = '';
+          let dotsHtml = '';
+
+          listaImagenes.forEach((imgUrl, index) => {
+            slidesHtml += `
+              <div class="property-carousel-slide">
+                <img src="${imgUrl}" alt="${propTitle}" onerror="this.src='assets/puerto-marina.png'">
+              </div>
+            `;
+            dotsHtml += `
+              <span class="property-dot ${index === 0 ? 'active' : ''}" data-index="${index}"></span>
+            `;
+          });
+
           if (videoSlideHtml) {
             slidesHtml += videoSlideHtml;
-            dotsHtml += `<span class="property-dot" data-index="${listaImagenes.length}">🎥</span>`;
+            dotsHtml += `<span class="property-dot ${listaImagenes.length === 0 ? 'active' : ''}" data-index="${listaImagenes.length}">🎥</span>`;
           }
 
           const totalSlidesTarjeta = listaImagenes.length + (videoSlideHtml ? 1 : 0);
