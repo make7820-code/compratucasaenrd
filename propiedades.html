@@ -1303,6 +1303,18 @@
     <script type="module">
       import { db, collection, getDocs } from './firebase-config.js';
 
+      // Reemplaza la miniatura de YouTube (facade) por el iframe real solo al hacer clic,
+      // para no cargar decenas de iframes de golpe en el listado de propiedades.
+      window.reproducirVideoFacade = function(elemento) {
+        const ytId = elemento.getAttribute('data-yt-id');
+        if (!ytId) return;
+        elemento.outerHTML = `
+          <div class="property-carousel-slide">
+            <iframe width="100%" height="100%" style="border:none;" src="https://www.youtube.com/embed/${ytId}?autoplay=1" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+          </div>
+        `;
+      };
+
       window.addEventListener('DOMContentLoaded', async () => {
         // ================= CARGA DE PROPIEDADES =================
         const propertiesGrid = document.getElementById('propertiesGrid');
@@ -1336,10 +1348,6 @@
 
         querySnapshot.forEach((docSnap) => {
           const prop = docSnap.data();
-
-          // Las propiedades archivadas no deben mostrarse en el catálogo público.
-          if (prop.archivada) return;
-
           const propId = docSnap.id;
           const ownerId = prop.usuarioId || prop.ownerId || '';
 
@@ -1431,7 +1439,40 @@
             `;
           });
 
-          const showControls = listaImagenes.length > 1;
+          // Slide de video: se agrega como una diapositiva más al final del carrusel para que
+          // se reproduzca dentro de la misma tarjeta, sin salir de la página.
+          // - Video propio subido: se puede reproducir directo con <video>.
+          // - Link de YouTube: se muestra una miniatura con botón de play; el iframe solo se
+          //   carga al hacer clic (para no cargar decenas de iframes de golpe en el listado).
+          // - Instagram/TikTok en tarjeta: se omite aquí (se reproducen en la página de detalle),
+          //   ya que sus embeds son pesados para mostrarlos en cada tarjeta del listado.
+          const propVideoArchivo = prop.videoArchivo || null;
+          const propLinkVideo = prop.linkVideo || null;
+          const ytMatchCard = propLinkVideo ? propLinkVideo.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]+)/) : null;
+
+          let videoSlideHtml = '';
+          if (propVideoArchivo) {
+            videoSlideHtml = `
+              <div class="property-carousel-slide">
+                <video src="${propVideoArchivo}" controls preload="none" style="width:100%; height:100%; object-fit:cover; background:#000;"></video>
+              </div>
+            `;
+          } else if (ytMatchCard) {
+            videoSlideHtml = `
+              <div class="property-carousel-slide video-facade" data-yt-id="${ytMatchCard[1]}" onclick="reproducirVideoFacade(this)" style="cursor:pointer; position:relative;">
+                <img src="https://img.youtube.com/vi/${ytMatchCard[1]}/hqdefault.jpg" alt="Video de ${propTitle}" style="width:100%; height:100%; object-fit:cover;">
+                <span style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:44px; color:#fff; text-shadow:0 2px 8px rgba(0,0,0,0.6);">▶</span>
+              </div>
+            `;
+          }
+
+          if (videoSlideHtml) {
+            slidesHtml += videoSlideHtml;
+            dotsHtml += `<span class="property-dot" data-index="${listaImagenes.length}">🎥</span>`;
+          }
+
+          const totalSlidesTarjeta = listaImagenes.length + (videoSlideHtml ? 1 : 0);
+          const showControls = totalSlidesTarjeta > 1;
 
           const cardHtml = `
             <div class="property-card" 
@@ -1446,7 +1487,7 @@
                  data-amueblado="${esAmueblado ? '1' : '0'}"
                  data-premium="${esPremium ? '1' : '0'}">
               
-              <div class="property-img-container" data-current-slide="0" data-total-slides="${listaImagenes.length}">
+              <div class="property-img-container" data-current-slide="0" data-total-slides="${totalSlidesTarjeta}">
                 <span class="property-badge-top" style="background: ${badgeBg}; ${propOffer === 'Alquiler' ? 'color:#1a1a1a;' : ''}">${propOffer}</span>
                 ${esAmueblado ? `<span class="property-badge-top" style="background: #8b5cf6; left: auto; top: 44px;">🛋️ Amueblado</span>` : ''}
                 ${esPremium ? `<span class="property-badge-top" style="background: linear-gradient(135deg, #fde047, #f59e0b); color: #1a1a1a; left: auto; top: ${esAmueblado ? '78px' : '44px'};">⭐ Premium</span>` : ''}
