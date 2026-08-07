@@ -920,7 +920,7 @@
     <script type="module">
       import { auth, db } from './firebase-config.js';
       import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-      import { doc, getDoc, addDoc, collection, query, where, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+      import { doc, getDoc, setDoc, deleteDoc, addDoc, collection, query, where, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
       window.cambiarPestana = function(pestana) {
         const btnPub = document.getElementById('btnPublicaciones');
@@ -942,29 +942,39 @@
       }
 
       const AGENT_FIXED_UID = "2E7tIaEfdGeVERzDtWvaXQEmPG02";
+      const AGENT_FIXED_UID_2 = "6pJApysgZfQu9Z59W7nUDryS37w2";
 
       let agentsList = [
-        { id: 0, uid: AGENT_FIXED_UID, name: "Cargando...", avatar: "assets/onlybladi-avatar.png", isFixed: true },
-        { id: 1, uid: "user_1", name: "Nuevo usuario", avatar: null, isFixed: false },
-        { id: 2, uid: "user_2", name: "Nuevo usuario", avatar: null, isFixed: false },
-        { id: 3, uid: "user_3", name: "Nuevo usuario", avatar: null, isFixed: false },
-        { id: 4, uid: "user_4", name: "Nuevo usuario", avatar: null, isFixed: false }
+        { id: 0, uid: AGENT_FIXED_UID, name: "Cargando...", avatar: "assets/onlybladi-avatar.png", isFixed: true, followers: 0, followerUids: [], isFollowing: false },
+        { id: 1, uid: AGENT_FIXED_UID_2, name: "Cargando...", avatar: null, isFixed: true, followers: 0, followerUids: [], isFollowing: false },
+        { id: 2, uid: "user_1", name: "Nuevo usuario", avatar: null, isFixed: false, followers: 0, followerUids: [], isFollowing: false },
+        { id: 3, uid: "user_2", name: "Nuevo usuario", avatar: null, isFixed: false, followers: 0, followerUids: [], isFollowing: false },
+        { id: 4, uid: "user_3", name: "Nuevo usuario", avatar: null, isFixed: false, followers: 0, followerUids: [], isFollowing: false }
       ];
+
+      // ===== SEGUIDORES EN TIEMPO REAL (FIRESTORE, ya no localStorage) =====
+      // Cada "seguir" se guarda como un documento en la colección "agentesSeguidores"
+      // con id `${agentUid}_${followerUid}`. Esto hace que el conteo sea real
+      // (de todas las personas que dieron seguir) y visible para cualquiera que
+      // entre a la página, no solo para quien dio clic.
+      function escucharSeguidoresAgentes() {
+        agentsList.forEach(agent => {
+          if (agent.uid.startsWith('user_')) return; // agentes de relleno, aún no reales
+          const q = query(collection(db, "agentesSeguidores"), where("agentUid", "==", agent.uid));
+          onSnapshot(q, (snapshot) => {
+            agent.followers = snapshot.size;
+            agent.followerUids = snapshot.docs.map(d => d.data().followerUid);
+            renderAgents(auth.currentUser);
+          });
+        });
+      }
 
       function renderAgents(currentUser) {
         const container = document.getElementById('recommendedAgentsContainer');
         if (!container) return;
 
         agentsList.forEach(agent => {
-          const countKey = `agent_${agent.id}_followers_count`;
-          agent.followers = parseInt(localStorage.getItem(countKey)) || 0;
-          
-          if (currentUser) {
-            const storageKey = `agent_${agent.id}_followed_${currentUser.uid}`;
-            agent.isFollowing = localStorage.getItem(storageKey) === 'true';
-          } else {
-            agent.isFollowing = false;
-          }
+          agent.isFollowing = currentUser ? agent.followerUids.includes(currentUser.uid) : false;
         });
 
         agentsList.sort((a, b) => b.followers - a.followers);
@@ -1007,7 +1017,7 @@
         container.innerHTML = htmlContent;
       }
 
-      window.toggleFollow = function(agentIndex, btnElement) {
+      window.toggleFollow = async function(agentId, btnElement) {
         const currentUser = auth.currentUser;
         if (!currentUser) {
           alert("Debes iniciar sesión para seguir a un agente.");
@@ -1015,22 +1025,41 @@
           return;
         }
 
-        const storageKey = `agent_${agentIndex}_followed_${currentUser.uid}`;
-        const countKey = `agent_${agentIndex}_followers_count`;
-
-        let isFollowing = localStorage.getItem(storageKey) === 'true';
-        let currentCount = parseInt(localStorage.getItem(countKey)) || 0;
-
-        if (isFollowing) {
-          currentCount = Math.max(0, currentCount - 1);
-          localStorage.setItem(storageKey, 'false');
-        } else {
-          currentCount += 1;
-          localStorage.setItem(storageKey, 'true');
+        const agent = agentsList.find(a => a.id === agentId);
+        if (!agent || agent.uid.startsWith('user_')) {
+          alert("Este agente todavía no está disponible para seguir.");
+          return;
         }
 
-        localStorage.setItem(countKey, currentCount);
-        renderAgents(currentUser);
+        if (agent.uid === currentUser.uid) {
+          alert("No puedes seguirte a ti mismo.");
+          return;
+        }
+
+        btnElement.disabled = true;
+
+        const followDocId = `${agent.uid}_${currentUser.uid}`;
+        const followRef = doc(db, "agentesSeguidores", followDocId);
+
+        try {
+          const followSnap = await getDoc(followRef);
+          if (followSnap.exists()) {
+            await deleteDoc(followRef);
+          } else {
+            await setDoc(followRef, {
+              agentUid: agent.uid,
+              followerUid: currentUser.uid,
+              timestamp: serverTimestamp()
+            });
+          }
+          // El listener en tiempo real (onSnapshot) actualiza el contador
+          // y el botón de todos los que tengan la página abierta, no solo el tuyo.
+        } catch (error) {
+          console.error("Error al actualizar el seguimiento:", error);
+          alert("No se pudo actualizar el seguimiento. Inténtalo de nuevo.");
+        } finally {
+          btnElement.disabled = false;
+        }
       }
 
       // ===== ESCUCHADOR EN TIEMPO REAL DE SOLICITUDES ACTIVAS =====
@@ -1210,29 +1239,32 @@
       window.addEventListener('DOMContentLoaded', () => {
         onAuthStateChanged(auth, async (user) => {
           try {
-            const docRef = doc(db, "usuarios", AGENT_FIXED_UID);
-            const docSnap = await getDoc(docRef);
-            if (docSnap.exists()) {
-              const data = docSnap.data();
-              let agentDisplayName = "Agente";
-              if (data.nombres) {
-                agentDisplayName = data.nombres;
-              } else if (data.nombre) {
-                agentDisplayName = data.nombre;
-              }
-              let agentAvatarSrc = data.fotoPerfil || 'assets/onlybladi-avatar.png';
+            await Promise.all([AGENT_FIXED_UID, AGENT_FIXED_UID_2].map(async (uid) => {
+              const docRef = doc(db, "usuarios", uid);
+              const docSnap = await getDoc(docRef);
+              if (docSnap.exists()) {
+                const data = docSnap.data();
+                let agentDisplayName = "Agente";
+                if (data.nombres) {
+                  agentDisplayName = data.nombres;
+                } else if (data.nombre) {
+                  agentDisplayName = data.nombre;
+                }
+                let agentAvatarSrc = data.fotoPerfil || 'assets/onlybladi-avatar.png';
 
-              const fixedAgent = agentsList.find(a => a.isFixed);
-              if (fixedAgent) {
-                fixedAgent.name = agentDisplayName;
-                fixedAgent.avatar = agentAvatarSrc;
+                const fixedAgent = agentsList.find(a => a.uid === uid);
+                if (fixedAgent) {
+                  fixedAgent.name = agentDisplayName;
+                  fixedAgent.avatar = agentAvatarSrc;
+                }
               }
-            }
+            }));
           } catch (error) {
-            console.error("Error al obtener datos del agente en Firestore:", error);
+            console.error("Error al obtener datos de los agentes en Firestore:", error);
           }
 
           renderAgents(user);
+          escucharSeguidoresAgentes();
 
           if (user) {
             escucharSolicitudesUsuario(user.uid);
