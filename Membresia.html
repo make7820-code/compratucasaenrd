@@ -436,12 +436,25 @@
         <a href="index.html" class="brand">
           <img src="assets/mi-logo.png" alt="Compra tu casa en RD" class="brand-logo">
         </a>
-        <nav class="main-nav" style="display: flex; gap: 20px;">
+        <nav class="main-nav" id="mainNav" style="display: flex; gap: 20px;">
           <a href="index.html" class="nav-link" style="color: #fff; text-decoration: none; font-size: 14px;">🏠 Inicio</a>
           <a href="propiedades.html" class="nav-link" style="color: #fff; text-decoration: none; font-size: 14px;">🏢 Propiedades</a>
           <a href="comunidad.html" class="nav-link" style="color: #fff; text-decoration: none; font-size: 14px;">👥 Comunidad</a>
         </nav>
+
+        <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú" aria-expanded="false">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
       </div>
+
+      <!-- MENÚ MÓVIL DESPLEGABLE -->
+      <nav class="mobile-nav" id="mobileNav">
+        <a href="index.html" class="mobile-nav-link">🏠 Inicio</a>
+        <a href="propiedades.html" class="mobile-nav-link">🏢 Propiedades</a>
+        <a href="comunidad.html" class="mobile-nav-link">👥 Comunidad</a>
+      </nav>
     </header>
 
     <div class="membresia-wrapper">
@@ -722,6 +735,26 @@
           btn.disabled = false;
           btn.textContent = 'Enviar comprobante para revisión';
         }
+      });
+    </script>
+
+    <!-- Menú hamburguesa (móvil) -->
+    <script>
+      const menuToggle = document.getElementById('menuToggle');
+      const mobileNav = document.getElementById('mobileNav');
+
+      menuToggle.addEventListener('click', () => {
+        const isOpen = mobileNav.classList.toggle('open');
+        menuToggle.classList.toggle('active');
+        menuToggle.setAttribute('aria-expanded', isOpen);
+      });
+
+      document.querySelectorAll('.mobile-nav-link').forEach(link => {
+        link.addEventListener('click', () => {
+          mobileNav.classList.remove('open');
+          menuToggle.classList.remove('active');
+          menuToggle.setAttribute('aria-expanded', false);
+        });
       });
     </script>
 
