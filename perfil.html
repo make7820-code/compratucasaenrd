@@ -541,7 +541,7 @@
           <img src="assets/mi-logo.png" alt="Compra tu casa en RD" class="brand-logo">
         </a>
 
-        <nav class="main-nav">
+        <nav class="main-nav" id="mainNav">
           <a href="index.html" class="nav-link"><span class="nav-emoji">🏠</span> Inicio</a>
           <a href="propiedades.html" class="nav-link"><span class="nav-emoji">🏢</span> Propiedades</a>
           <a href="comunidad.html" class="nav-link"><span class="nav-emoji">👥</span> Comunidad</a>
@@ -551,9 +551,28 @@
           <a href="vender.html" class="nav-link"><span class="nav-emoji">🤝</span> Vender</a>
         </nav>
 
-        <div id="authContainer"></div>
+        <div class="header-right">
+          <div id="authContainer"></div>
+
+          <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú" aria-expanded="false">
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
+        </div>
 
       </div>
+
+      <!-- MENÚ MÓVIL DESPLEGABLE -->
+      <nav class="mobile-nav" id="mobileNav">
+        <a href="index.html" class="mobile-nav-link"><span class="nav-emoji">🏠</span> Inicio</a>
+        <a href="propiedades.html" class="mobile-nav-link"><span class="nav-emoji">🏢</span> Propiedades</a>
+        <a href="comunidad.html" class="mobile-nav-link"><span class="nav-emoji">👥</span> Comunidad</a>
+        <a href="blog.html" class="mobile-nav-link"><span class="nav-emoji">📰</span> Blog</a>
+        <a href="mensajes.html" class="mobile-nav-link"><span class="nav-emoji">💬</span> Mensajes</a>
+        <a href="nosotros.html" class="mobile-nav-link"><span class="nav-emoji">ℹ️</span> Nosotros</a>
+        <a href="vender.html" class="mobile-nav-link"><span class="nav-emoji">🤝</span> Vender</a>
+      </nav>
     </header>
 
     <!-- ================= CONTENIDO DEL PERFIL ================= -->
@@ -1288,6 +1307,26 @@
         alert("Has cerrado sesión correctamente.");
         window.location.href = 'index.html';
       }
+    </script>
+
+    <!-- Menú hamburguesa (móvil) -->
+    <script>
+      const menuToggle = document.getElementById('menuToggle');
+      const mobileNav = document.getElementById('mobileNav');
+
+      menuToggle.addEventListener('click', () => {
+        const isOpen = mobileNav.classList.toggle('open');
+        menuToggle.classList.toggle('active');
+        menuToggle.setAttribute('aria-expanded', isOpen);
+      });
+
+      document.querySelectorAll('.mobile-nav-link').forEach(link => {
+        link.addEventListener('click', () => {
+          mobileNav.classList.remove('open');
+          menuToggle.classList.remove('active');
+          menuToggle.setAttribute('aria-expanded', false);
+        });
+      });
     </script>
 </body>
 </html>
