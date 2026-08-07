@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="pageTitle">Artículo | Compra tu casa en RD</title>
+    <link rel="icon" type="image/x-icon" href="assets/icono.ico">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+      html, body {
+        margin: 0;
+        padding: 0;
+        background: url('assets/hero-plaza-bandera.jpg') no-repeat center center fixed;
+        background-size: cover;
+        min-height: 100vh;
+      }
+
+      body::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        background: rgba(11, 11, 14, 0.86);
+        z-index: 0;
+        pointer-events: none;
+      }
+
+      header, footer, .articulo-wrapper { position: relative; z-index: 1; }
+
+      .nav-link {
+        color: #d4d4d8;
+        text-decoration: none;
+        padding: 8px 16px;
+        border-radius: 999px;
+        transition: all 0.3s ease;
+      }
+      .nav-link:hover { color: #fff !important; background: rgba(255, 255, 255, 0.08); }
+
+      .articulo-wrapper {
+        max-width: 820px;
+        margin: 0 auto;
+        padding: 150px 20px 80px 20px;
+      }
+
+      .articulo-volver {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: #60a5fa;
+        text-decoration: none;
+        font-size: 13.5px;
+        font-weight: 600;
+        margin-bottom: 24px;
+      }
+      .articulo-volver:hover { text-decoration: underline; }
+
+      .articulo-categoria {
+        display: inline-block;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.4px;
+        color: #60a5fa;
+        background: rgba(59, 130, 246, 0.15);
+        border: 1px solid rgba(59, 130, 246, 0.3);
+        padding: 5px 14px;
+        border-radius: 30px;
+        margin-bottom: 16px;
+      }
+
+      .articulo-titulo {
+        font-size: 36px;
+        font-weight: 800;
+        color: #fff;
+        line-height: 1.25;
+        margin: 0 0 14px 0;
+        font-family: var(--font-display, 'Poppins', sans-serif);
+      }
+
+      .articulo-meta {
+        color: #a1a1aa;
+        font-size: 14px;
+        margin-bottom: 26px;
+      }
+
+      .articulo-portada {
+        width: 100%;
+        max-height: 420px;
+        object-fit: cover;
+        border-radius: 18px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        margin-bottom: 32px;
+        display: block;
+      }
+
+      .articulo-cuerpo {
+        color: #e4e4e7;
+        font-size: 16.5px;
+        line-height: 1.85;
+      }
+
+      .articulo-cuerpo p {
+        margin: 0 0 20px 0;
+      }
+
+      #estadoCargando, #estadoNoEncontrado {
+        text-align: center;
+        color: #a1a1aa;
+        padding: 60px 20px;
+      }
+
+      #estadoNoEncontrado { display: none; }
+    </style>
+</head>
+<body>
+
+    <header class="site-header">
+      <div class="header-inner">
+        <a href="index.html" class="brand">
+          <img src="assets/mi-logo.png" alt="Compra tu casa en RD" class="brand-logo" onerror="this.style.display='none'">
+        </a>
+        <nav class="main-nav" id="mainNav">
+          <a href="index.html" class="nav-link"><span class="nav-emoji">🏠</span> Inicio</a>
+          <a href="propiedades.html" class="nav-link"><span class="nav-emoji">🏢</span> Propiedades</a>
+          <a href="comunidad.html" class="nav-link"><span class="nav-emoji">👥</span> Comunidad</a>
+          <a href="blog.html" class="nav-link active"><span class="nav-emoji">📰</span> Blog</a>
+          <a href="nosotros.html" class="nav-link"><span class="nav-emoji">ℹ️</span> Nosotros</a>
+          <a href="vender.html" class="nav-link"><span class="nav-emoji">🤝</span> Vender</a>
+        </nav>
+        <div class="header-right">
+          <div id="authContainer">
+            <a href="login.html" class="login-btn"><span>🔐</span> <span>Iniciar sesión</span></a>
+          </div>
+          <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú" aria-expanded="false">
+            <span></span><span></span><span></span>
+          </button>
+        </div>
+      </div>
+      <nav class="mobile-nav" id="mobileNav">
+        <a href="index.html" class="mobile-nav-link"><span class="nav-emoji">🏠</span> Inicio</a>
+        <a href="propiedades.html" class="mobile-nav-link"><span class="nav-emoji">🏢</span> Propiedades</a>
+        <a href="comunidad.html" class="mobile-nav-link"><span class="nav-emoji">👥</span> Comunidad</a>
+        <a href="blog.html" class="mobile-nav-link active"><span class="nav-emoji">📰</span> Blog</a>
+        <a href="nosotros.html" class="mobile-nav-link"><span class="nav-emoji">ℹ️</span> Nosotros</a>
+        <a href="vender.html" class="mobile-nav-link"><span class="nav-emoji">🤝</span> Vender</a>
+      </nav>
+    </header>
+
+    <div class="articulo-wrapper">
+      <a href="blog.html" class="articulo-volver">← Volver al Blog</a>
+
+      <div id="estadoCargando">Cargando artículo...</div>
+      <div id="estadoNoEncontrado">
+        <h2 style="color:#fff;">Artículo no encontrado</h2>
+        <p>Puede que el enlace esté roto o el artículo ya no esté disponible.</p>
+      </div>
+
+      <article id="articuloContenido" style="display:none;">
+        <span class="articulo-categoria" id="artCategoria"></span>
+        <h1 class="articulo-titulo" id="artTitulo"></h1>
+        <p class="articulo-meta" id="artMeta"></p>
+        <img class="articulo-portada" id="artImagen" alt="">
+        <div class="articulo-cuerpo" id="artCuerpo"></div>
+      </article>
+    </div>
+
+    <footer class="site-footer">
+      <div class="footer-container">
+        <div class="footer-col footer-brand-col">
+          <h2 class="footer-brand-title">Compra tu casa en <span class="highlight-red">RD</span></h2>
+          <p class="footer-brand-desc">
+            Tu aliado confiable en la búsqueda y adquisición de propiedades en República Dominicana. Hacemos tus sueños de hogar una realidad.
+          </p>
+        </div>
+        <div class="footer-col">
+          <h3 class="footer-col-title">Navegación Rápida</h3>
+          <ul class="footer-links">
+            <li><a href="index.html">Inicio</a></li>
+            <li><a href="nosotros.html">Acerca de Nosotros</a></li>
+            <li><a href="propiedades.html">Propiedades</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h3 class="footer-col-title">Nuestros Servicios</h3>
+          <ul class="footer-links">
+            <li><a href="calculadora.html">Calculadora Hipotecaria</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h3 class="footer-col-title">Contacto Directo</h3>
+          <ul class="footer-contact-list">
+            <li><span class="contact-icon">📍</span><span>Ubicación: República Dominicana, Santo Domingo Este, La ureña, C. El Sol</span></li>
+            <li><span class="contact-icon">📞</span><span>Teléfono: +1 (849) 857-2321</span></li>
+            <li><span class="contact-icon">✉️</span><span>Correo electrónico:<br><a href="mailto:Danieldecena63@gmail.com" class="footer-email">Danieldecena63@gmail.com</a></span></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <div class="footer-bottom-container">
+          <p>© 2026 Compra tu casa en RD. Todos los derechos reservados.</p>
+          <div class="footer-legal-links">
+            <a href="privacidad.html">Política de Privacidad</a>
+            <a href="terminos.html">Términos de Servicio</a>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <script type="module" src="notifications.js"></script>
+    <script type="module">
+      import { db } from './firebase-config.js';
+      import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+      const params = new URLSearchParams(window.location.search);
+      const articuloId = params.get('id');
+
+      async function cargarArticulo() {
+        if (!articuloId) {
+          mostrarNoEncontrado();
+          return;
+        }
+
+        try {
+          const snap = await getDoc(doc(db, "articulosBlog", articuloId));
+          if (!snap.exists() || snap.data().publicado === false) {
+            mostrarNoEncontrado();
+            return;
+          }
+
+          const art = snap.data();
+
+          document.getElementById('pageTitle').textContent = `${art.titulo} | Compra tu casa en RD`;
+          document.getElementById('artCategoria').textContent = art.categoria || 'General';
+          document.getElementById('artTitulo').textContent = art.titulo;
+
+          const fecha = art.fecha && art.fecha.toDate ? art.fecha.toDate().toLocaleDateString('es-DO', { year: 'numeric', month: 'long', day: 'numeric' }) : '';
+          document.getElementById('artMeta').textContent = `${art.autor || 'Equipo Compra tu casa en RD'}${fecha ? ' · ' + fecha : ''}`;
+
+          const imgEl = document.getElementById('artImagen');
+          if (art.imagenURL) {
+            imgEl.src = art.imagenURL;
+          } else {
+            imgEl.style.display = 'none';
+          }
+
+          const cuerpo = document.getElementById('artCuerpo');
+          const parrafos = (art.contenido || '').split(/\n\s*\n/).filter(p => p.trim());
+          cuerpo.innerHTML = parrafos.map(p => `<p>${p.trim().replace(/\n/g, '<br>')}</p>`).join('');
+
+          document.getElementById('estadoCargando').style.display = 'none';
+          document.getElementById('articuloContenido').style.display = 'block';
+
+        } catch (error) {
+          console.error('Error al cargar el artículo:', error);
+          mostrarNoEncontrado();
+        }
+      }
+
+      function mostrarNoEncontrado() {
+        document.getElementById('estadoCargando').style.display = 'none';
+        document.getElementById('estadoNoEncontrado').style.display = 'block';
+      }
+
+      cargarArticulo();
+    </script>
+
+    <script>
+      const menuToggle = document.getElementById('menuToggle');
+      const mobileNav = document.getElementById('mobileNav');
+      menuToggle.addEventListener('click', () => {
+        const isOpen = mobileNav.classList.toggle('open');
+        menuToggle.classList.toggle('active');
+        menuToggle.setAttribute('aria-expanded', isOpen);
+      });
+      document.querySelectorAll('.mobile-nav-link').forEach(link => {
+        link.addEventListener('click', () => {
+          mobileNav.classList.remove('open');
+          menuToggle.classList.remove('active');
+          menuToggle.setAttribute('aria-expanded', false);
+        });
+      });
+    </script>
+
+</body>
+</html>
