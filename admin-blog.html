@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión del Blog | Compra tu casa en RD</title>
+    <link rel="icon" type="image/x-icon" href="assets/icono.ico">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+      body {
+        background-color: #0b0b0e;
+        color: #fff;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        margin: 0;
+        font-family: 'Inter', sans-serif;
+      }
+
+      .panel-wrapper {
+        flex: 1;
+        max-width: 1000px;
+        width: 100%;
+        margin: 0 auto;
+        padding: 140px 20px 60px 20px;
+      }
+
+      .panel-wrapper h1 {
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 4px;
+        font-family: var(--font-display, 'Poppins', sans-serif);
+      }
+
+      .panel-sub {
+        font-size: 13px;
+        color: #a1a1aa;
+        margin-bottom: 26px;
+      }
+
+      .panel-tabs {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 30px;
+        flex-wrap: wrap;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        padding-bottom: 22px;
+      }
+
+      .panel-tab-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: #d4d4d8;
+        padding: 10px 18px;
+        border-radius: 12px;
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .panel-tab-btn:hover { background: rgba(255, 255, 255, 0.08); }
+
+      .panel-tab-btn.activo {
+        background: #3b82f6;
+        border-color: #3b82f6;
+        color: #fff;
+      }
+
+      /* ===== Formulario de publicación ===== */
+      .form-card {
+        background: rgba(18, 18, 20, 0.92);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 18px;
+        padding: 28px;
+        margin-bottom: 20px;
+      }
+
+      .form-grupo {
+        margin-bottom: 20px;
+      }
+
+      .form-grupo label {
+        display: block;
+        font-size: 13px;
+        font-weight: 700;
+        color: #d4d4d8;
+        margin-bottom: 8px;
+      }
+
+      .form-grupo .ayuda {
+        font-size: 12px;
+        color: #71717a;
+        margin-top: 6px;
+      }
+
+      .form-input,
+      .form-textarea,
+      .form-select {
+        width: 100%;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        color: #fff;
+        padding: 12px 14px;
+        border-radius: 10px;
+        font-size: 14px;
+        font-family: 'Inter', sans-serif;
+        box-sizing: border-box;
+      }
+
+      .form-input:focus,
+      .form-textarea:focus,
+      .form-select:focus {
+        outline: none;
+        border-color: #3b82f6;
+      }
+
+      .form-textarea {
+        resize: vertical;
+        line-height: 1.6;
+      }
+
+      .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+
+      .imagen-upload-box {
+        border: 2px dashed rgba(255, 255, 255, 0.15);
+        border-radius: 14px;
+        padding: 20px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        position: relative;
+      }
+
+      .imagen-upload-box:hover {
+        border-color: #3b82f6;
+        background: rgba(59, 130, 246, 0.05);
+      }
+
+      .imagen-upload-box input[type="file"] {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        cursor: pointer;
+      }
+
+      .imagen-preview {
+        width: 100%;
+        max-height: 240px;
+        object-fit: cover;
+        border-radius: 10px;
+        display: none;
+        margin-bottom: 12px;
+      }
+
+      .imagen-upload-texto {
+        color: #a1a1aa;
+        font-size: 13px;
+      }
+
+      .publicar-inline {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 20px;
+      }
+
+      .publicar-inline input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        accent-color: #3b82f6;
+      }
+
+      .publicar-inline label {
+        font-size: 14px;
+        color: #d4d4d8;
+        margin: 0;
+      }
+
+      .btn-publicar-articulo {
+        background: #3b82f6;
+        color: #fff;
+        border: none;
+        padding: 13px 26px;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .btn-publicar-articulo:hover { background: #2563eb; }
+      .btn-publicar-articulo:disabled { opacity: 0.6; cursor: not-allowed; }
+
+      .form-mensaje {
+        font-size: 13px;
+        margin-top: 12px;
+        display: none;
+      }
+
+      .form-mensaje.ok { color: #4ade80; display: block; }
+      .form-mensaje.error { color: #f87171; display: block; }
+
+      /* ===== Lista de artículos existentes ===== */
+      #listaArticulos {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+
+      .articulo-card {
+        background: rgba(18, 18, 20, 0.92);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        padding: 16px;
+        display: grid;
+        grid-template-columns: 110px 1fr auto;
+        align-items: center;
+        gap: 18px;
+      }
+
+      .articulo-thumb {
+        width: 110px;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.05);
+      }
+
+      .articulo-titulo {
+        font-size: 15px;
+        font-weight: 700;
+        margin-bottom: 4px;
+      }
+
+      .articulo-meta {
+        font-size: 12.5px;
+        color: #a1a1aa;
+      }
+
+      .estado-pill {
+        display: inline-block;
+        font-size: 10.5px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        padding: 3px 9px;
+        border-radius: 999px;
+        margin-top: 6px;
+      }
+
+      .estado-publicado { background: rgba(34, 197, 94, 0.15); color: #4ade80; }
+      .estado-borrador { background: rgba(234, 179, 8, 0.15); color: #facc15; }
+
+      .articulo-acciones {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .btn-accion {
+        border: none;
+        padding: 8px 14px;
+        border-radius: 8px;
+        font-size: 12.5px;
+        font-weight: 600;
+        cursor: pointer;
+        white-space: nowrap;
+      }
+
+      .btn-toggle-estado { background: rgba(59, 130, 246, 0.15); color: #60a5fa; }
+      .btn-toggle-estado:hover { background: rgba(59, 130, 246, 0.28); }
+      .btn-eliminar-articulo { background: rgba(239, 68, 68, 0.15); color: #fca5a5; }
+      .btn-eliminar-articulo:hover { background: rgba(239, 68, 68, 0.28); }
+      .btn-accion:disabled { opacity: 0.5; cursor: not-allowed; }
+
+      #estadoVacioArticulos, #estadoCargandoArticulos {
+        text-align: center;
+        color: #a1a1aa;
+        font-size: 14px;
+        padding: 40px 20px;
+      }
+
+      #pantallaSinAcceso {
+        display: none;
+        text-align: center;
+        padding: 160px 20px 60px 20px;
+      }
+
+      #pantallaSinAcceso h2 { font-size: 22px; margin-bottom: 8px; }
+      #pantallaSinAcceso p { color: #a1a1aa; font-size: 14px; }
+
+      @media (max-width: 700px) {
+        .form-row { grid-template-columns: 1fr; }
+        .articulo-card { grid-template-columns: 1fr; }
+        .articulo-thumb { width: 100%; height: 160px; }
+        .articulo-acciones { flex-direction: row; }
+        .articulo-acciones .btn-accion { flex: 1; }
+      }
+
+      /* ===== Footer (idéntico al resto del sitio) ===== */
+      .site-footer {
+        background: #0b0b0e;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        padding: 50px 20px 24px 20px;
+        margin-top: auto;
+      }
+      .footer-container {
+        max-width: 1200px;
+        margin: 0 auto 30px auto;
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr 1.3fr;
+        gap: 30px;
+      }
+      .footer-brand-title {
+        font-family: var(--font-display, 'Poppins', sans-serif);
+        font-size: 20px;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 12px;
+      }
+      .footer-brand-title .highlight-red { color: #f59e0b; }
+      .footer-brand-desc {
+        font-size: 13.5px;
+        color: #a1a1aa;
+        line-height: 1.6;
+        margin-bottom: 18px;
+      }
+      .footer-col-title { font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 16px; }
+      .footer-links-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
+      .footer-links-list li a { color: #a1a1aa; text-decoration: none; font-size: 14px; transition: color 0.2s; }
+      .footer-links-list li a:hover { color: #fff; }
+      .footer-contact-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 12px; }
+      .footer-contact-list li { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: #a1a1aa; line-height: 1.4; }
+      .footer-email { color: #3b82f6; text-decoration: none; }
+      .footer-email:hover { text-decoration: underline; }
+      .footer-bottom {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding-top: 20px;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        display: flex;
+        justify-content: space-between;
+        font-size: 12.5px;
+        color: #71717a;
+      }
+      .footer-bottom-links { display: flex; gap: 20px; }
+      .footer-bottom-links a { color: #71717a; text-decoration: none; transition: color 0.2s; }
+      .footer-bottom-links a:hover { color: #fff; }
+      @media (max-width: 900px) {
+        .footer-container { grid-template-columns: 1fr; }
+        .footer-bottom { flex-direction: column; gap: 10px; text-align: center; }
+      }
+    </style>
+</head>
+<body>
+
+    <header class="site-header">
+      <div class="header-inner">
+        <a href="index.html" class="brand">
+          <img src="assets/mi-logo.png" alt="Compra tu casa en RD" class="brand-logo" onerror="this.style.display='none'">
+        </a>
+        <nav class="main-nav">
+          <a href="index.html" class="nav-link"><span class="nav-emoji">🏠</span> Inicio</a>
+          <a href="propiedades.html" class="nav-link"><span class="nav-emoji">🏢</span> Propiedades</a>
+          <a href="comunidad.html" class="nav-link"><span class="nav-emoji">👥</span> Comunidad</a>
+          <a href="blog.html" class="nav-link"><span class="nav-emoji">📰</span> Blog</a>
+          <a href="nosotros.html" class="nav-link"><span class="nav-emoji">ℹ️</span> Nosotros</a>
+        </nav>
+        <div id="authContainer"></div>
+      </div>
+    </header>
+
+    <div id="pantallaSinAcceso">
+      <h2>🔒 Acceso restringido</h2>
+      <p>Esta página solo está disponible para administradores de la plataforma.</p>
+    </div>
+
+    <div class="panel-wrapper" id="panelWrapper" style="display:none;">
+      <h1>Gestión del Blog</h1>
+      <p class="panel-sub">Publica artículos con foto de portada para que aparezcan en la página de Blog.</p>
+
+      <div class="panel-tabs">
+        <button class="panel-tab-btn activo" id="tabNuevo">✍️ Nuevo Artículo</button>
+        <button class="panel-tab-btn" id="tabArticulos">📚 Artículos Publicados</button>
+      </div>
+
+      <!-- ===== SECCIÓN: NUEVO ARTÍCULO ===== -->
+      <div id="seccionNuevo">
+        <form class="form-card" id="formArticulo">
+          <div class="form-grupo">
+            <label for="campoTitulo">Título del artículo</label>
+            <input type="text" id="campoTitulo" class="form-input" placeholder="Ej: 5 consejos para comprar tu primera casa en RD" required maxlength="120">
+          </div>
+
+          <div class="form-row">
+            <div class="form-grupo">
+              <label for="campoCategoria">Categoría</label>
+              <select id="campoCategoria" class="form-select" required>
+                <option value="Mercado Inmobiliario">Mercado Inmobiliario</option>
+                <option value="Consejos de Compra">Consejos de Compra</option>
+                <option value="Nuevos Proyectos">Nuevos Proyectos</option>
+                <option value="Legal y Financiamiento">Legal y Financiamiento</option>
+                <option value="General">General</option>
+              </select>
+            </div>
+            <div class="form-grupo">
+              <label for="campoAutor">Autor (se muestra en el artículo)</label>
+              <input type="text" id="campoAutor" class="form-input" placeholder="Ej: Equipo Compra tu casa en RD" maxlength="80">
+            </div>
+          </div>
+
+          <div class="form-grupo">
+            <label for="campoResumen">Resumen corto (aparece en la tarjeta del blog)</label>
+            <textarea id="campoResumen" class="form-textarea" rows="2" maxlength="220" placeholder="Una o dos frases que resuman el artículo..." required></textarea>
+          </div>
+
+          <div class="form-grupo">
+            <label>Foto de portada</label>
+            <div class="imagen-upload-box" id="imagenUploadBox">
+              <img class="imagen-preview" id="imagenPreview" alt="Vista previa">
+              <div class="imagen-upload-texto" id="imagenUploadTexto">📷 Haz clic para elegir una imagen (JPG o PNG, ideal 1200x630px)</div>
+              <input type="file" id="campoImagen" accept="image/*">
+            </div>
+          </div>
+
+          <div class="form-grupo">
+            <label for="campoContenido">Contenido del artículo</label>
+            <textarea id="campoContenido" class="form-textarea" rows="12" placeholder="Escribe el artículo completo aquí. Deja una línea en blanco entre párrafos." required></textarea>
+            <p class="ayuda">Cada párrafo separado por una línea en blanco se mostrará como un párrafo aparte en la página del artículo.</p>
+          </div>
+
+          <div class="publicar-inline">
+            <input type="checkbox" id="campoPublicarYa" checked>
+            <label for="campoPublicarYa">Publicar de inmediato (si lo desmarcas, se guarda como borrador)</label>
+          </div>
+
+          <button type="submit" class="btn-publicar-articulo" id="btnPublicarArticulo">Publicar Artículo</button>
+          <p class="form-mensaje" id="formMensaje"></p>
+        </form>
+      </div>
+
+      <!-- ===== SECCIÓN: ARTÍCULOS PUBLICADOS ===== -->
+      <div id="seccionArticulos" style="display:none;">
+        <div id="estadoCargandoArticulos">Cargando artículos...</div>
+        <div id="estadoVacioArticulos" style="display:none;">Aún no has publicado ningún artículo.</div>
+        <div id="listaArticulos"></div>
+      </div>
+    </div>
+
+    <footer class="site-footer">
+      <div class="footer-container">
+        <div class="footer-col">
+          <h3 class="footer-brand-title">Compra tu casa en <span class="highlight-red">RD</span></h3>
+          <p class="footer-brand-desc">Tu aliado confiable en la búsqueda y adquisición de propiedades en República Dominicana. Hacemos tus sueños de hogar una realidad.</p>
+        </div>
+        <div class="footer-col">
+          <h4 class="footer-col-title">Navegación Rápida</h4>
+          <ul class="footer-links-list">
+            <li><a href="index.html">Inicio</a></li>
+            <li><a href="nosotros.html">Acerca de Nosotros</a></li>
+            <li><a href="propiedades.html">Propiedades</a></li>
+            <li><a href="blog.html">Blog</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4 class="footer-col-title">Nuestros Servicios</h4>
+          <ul class="footer-links-list">
+            <li><a href="calculadora.html">Calculadora Hipotecaria</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4 class="footer-col-title">Contacto Directo</h4>
+          <ul class="footer-contact-list">
+            <li>📍 <span>Ubicación: República Dominicana, Santo Domingo Este, La Ureña, C. El Sol</span></li>
+            <li>📞 <span>Teléfono: +1 (849) 857-2321</span></li>
+            <li>✉️ <span>Correo electrónico:<br><a href="mailto:Danieldecena63@gmail.com" class="footer-email">Danieldecena63@gmail.com</a></span></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>© 2026 Compra tu casa en RD. Todos los derechos reservados.</p>
+        <div class="footer-bottom-links">
+          <a href="privacidad.html">Política de Privacidad</a>
+          <a href="terminos.html">Términos de Servicio</a>
+        </div>
+      </div>
+    </footer>
+
+    <script type="module">
+      import { auth, db } from './firebase-config.js';
+      import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+      import {
+        doc, getDoc, addDoc, updateDoc, deleteDoc, collection, query, orderBy, getDocs, serverTimestamp
+      } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+      import { getApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+      import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
+
+      const storage = getStorage(getApp());
+
+      let usuarioActual = null;
+      let articulosCache = [];
+      let archivoImagenSeleccionado = null;
+
+      onAuthStateChanged(auth, async (user) => {
+        const authContainer = document.getElementById('authContainer');
+
+        if (!user) {
+          authContainer.innerHTML = `
+            <a href="login.html" class="login-btn">
+              <span>🔐</span> Iniciar sesión
+            </a>
+          `;
+          window.location.href = 'login.html';
+          return;
+        }
+
+        usuarioActual = user;
+
+        let nombreCompleto = user.email.split('@')[0];
+        let fotoGuardada = null;
+
+        try {
+          const snapUser = await getDoc(doc(db, "usuarios", user.uid));
+          if (snapUser.exists()) {
+            const userData = snapUser.data();
+            nombreCompleto = userData.nombres || userData.nombre || nombreCompleto;
+            fotoGuardada = userData.fotoPerfil || userData.foto || null;
+
+            if (!document.getElementById('campoAutor').value) {
+              document.getElementById('campoAutor').value = nombreCompleto;
+            }
+
+            const rol = userData.rol;
+            if (rol !== 'admin' && rol !== 'superadmin') {
+              document.getElementById('pantallaSinAcceso').style.display = 'block';
+              return;
+            }
+          } else {
+            document.getElementById('pantallaSinAcceso').style.display = 'block';
+            return;
+          }
+        } catch (e) {
+          console.error("Error al obtener datos de Firestore:", e);
+          document.getElementById('pantallaSinAcceso').style.display = 'block';
+          return;
+        }
+
+        authContainer.innerHTML = `
+          <div class="profile-dropdown-container" style="position: relative; display: inline-block;">
+            <button id="profileBtn" style="background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 12px; padding: 4px 8px 4px 4px; border-radius: 999px;">
+              <img src="${fotoGuardada || 'assets/onlybladi-avatar.png'}" alt="Avatar" style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 2px solid #3b82f6;" onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=${user.uid}'">
+              <span style="color: #ffffff; font-weight: 600; font-size: 15px;">${nombreCompleto}</span>
+            </button>
+            <div id="profileMenu" class="profile-menu">
+              <button class="profile-menu-item" onclick="window.location.href='perfil.html'">Ir al Perfil</button>
+              <div class="profile-menu-divider"></div>
+              <button class="profile-menu-item" id="cerrarSesionBtn" style="color: #ef4444;">⎋ Cerrar Sesión</button>
+            </div>
+          </div>
+        `;
+
+        const profileBtn = document.getElementById('profileBtn');
+        const profileMenu = document.getElementById('profileMenu');
+        if (profileBtn && profileMenu) {
+          profileBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            profileMenu.classList.toggle('show');
+          });
+          document.addEventListener('click', (e) => {
+            if (!profileMenu.contains(e.target) && !profileBtn.contains(e.target)) {
+              profileMenu.classList.remove('show');
+            }
+          });
+        }
+
+        const cerrarBtn = document.getElementById('cerrarSesionBtn');
+        if (cerrarBtn) {
+          cerrarBtn.addEventListener('click', async (event) => {
+            event.stopPropagation();
+            await signOut(auth);
+            window.location.href = 'index.html';
+          });
+        }
+
+        document.getElementById('panelWrapper').style.display = 'block';
+      });
+
+      // ===== Vista previa de la imagen elegida =====
+      const campoImagen = document.getElementById('campoImagen');
+      const imagenPreview = document.getElementById('imagenPreview');
+      const imagenUploadTexto = document.getElementById('imagenUploadTexto');
+
+      campoImagen.addEventListener('change', () => {
+        const archivo = campoImagen.files[0];
+        if (!archivo) return;
+
+        if (!archivo.type.startsWith('image/')) {
+          alert('Por favor selecciona un archivo de imagen (JPG, PNG, etc).');
+          campoImagen.value = '';
+          return;
+        }
+
+        archivoImagenSeleccionado = archivo;
+
+        const lector = new FileReader();
+        lector.onload = (e) => {
+          imagenPreview.src = e.target.result;
+          imagenPreview.style.display = 'block';
+          imagenUploadTexto.textContent = archivo.name;
+        };
+        lector.readAsDataURL(archivo);
+      });
+
+      // ===== Envío del formulario =====
+      const formArticulo = document.getElementById('formArticulo');
+      const btnPublicarArticulo = document.getElementById('btnPublicarArticulo');
+      const formMensaje = document.getElementById('formMensaje');
+
+      formArticulo.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        if (!usuarioActual) return;
+
+        const titulo = document.getElementById('campoTitulo').value.trim();
+        const categoria = document.getElementById('campoCategoria').value;
+        const autor = document.getElementById('campoAutor').value.trim() || 'Equipo Compra tu casa en RD';
+        const resumen = document.getElementById('campoResumen').value.trim();
+        const contenido = document.getElementById('campoContenido').value.trim();
+        const publicarYa = document.getElementById('campoPublicarYa').checked;
+
+        if (!titulo || !resumen || !contenido) {
+          formMensaje.textContent = 'Completa el título, el resumen y el contenido.';
+          formMensaje.className = 'form-mensaje error';
+          return;
+        }
+
+        if (!archivoImagenSeleccionado) {
+          formMensaje.textContent = 'Selecciona una foto de portada para el artículo.';
+          formMensaje.className = 'form-mensaje error';
+          return;
+        }
+
+        btnPublicarArticulo.disabled = true;
+        formMensaje.className = 'form-mensaje';
+        formMensaje.textContent = '';
+        btnPublicarArticulo.textContent = 'Subiendo imagen...';
+
+        try {
+          const rutaImagen = `blog/${Date.now()}_${archivoImagenSeleccionado.name}`;
+          const refImagen = ref(storage, rutaImagen);
+          await uploadBytes(refImagen, archivoImagenSeleccionado);
+          const imagenURL = await getDownloadURL(refImagen);
+
+          btnPublicarArticulo.textContent = 'Guardando artículo...';
+
+          await addDoc(collection(db, "articulosBlog"), {
+            titulo,
+            categoria,
+            autor,
+            resumen,
+            contenido,
+            imagenURL,
+            publicado: publicarYa,
+            autorUid: usuarioActual.uid,
+            fecha: serverTimestamp()
+          });
+
+          formMensaje.textContent = publicarYa
+            ? '¡Artículo publicado! Ya aparece en la página de Blog.'
+            : 'Artículo guardado como borrador.';
+          formMensaje.className = 'form-mensaje ok';
+
+          formArticulo.reset();
+          document.getElementById('campoAutor').value = autor;
+          imagenPreview.style.display = 'none';
+          imagenPreview.src = '';
+          imagenUploadTexto.textContent = '📷 Haz clic para elegir una imagen (JPG o PNG, ideal 1200x630px)';
+          archivoImagenSeleccionado = null;
+
+          articulosCargados = false;
+
+        } catch (error) {
+          console.error('Error al publicar el artículo:', error);
+          formMensaje.textContent = 'No se pudo publicar el artículo. Inténtalo de nuevo.';
+          formMensaje.className = 'form-mensaje error';
+        } finally {
+          btnPublicarArticulo.disabled = false;
+          btnPublicarArticulo.textContent = 'Publicar Artículo';
+        }
+      });
+
+      // ===== Pestañas =====
+      const tabNuevo = document.getElementById('tabNuevo');
+      const tabArticulos = document.getElementById('tabArticulos');
+      let articulosCargados = false;
+
+      function cambiarTab(tab) {
+        tabNuevo.classList.toggle('activo', tab === 'nuevo');
+        tabArticulos.classList.toggle('activo', tab === 'articulos');
+        document.getElementById('seccionNuevo').style.display = tab === 'nuevo' ? 'block' : 'none';
+        document.getElementById('seccionArticulos').style.display = tab === 'articulos' ? 'block' : 'none';
+
+        if (tab === 'articulos' && !articulosCargados) {
+          articulosCargados = true;
+          cargarArticulos();
+        } else if (tab === 'articulos') {
+          cargarArticulos();
+        }
+      }
+
+      tabNuevo.addEventListener('click', () => cambiarTab('nuevo'));
+      tabArticulos.addEventListener('click', () => cambiarTab('articulos'));
+
+      async function cargarArticulos() {
+        document.getElementById('estadoCargandoArticulos').style.display = 'block';
+        document.getElementById('estadoVacioArticulos').style.display = 'none';
+        document.getElementById('listaArticulos').innerHTML = '';
+
+        try {
+          const q = query(collection(db, "articulosBlog"), orderBy("fecha", "desc"));
+          const snap = await getDocs(q);
+          articulosCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        } catch (err) {
+          console.error('Error cargando artículos:', err);
+        }
+
+        document.getElementById('estadoCargandoArticulos').style.display = 'none';
+        renderizarArticulos();
+      }
+
+      function renderizarArticulos() {
+        const cont = document.getElementById('listaArticulos');
+        cont.innerHTML = '';
+
+        document.getElementById('estadoVacioArticulos').style.display = articulosCache.length ? 'none' : 'block';
+
+        articulosCache.forEach(art => cont.appendChild(crearTarjetaArticulo(art)));
+      }
+
+      function crearTarjetaArticulo(art) {
+        const card = document.createElement('div');
+        card.className = 'articulo-card';
+
+        const fecha = art.fecha && art.fecha.toDate ? art.fecha.toDate().toLocaleDateString('es-DO') : '';
+
+        card.innerHTML = `
+          <img class="articulo-thumb" src="${art.imagenURL || ''}" alt="Portada" onerror="this.style.opacity=0">
+          <div class="articulo-info">
+            <div class="articulo-titulo">${art.titulo}</div>
+            <div class="articulo-meta">${art.categoria || 'General'} · ${fecha}</div>
+            <span class="estado-pill ${art.publicado ? 'estado-publicado' : 'estado-borrador'}">${art.publicado ? 'Publicado' : 'Borrador'}</span>
+          </div>
+          <div class="articulo-acciones"></div>
+        `;
+
+        const acciones = card.querySelector('.articulo-acciones');
+
+        const btnToggle = document.createElement('button');
+        btnToggle.className = 'btn-accion btn-toggle-estado';
+        btnToggle.textContent = art.publicado ? 'Despublicar' : 'Publicar';
+        btnToggle.onclick = () => cambiarEstadoArticulo(art, btnToggle);
+
+        const btnEliminar = document.createElement('button');
+        btnEliminar.className = 'btn-accion btn-eliminar-articulo';
+        btnEliminar.textContent = 'Eliminar';
+        btnEliminar.onclick = () => eliminarArticulo(art);
+
+        acciones.appendChild(btnToggle);
+        acciones.appendChild(btnEliminar);
+
+        return card;
+      }
+
+      async function cambiarEstadoArticulo(art, btn) {
+        btn.disabled = true;
+        try {
+          await updateDoc(doc(db, "articulosBlog", art.id), { publicado: !art.publicado });
+          art.publicado = !art.publicado;
+          renderizarArticulos();
+        } catch (err) {
+          console.error('Error actualizando el estado:', err);
+          alert('No se pudo actualizar el estado del artículo.');
+          btn.disabled = false;
+        }
+      }
+
+      async function eliminarArticulo(art) {
+        const confirmado = confirm(`¿Eliminar el artículo "${art.titulo}"? Esta acción no se puede deshacer.`);
+        if (!confirmado) return;
+
+        try {
+          await deleteDoc(doc(db, "articulosBlog", art.id));
+          articulosCache = articulosCache.filter(a => a.id !== art.id);
+          renderizarArticulos();
+        } catch (err) {
+          console.error('Error eliminando el artículo:', err);
+          alert('No se pudo eliminar el artículo.');
+        }
+      }
+    </script>
+</body>
+</html>
