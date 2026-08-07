@@ -965,7 +965,7 @@
         <a href="index.html" class="brand">
           <img src="assets/mi-logo.png" alt="Compra tu casa en RD" class="brand-logo" onerror="this.style.display='none'">
         </a>
-        <nav class="main-nav">
+        <nav class="main-nav" id="mainNav">
           <a href="index.html" class="nav-link"><span class="nav-emoji">🏠</span> Inicio</a>
           <a href="propiedades.html" class="nav-link"><span class="nav-emoji">🏢</span> Propiedades</a>
           <a href="#" class="nav-link"><span class="nav-emoji">👥</span> Comunidad</a>
@@ -973,8 +973,26 @@
           <a href="#" class="nav-link"><span class="nav-emoji">ℹ️</span> Nosotros</a>
           <a href="gestiondeagente.html" class="nav-link" style="color: #f59e0b;"><span class="nav-emoji">🤝</span> Gestión</a>
         </nav>
-        <div id="authContainer"></div>
+        <div class="header-right">
+          <div id="authContainer"></div>
+
+          <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú" aria-expanded="false">
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
+        </div>
       </div>
+
+      <!-- MENÚ MÓVIL DESPLEGABLE -->
+      <nav class="mobile-nav" id="mobileNav">
+        <a href="index.html" class="mobile-nav-link"><span class="nav-emoji">🏠</span> Inicio</a>
+        <a href="propiedades.html" class="mobile-nav-link"><span class="nav-emoji">🏢</span> Propiedades</a>
+        <a href="#" class="mobile-nav-link"><span class="nav-emoji">👥</span> Comunidad</a>
+        <a href="#" class="mobile-nav-link"><span class="nav-emoji">📰</span> Blog</a>
+        <a href="#" class="mobile-nav-link"><span class="nav-emoji">ℹ️</span> Nosotros</a>
+        <a href="gestiondeagente.html" class="mobile-nav-link" style="color: #f59e0b;"><span class="nav-emoji">🤝</span> Gestión</a>
+      </nav>
     </header>
 
     <!-- ================= CONTENIDO PRINCIPAL ================= -->
@@ -2560,6 +2578,26 @@
           alert("Hubo un error al eliminar la propiedad.");
         }
       }
+    </script>
+
+    <!-- Menú hamburguesa (móvil) -->
+    <script>
+      const menuToggle = document.getElementById('menuToggle');
+      const mobileNav = document.getElementById('mobileNav');
+
+      menuToggle.addEventListener('click', () => {
+        const isOpen = mobileNav.classList.toggle('open');
+        menuToggle.classList.toggle('active');
+        menuToggle.setAttribute('aria-expanded', isOpen);
+      });
+
+      document.querySelectorAll('.mobile-nav-link').forEach(link => {
+        link.addEventListener('click', () => {
+          mobileNav.classList.remove('open');
+          menuToggle.classList.remove('active');
+          menuToggle.setAttribute('aria-expanded', false);
+        });
+      });
     </script>
 </body>
 </html>
