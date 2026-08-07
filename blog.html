@@ -333,6 +333,102 @@
           width: 100%;
         }
       }
+
+      /* ===== Tarjetas de artículos reales ===== */
+      .blog-articles-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 22px;
+      }
+
+      .articulo-blog-card {
+        display: flex;
+        gap: 20px;
+        background: rgba(18, 18, 20, 0.85);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        padding: 18px;
+        text-decoration: none;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+        transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+      }
+
+      .articulo-blog-card:hover {
+        transform: translateY(-4px);
+        border-color: rgba(59, 130, 246, 0.4);
+        box-shadow: 0 20px 45px rgba(59, 130, 246, 0.2), 0 15px 35px rgba(0,0,0,0.4);
+      }
+
+      .articulo-blog-imagen {
+        width: 220px;
+        height: 150px;
+        object-fit: cover;
+        border-radius: 14px;
+        flex-shrink: 0;
+        background: rgba(255,255,255,0.05);
+      }
+
+      .articulo-blog-info {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        min-width: 0;
+      }
+
+      .articulo-blog-categoria {
+        display: inline-block;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.4px;
+        color: #60a5fa;
+        background: rgba(59, 130, 246, 0.15);
+        border: 1px solid rgba(59, 130, 246, 0.3);
+        padding: 4px 12px;
+        border-radius: 30px;
+        margin-bottom: 10px;
+        width: fit-content;
+      }
+
+      .articulo-blog-titulo {
+        color: #fff;
+        font-size: 19px;
+        font-weight: 700;
+        margin: 0 0 8px 0;
+        line-height: 1.3;
+      }
+
+      .articulo-blog-resumen {
+        color: #a1a1aa;
+        font-size: 14px;
+        line-height: 1.5;
+        margin: 0 0 10px 0;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+
+      .articulo-blog-meta {
+        color: #71717a;
+        font-size: 12.5px;
+      }
+
+      #btnGestionBlog:hover {
+        background: #3b82f6;
+        color: #fff;
+      }
+
+      #blogCargando {
+        text-align: center;
+        color: #a1a1aa;
+        padding: 40px 20px;
+      }
+
+      @media(max-width: 600px) {
+        .articulo-blog-card { flex-direction: column; }
+        .articulo-blog-imagen { width: 100%; height: 180px; }
+      }
     </style>
 </head>
 <body>
@@ -404,6 +500,11 @@
             <input type="text" class="blog-search-input" placeholder="Buscar artículos..." id="blogSearchInput">
           </div>
 
+          <!-- Botón de gestión, solo visible para admin/superadmin -->
+          <a href="admin-blog.html" id="btnGestionBlog" style="display:none; margin-top: 16px; align-items: center; gap: 8px; background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); padding: 10px 20px; border-radius: 999px; font-size: 13.5px; font-weight: 700; text-decoration: none; backdrop-filter: blur(8px); transition: all 0.2s ease;">
+            ✍️ Gestionar Blog
+          </a>
+
         </div>
       </section>
 
@@ -411,7 +512,9 @@
       <div class="blog-layout-overlap">
         
         <div class="blog-content-area">
-          <div class="blog-main-card">
+          <div id="blogArticlesGrid" class="blog-articles-grid"></div>
+
+          <div class="blog-main-card" id="blogEmptyState" style="display:none;">
             <div style="width: 64px; height: 64px; background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px auto; color: #60a5fa;">
               <svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
             </div>
@@ -432,10 +535,10 @@
               <div class="user-avatar-small">RD</div>
               <div class="user-details">
                 <h4>Mercado Inmobiliario</h4>
-                <span>0 artículos</span>
+                <span id="conteo-cat-mercado">0 artículos</span>
               </div>
             </div>
-            <button class="follow-btn" onclick="window.location.href='propiedades.html'">Ver</button>
+            <button class="follow-btn btn-filtro-categoria" data-categoria="Mercado Inmobiliario">Ver</button>
           </div>
 
           <div class="recommended-user-item">
@@ -443,10 +546,10 @@
               <div class="user-avatar-small" style="color: #34d399; background: rgba(52, 211, 153, 0.15);">💡</div>
               <div class="user-details">
                 <h4>Consejos de Compra</h4>
-                <span>0 artículos</span>
+                <span id="conteo-cat-consejos">0 artículos</span>
               </div>
             </div>
-            <button class="follow-btn" onclick="window.location.href='propiedades.html'">Ver</button>
+            <button class="follow-btn btn-filtro-categoria" data-categoria="Consejos de Compra">Ver</button>
           </div>
 
           <div class="recommended-user-item">
@@ -454,10 +557,10 @@
               <div class="user-avatar-small" style="color: #f43f5e; background: rgba(244, 63, 94, 0.15);">🏗️</div>
               <div class="user-details">
                 <h4>Nuevos Proyectos</h4>
-                <span>0 artículos</span>
+                <span id="conteo-cat-proyectos">0 artículos</span>
               </div>
             </div>
-            <button class="follow-btn" onclick="window.location.href='propiedades.html'">Ver</button>
+            <button class="follow-btn btn-filtro-categoria" data-categoria="Nuevos Proyectos">Ver</button>
           </div>
 
           <div class="recommended-user-item">
@@ -465,10 +568,21 @@
               <div class="user-avatar-small" style="color: #fbbf24; background: rgba(251, 191, 36, 0.15);">⚖️</div>
               <div class="user-details">
                 <h4>Legal y Financiamiento</h4>
-                <span>0 artículos</span>
+                <span id="conteo-cat-legal">0 artículos</span>
               </div>
             </div>
-            <button class="follow-btn" onclick="window.location.href='calculadora.html'">Ver</button>
+            <button class="follow-btn btn-filtro-categoria" data-categoria="Legal y Financiamiento">Ver</button>
+          </div>
+
+          <div class="recommended-user-item" id="btnVerTodosCategorias" style="display:none;">
+            <div class="user-info-left">
+              <div class="user-avatar-small" style="color: #a78bfa; background: rgba(167, 139, 250, 0.15);">✖️</div>
+              <div class="user-details">
+                <h4>Quitar filtro</h4>
+                <span>Ver todos los artículos</span>
+              </div>
+            </div>
+            <button class="follow-btn" id="btnQuitarFiltro">Ver</button>
           </div>
         </aside>
 
@@ -550,6 +664,132 @@
 
     <!-- SCRIPT CENTRALIZADO DE NOTIFICACIONES Y SESIÓN -->
     <script type="module" src="notifications.js"></script>
+
+    <!-- SCRIPT DE ARTÍCULOS DEL BLOG (FIRESTORE) -->
+    <script type="module">
+      import { auth, db } from './firebase-config.js';
+      import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+      import { doc, getDoc, collection, query, where, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+      // Mostrar el botón "Gestionar Blog" solo si el usuario logueado es admin o superadmin
+      onAuthStateChanged(auth, async (user) => {
+        if (!user) return;
+        try {
+          const snap = await getDoc(doc(db, "usuarios", user.uid));
+          if (snap.exists()) {
+            const rol = snap.data().rol;
+            if (rol === 'admin' || rol === 'superadmin') {
+              document.getElementById('btnGestionBlog').style.display = 'inline-flex';
+            }
+          }
+        } catch (err) {
+          console.error('Error verificando el rol del usuario:', err);
+        }
+      });
+
+      const CONTEO_IDS = {
+        'Mercado Inmobiliario': 'conteo-cat-mercado',
+        'Consejos de Compra': 'conteo-cat-consejos',
+        'Nuevos Proyectos': 'conteo-cat-proyectos',
+        'Legal y Financiamiento': 'conteo-cat-legal'
+      };
+
+      let articulosBlog = [];
+      let categoriaActiva = null;
+
+      async function cargarArticulosBlog() {
+        const grid = document.getElementById('blogArticlesGrid');
+        grid.innerHTML = '<div id="blogCargando">Cargando artículos...</div>';
+
+        try {
+          const q = query(
+            collection(db, "articulosBlog"),
+            where("publicado", "==", true),
+            orderBy("fecha", "desc")
+          );
+          const snap = await getDocs(q);
+          articulosBlog = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        } catch (err) {
+          console.error('Error cargando artículos del blog:', err);
+          articulosBlog = [];
+        }
+
+        actualizarConteoCategorias();
+        renderizarArticulosBlog();
+      }
+
+      function actualizarConteoCategorias() {
+        Object.entries(CONTEO_IDS).forEach(([categoria, id]) => {
+          const cantidad = articulosBlog.filter(a => a.categoria === categoria).length;
+          const el = document.getElementById(id);
+          if (el) el.textContent = `${cantidad} ${cantidad === 1 ? 'artículo' : 'artículos'}`;
+        });
+      }
+
+      function renderizarArticulosBlog() {
+        const grid = document.getElementById('blogArticlesGrid');
+        const empty = document.getElementById('blogEmptyState');
+        const textoBusqueda = (document.getElementById('blogSearchInput').value || '').trim().toLowerCase();
+
+        let filtrados = articulosBlog;
+
+        if (categoriaActiva) {
+          filtrados = filtrados.filter(a => a.categoria === categoriaActiva);
+        }
+
+        if (textoBusqueda) {
+          filtrados = filtrados.filter(a =>
+            (a.titulo || '').toLowerCase().includes(textoBusqueda) ||
+            (a.resumen || '').toLowerCase().includes(textoBusqueda) ||
+            (a.contenido || '').toLowerCase().includes(textoBusqueda)
+          );
+        }
+
+        if (!filtrados.length) {
+          grid.innerHTML = '';
+          empty.style.display = 'block';
+          return;
+        }
+
+        empty.style.display = 'none';
+        grid.innerHTML = filtrados.map(art => {
+          const fecha = art.fecha && art.fecha.toDate ? art.fecha.toDate().toLocaleDateString('es-DO', { year: 'numeric', month: 'long', day: 'numeric' }) : '';
+          const imagen = art.imagenURL || '';
+          return `
+            <a class="articulo-blog-card" href="blog-detalle.html?id=${art.id}">
+              <img class="articulo-blog-imagen" src="${imagen}" alt="${art.titulo}" onerror="this.style.opacity=0">
+              <div class="articulo-blog-info">
+                <span class="articulo-blog-categoria">${art.categoria || 'General'}</span>
+                <h3 class="articulo-blog-titulo">${art.titulo}</h3>
+                <p class="articulo-blog-resumen">${art.resumen || ''}</p>
+                <span class="articulo-blog-meta">${art.autor || 'Equipo Compra tu casa en RD'}${fecha ? ' · ' + fecha : ''}</span>
+              </div>
+            </a>
+          `;
+        }).join('');
+      }
+
+      document.getElementById('blogSearchInput').addEventListener('input', () => {
+        renderizarArticulosBlog();
+      });
+
+      document.querySelectorAll('.btn-filtro-categoria').forEach(btn => {
+        btn.addEventListener('click', () => {
+          categoriaActiva = btn.dataset.categoria;
+          document.getElementById('btnVerTodosCategorias').style.display = 'flex';
+          renderizarArticulosBlog();
+          document.querySelector('.blog-content-area').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+      });
+
+      document.getElementById('btnQuitarFiltro').addEventListener('click', () => {
+        categoriaActiva = null;
+        document.getElementById('btnVerTodosCategorias').style.display = 'none';
+        renderizarArticulosBlog();
+      });
+
+      cargarArticulosBlog();
+    </script>
 
     <!-- Menú hamburguesa (móvil) -->
     <script>
