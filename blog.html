@@ -669,7 +669,7 @@
     <script type="module">
       import { auth, db } from './firebase-config.js';
       import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-      import { doc, getDoc, collection, query, where, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+      import { doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
       // Mostrar el botón "Gestionar Blog" solo si el usuario logueado es admin o superadmin
       onAuthStateChanged(auth, async (user) => {
@@ -704,11 +704,18 @@
         try {
           const q = query(
             collection(db, "articulosBlog"),
-            where("publicado", "==", true),
-            orderBy("fecha", "desc")
+            where("publicado", "==", true)
           );
           const snap = await getDocs(q);
           articulosBlog = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+          // Ordenar por fecha (más reciente primero) aquí en el navegador,
+          // para no depender de un índice compuesto en Firestore.
+          articulosBlog.sort((a, b) => {
+            const fechaA = a.fecha && a.fecha.toMillis ? a.fecha.toMillis() : 0;
+            const fechaB = b.fecha && b.fecha.toMillis ? b.fecha.toMillis() : 0;
+            return fechaB - fechaA;
+          });
         } catch (err) {
           console.error('Error cargando artículos del blog:', err);
           articulosBlog = [];
