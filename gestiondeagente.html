@@ -396,6 +396,8 @@
         <a href="#" class="mobile-nav-link"><span class="nav-emoji">ℹ️</span> Nosotros</a>
         <a href="publicar.html" class="mobile-nav-link" style="color: #f59e0b;"><span class="nav-emoji">🤝</span> Publicar</a>
         <a href="gestiondeagente.html" class="mobile-nav-link" style="color: #f59e0b;"><span class="nav-emoji">🤝</span> Gestión</a>
+        <span id="navMensajesSlotMobile"></span>
+        <span id="navAdminPagosSlotMobile"></span>
       </nav>
     </header>
 
@@ -704,6 +706,10 @@
             if (slot) {
               slot.innerHTML = `<a href="mensajes/mensajesempresa.html" class="nav-link"><span class="nav-emoji">✉️</span> Mensajes</a>`;
             }
+            const slotMobile = document.getElementById('navMensajesSlotMobile');
+            if (slotMobile) {
+              slotMobile.innerHTML = `<a href="mensajes/mensajesempresa.html" class="mobile-nav-link"><span class="nav-emoji">✉️</span> Mensajes</a>`;
+            }
           }
 
           // El botón "Panel de Pagos" solo aparece si el rol es superadmin Y el UID está en la lista autorizada
@@ -711,6 +717,10 @@
             const slotPagos = document.getElementById('navAdminPagosSlot');
             if (slotPagos) {
               slotPagos.innerHTML = `<a href="admin-pagos.html" class="nav-link"><span class="nav-emoji">💳</span> Panel de Pagos</a>`;
+            }
+            const slotPagosMobile = document.getElementById('navAdminPagosSlotMobile');
+            if (slotPagosMobile) {
+              slotPagosMobile.innerHTML = `<a href="admin-pagos.html" class="mobile-nav-link"><span class="nav-emoji">💳</span> Panel de Pagos</a>`;
             }
           }
 
