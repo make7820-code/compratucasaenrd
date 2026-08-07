@@ -118,6 +118,80 @@ display:block;
 max-width:180px;
 }
 
+/* ===== HEADER RIGHT WRAPPER (login + hamburguesa) ===== */
+.header-right{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  flex-shrink:0;
+}
+
+/* ===== BOTÓN HAMBURGUESA (oculto en desktop) ===== */
+.menu-toggle{
+  display:none;
+  flex-direction:column;
+  justify-content:center;
+  gap:5px;
+  width:36px;
+  height:36px;
+  background:transparent;
+  border:none;
+  cursor:pointer;
+  padding:0;
+  flex-shrink:0;
+}
+
+.menu-toggle span{
+  display:block;
+  width:100%;
+  height:2px;
+  background:#f3f4f6;
+  border-radius:2px;
+  transition:all .25s ease;
+}
+
+.menu-toggle.active span:nth-child(1){
+  transform:translateY(7px) rotate(45deg);
+}
+.menu-toggle.active span:nth-child(2){
+  opacity:0;
+}
+.menu-toggle.active span:nth-child(3){
+  transform:translateY(-7px) rotate(-45deg);
+}
+
+/* ===== MENÚ MÓVIL DESPLEGABLE (oculto por defecto) ===== */
+.mobile-nav{
+  display:none;
+  flex-direction:column;
+  background:#000;
+  border-top:1px solid rgba(255,255,255,0.06);
+  max-height:0;
+  overflow:hidden;
+  transition:max-height .3s ease;
+}
+
+.mobile-nav.open{
+  max-height:500px;
+}
+
+.mobile-nav-link{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:16px 24px;
+  font-size:16px;
+  font-weight:600;
+  color:#f3f4f6;
+  border-bottom:1px solid rgba(255,255,255,0.04);
+}
+
+.mobile-nav-link:hover,
+.mobile-nav-link.active{
+  background:rgba(239,68,68,0.12);
+  color:#ff5a4f;
+}
+
 /* ================= MENÚ DESPLEGABLE DE PERFIL ================= */
 .profile-dropdown-container {
   position: relative;
@@ -1081,24 +1155,17 @@ body.light-mode .theme-btn.active {
     max-height:26px !important;
   }
 
-  /* El menú se vuelve deslizable horizontalmente en vez de romperse */
+  /* El nav horizontal se oculta y se reemplaza por el menú hamburguesa */
   .main-nav{
-    justify-content:flex-start;
-    overflow-x:auto;
-    -webkit-overflow-scrolling:touch;
-    scrollbar-width:none;
-    gap:4px;
-    flex:1;
-    mask-image:linear-gradient(to right, transparent, black 12px, black 95%, transparent);
+    display:none !important;
   }
 
-  .main-nav::-webkit-scrollbar{
-    display:none;
+  .menu-toggle{
+    display:flex;
   }
 
-  .nav-link{
-    padding:9px 14px;
-    font-size:14px;
+  .mobile-nav{
+    display:flex;
   }
 
   .login-btn{
@@ -1107,7 +1174,8 @@ body.light-mode .theme-btn.active {
   }
 
   .login-btn span:nth-child(2){
-    max-width:90px;
+    max-width:none;
+    display:inline;
   }
 
   .hero-title{
