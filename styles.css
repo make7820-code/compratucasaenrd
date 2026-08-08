@@ -126,6 +126,14 @@ max-width:180px;
   flex-shrink:0;
 }
 
+/* Centra de forma consistente la campana de notificaciones y el perfil
+   en TODAS las páginas, sin depender de que cada página lo defina por su cuenta */
+#authContainer {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
 /* ===== BOTÓN HAMBURGUESA (oculto en desktop) ===== */
 .menu-toggle{
   display:none;
@@ -1112,8 +1120,8 @@ body.light-mode .theme-btn.active {
 }
 
 .site-header .header-inner .brand .brand-logo {
-  height: 58px !important;
-  max-height: 58px !important;
+  height: 66px !important;
+  max-height: 66px !important;
   width: auto !important;
   max-width: 100% !important;
   object-fit: contain !important;
