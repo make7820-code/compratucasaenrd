@@ -1112,8 +1112,8 @@ body.light-mode .theme-btn.active {
 }
 
 .site-header .header-inner .brand .brand-logo {
-  height: 48px !important;
-  max-height: 48px !important;
+  height: 58px !important;
+  max-height: 58px !important;
   width: auto !important;
   max-width: 100% !important;
   object-fit: contain !important;
@@ -1146,8 +1146,8 @@ body.light-mode .theme-btn.active {
   }
 
   .site-header .header-inner .brand .brand-logo{
-    height:38px !important;
-    max-height:38px !important;
+    height:46px !important;
+    max-height:46px !important;
   }
 
   .site-header .header-inner .brand .brand-demo-badge{
@@ -1233,8 +1233,8 @@ body.light-mode .theme-btn.active {
   }
 
   .site-header .header-inner .brand .brand-logo{
-    height:32px !important;
-    max-height:32px !important;
+    height:38px !important;
+    max-height:38px !important;
   }
 
   .site-header .header-inner .brand .brand-demo-badge{
