@@ -86,7 +86,7 @@ function renderGlobalNavbar(container, userId, displayName, avatarSrc, unreadCon
   container.innerHTML = `
     <div style="position: relative; display: inline-flex; align-items: center;">
       <button id="notificationBellBtn" style="background: none; border: none; cursor: pointer; font-size: 20px; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; padding: 0; position: relative; line-height: 1;">
-        <span id="bellIconSpan" class="${hasUnread ? 'bell-ringing' : ''}">🔔</span>
+        <span id="bellIconSpan" class="${hasUnread ? 'bell-ringing' : ''}" style="display: inline-block; margin-top: 2px;">🔔</span>
       </button>
       <div id="notificationDropdown" class="notification-dropdown">
         <div style="padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.08); font-weight: 700; font-size: 13px; color: #fff; display: flex; justify-content: space-between; align-items: center;">
