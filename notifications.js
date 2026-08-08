@@ -84,8 +84,8 @@ function renderGlobalNavbar(container, userId, displayName, avatarSrc, unreadCon
   const hasUnread = visibleUnread.length > 0;
 
   container.innerHTML = `
-    <div style="position: relative; display: inline-block;">
-      <button id="notificationBellBtn" style="background: none; border: none; cursor: pointer; font-size: 20px; padding: 6px; position: relative;">
+    <div style="position: relative; display: flex; align-items: center;">
+      <button id="notificationBellBtn" style="background: none; border: none; cursor: pointer; font-size: 20px; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; padding: 0; position: relative; line-height: 1;">
         <span id="bellIconSpan" class="${hasUnread ? 'bell-ringing' : ''}">🔔</span>
       </button>
       <div id="notificationDropdown" class="notification-dropdown">
@@ -111,7 +111,7 @@ function renderGlobalNavbar(container, userId, displayName, avatarSrc, unreadCon
       </div>
     </div>
 
-    <div class="profile-dropdown-container" style="position: relative; display: inline-block;">
+    <div class="profile-dropdown-container" style="position: relative; display: flex; align-items: center;">
       <button id="profileBtn" style="background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 12px; padding: 4px 8px 4px 4px; border-radius: 999px;">
         <img src="${avatarSrc}" alt="Avatar" style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 2px solid #ef4444;" onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=${userId}'">
         <span style="color: #fff; font-weight: 600; font-size: 15px;">${displayName}</span>
