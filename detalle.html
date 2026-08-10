@@ -1168,26 +1168,31 @@
         }
         if (!videoUrl) return '';
 
+        // Botón que lleva directamente al link de video original (el mismo que se
+        // guardó en "Link de Video" al publicar). Se muestra siempre que haya un
+        // link, sin importar si además se pudo embeber el video en la página.
+        const botonVerVideoHtml = `<a href="${videoUrl}" target="_blank" rel="noopener" class="video-link-btn" style="margin-top:10px;"><span>▶</span> Ver Video</a>`;
+
         // YouTube (watch, youtu.be, shorts)
         const ytMatch = videoUrl.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]+)/);
         if (ytMatch) {
-          return `<iframe width="100%" height="230" style="border-radius:12px; border:none; display:block;" src="https://www.youtube.com/embed/${ytMatch[1]}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+          return `<iframe width="100%" height="230" style="border-radius:12px; border:none; display:block;" src="https://www.youtube.com/embed/${ytMatch[1]}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>${botonVerVideoHtml}`;
         }
 
         // Instagram (posts/reels)
         if (videoUrl.includes('instagram.com')) {
           cargarScriptEmbedUnaVez('https://www.instagram.com/embed.js', 'instgrm');
-          return `<blockquote class="instagram-media" data-instgrm-permalink="${videoUrl}" style="margin:0; width:100%;"></blockquote>`;
+          return `<blockquote class="instagram-media" data-instgrm-permalink="${videoUrl}" style="margin:0; width:100%;"></blockquote>${botonVerVideoHtml}`;
         }
 
         // TikTok
         if (videoUrl.includes('tiktok.com')) {
           cargarScriptEmbedUnaVez('https://www.tiktok.com/embed.js', 'tiktokEmbed');
-          return `<blockquote class="tiktok-embed" cite="${videoUrl}" style="margin:0; width:100%; min-height:500px;"><section></section></blockquote>`;
+          return `<blockquote class="tiktok-embed" cite="${videoUrl}" style="margin:0; width:100%; min-height:500px;"><section></section></blockquote>${botonVerVideoHtml}`;
         }
 
         // Plataforma no reconocida: se deja el botón de enlace externo como respaldo.
-        return `<a href="${videoUrl}" target="_blank" class="video-link-btn"><span>▶</span> Ver Video</a>`;
+        return botonVerVideoHtml;
       }
 
       // Carga (una sola vez por página) el script oficial de embed de Instagram/TikTok,
