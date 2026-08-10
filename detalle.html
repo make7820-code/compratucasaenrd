@@ -820,8 +820,11 @@
                           rawPrice.toString().startsWith('$');
           
           const currencyLabel = isDolar ? '$ ' : 'RD$ ';
-          const cleanPriceNum = rawPrice.toString().replace(/USD|US\$|RD\$|\$/g, '').trim();
-          const finalPriceFormatted = `${currencyLabel}${cleanPriceNum}`;
+          /* Se extrae solo el número (sin símbolo de moneda, puntos ni comas
+             que se hayan escrito al publicar) y se formatea siempre igual,
+             con puntos como separador de miles */
+          const cleanPriceNum = parseFloat(rawPrice.toString().replace(/[^0-9]/g, '')) || 0;
+          const finalPriceFormatted = `${currencyLabel}${cleanPriceNum.toLocaleString('es-DO')}`;
           
           const priceColor = isVenta ? '#10b981' : '#f59e0b';
 
