@@ -1395,7 +1395,13 @@
             propOffer = rawOffer.charAt(0).toUpperCase() + rawOffer.slice(1);
           }
 
-          const propPrice = prop.precio || '0';
+          const propPriceRaw = prop.precio || '0';
+          /* Se extrae solo el número (sin RD$, puntos ni comas que el usuario
+             haya escrito al publicar) y se formatea siempre igual, con puntos
+             como separador de miles, para que se vea consistente sin importar
+             cómo se haya guardado el precio en la base de datos */
+          const propPriceNum = parseFloat(propPriceRaw.toString().replace(/[^0-9]/g, '')) || 0;
+          const propPrice = 'RD$ ' + propPriceNum.toLocaleString('es-DO');
           const propHabs = prop.habitaciones || prop.habs || '0';
           const propBanos = prop.banos || '0';
           const rawNivel = (prop.nivel || prop.altura || prop.piso || '').toString().trim();
@@ -1507,7 +1513,7 @@
                  data-location="${propLocation.toLowerCase()}" 
                  data-type="${propType}" 
                  data-offer="${propOffer}" 
-                 data-price="${parseFloat(propPrice.toString().replace(/[^0-9.]/g, '')) || 0}" 
+                 data-price="${propPriceNum}" 
                  data-habs="${propHabs}"
                  data-extranjeros="${aceptaExtranjero ? '1' : '0'}"
                  data-amueblado="${esAmueblado ? '1' : '0'}"
