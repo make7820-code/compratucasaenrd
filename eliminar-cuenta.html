@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eliminar Cuenta | Compra tu casa en RD</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+      body {
+        background-color: #0b0b0e;
+        color: #e4e4e7;
+        margin: 0;
+        font-family: 'Inter', sans-serif;
+      }
+
+      .legal-wrapper {
+        max-width: 820px;
+        margin: 0 auto;
+        padding: 140px 20px 80px 20px;
+      }
+
+      .legal-title {
+        font-family: 'Poppins', sans-serif;
+        font-size: 34px;
+        font-weight: 800;
+        color: #fff;
+        margin-bottom: 8px;
+      }
+
+      .legal-updated {
+        color: #a1a1aa;
+        font-size: 13px;
+        margin-bottom: 40px;
+      }
+
+      .legal-wrapper h2 {
+        font-family: 'Poppins', sans-serif;
+        font-size: 20px;
+        font-weight: 700;
+        color: #fff;
+        margin-top: 40px;
+        margin-bottom: 12px;
+      }
+
+      .legal-wrapper p, .legal-wrapper li {
+        font-size: 15px;
+        line-height: 1.7;
+        color: #d4d4d8;
+      }
+
+      .legal-wrapper ol, .legal-wrapper ul {
+        padding-left: 20px;
+      }
+
+      .legal-wrapper li {
+        margin-bottom: 10px;
+      }
+
+      .legal-wrapper a {
+        color: #60a5fa;
+        text-decoration: none;
+      }
+
+      .legal-wrapper a:hover {
+        text-decoration: underline;
+      }
+
+      .legal-box {
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 14px;
+        padding: 20px 24px;
+        margin-top: 20px;
+      }
+
+      table.retencion {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+      }
+
+      table.retencion th, table.retencion td {
+        text-align: left;
+        padding: 10px 12px;
+        border-bottom: 1px solid rgba(255,255,255,0.08);
+        font-size: 14px;
+        color: #d4d4d8;
+      }
+
+      table.retencion th {
+        color: #fff;
+        font-weight: 700;
+      }
+    </style>
+</head>
+<body>
+
+    <header class="site-header">
+      <div class="header-inner">
+        <a href="index.html" class="brand">
+          <img src="assets/mi-logo.png" alt="Compra tu casa en RD" class="brand-logo">
+        </a>
+        <nav class="main-nav">
+          <a href="index.html" class="nav-link">🏠 Inicio</a>
+          <a href="propiedades.html" class="nav-link">🏢 Propiedades</a>
+          <a href="comunidad.html" class="nav-link">👥 Comunidad</a>
+        </nav>
+        <div id="authContainer">
+          <a href="login.html" class="login-btn"><span>🔐</span> Iniciar sesión</a>
+        </div>
+      </div>
+    </header>
+
+    <div class="legal-wrapper">
+      <div class="legal-title">Eliminar cuenta de Compra tu casa en RD</div>
+      <div class="legal-updated">Última actualización: agosto de 2026</div>
+
+      <p>
+        En <strong>Compra tu casa en RD</strong> (desarrollada por Daniel Decena) puedes solicitar en cualquier
+        momento la eliminación de tu cuenta y de los datos personales asociados a ella.
+      </p>
+
+      <h2>Cómo solicitar la eliminación de tu cuenta</h2>
+      <ol>
+        <li>Envía un correo a <a href="mailto:Danieldecena63@gmail.com">Danieldecena63@gmail.com</a> desde la misma dirección de correo con la que te registraste en la app.</li>
+        <li>En el asunto escribe: <strong>"Solicitud de eliminación de cuenta"</strong>.</li>
+        <li>Incluye tu nombre de usuario o el correo con el que te registraste, para poder ubicar tu cuenta.</li>
+        <li>Procesaremos tu solicitud en un plazo máximo de <strong>7 días hábiles</strong> y te confirmaremos por correo cuando se haya completado.</li>
+      </ol>
+
+      <div class="legal-box">
+        <h2 style="margin-top:0;">Qué datos se eliminan y cuáles se conservan</h2>
+        <table class="retencion">
+          <tr>
+            <th>Dato</th>
+            <th>¿Se elimina?</th>
+            <th>Detalle</th>
+          </tr>
+          <tr>
+            <td>Cuenta (correo, contraseña, nombre)</td>
+            <td>Sí</td>
+            <td>Se elimina de forma permanente e inmediata en Firebase Authentication.</td>
+          </tr>
+          <tr>
+            <td>Foto de perfil</td>
+            <td>Sí</td>
+            <td>Se elimina del almacenamiento (Firebase Storage).</td>
+          </tr>
+          <tr>
+            <td>Propiedades publicadas</td>
+            <td>Sí</td>
+            <td>Se eliminan todas las propiedades que hayas publicado como agente.</td>
+          </tr>
+          <tr>
+            <td>Mensajes y conversaciones</td>
+            <td>Sí</td>
+            <td>Se eliminan todas tus conversaciones con agentes o clientes.</td>
+          </tr>
+          <tr>
+            <td>Registros internos de seguridad</td>
+            <td>Se conservan hasta 30 días</td>
+            <td>Solo para prevenir fraude o abuso de la plataforma antes de su borrado definitivo.</td>
+          </tr>
+        </table>
+      </div>
+
+      <h2>Eliminación parcial</h2>
+      <p>
+        Si en vez de borrar toda tu cuenta solo quieres eliminar ciertos datos (por ejemplo, una propiedad
+        publicada o una conversación específica), indícalo en el mismo correo y lo haremos sin necesidad de
+        eliminar tu cuenta por completo.
+      </p>
+
+      <div class="legal-box">
+        <h2 style="margin-top:0;">Contacto</h2>
+        <p style="margin-bottom:0;">
+          📧 <a href="mailto:Danieldecena63@gmail.com">Danieldecena63@gmail.com</a><br>
+          📍 Santo Domingo Este, República Dominicana
+        </p>
+      </div>
+    </div>
+
+    <footer class="site-footer">
+      <div class="footer-container">
+        <div>
+          <h2 class="footer-brand-title">Compra tu casa en <span class="highlight-red">RD</span></h2>
+          <p style="font-size: 13px; line-height: 1.5; color:#a1a1aa;">Tu aliado confiable en la búsqueda y adquisición de propiedades en República Dominicana.</p>
+        </div>
+        <div>
+          <h3 style="font-size: 15px; color:#fff; margin-bottom:10px;">Enlaces</h3>
+          <ul style="list-style:none; padding:0; display:flex; flex-direction:column; gap:8px; font-size:13px;">
+            <li><a href="index.html">Inicio</a></li>
+            <li><a href="privacidad.html">Política de Privacidad</a></li>
+          </ul>
+        </div>
+        <div>
+          <h3 style="font-size: 15px; color:#fff; margin-bottom:10px;">Contacto</h3>
+          <p style="font-size: 13px; color:#a1a1aa;">📍 Santo Domingo Este, Rep. Dom.<br>📞 +1 (849) 857-2321</p>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>© 2026 Compra tu casa en RD. Todos los derechos reservados.</p>
+      </div>
+    </footer>
+
+    <script type="module" src="notifications.js"></script>
+</body>
+</html>
