@@ -1925,7 +1925,10 @@
           const irAPagina = (numeroPagina, wrap) => {
             paginaActualPropiedades = numeroPagina;
             ejecutarFiltros(false);
-            wrap.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            /* Siempre sube hasta el inicio del listado (arriba), sin importar
+               si el clic se hizo en la paginación de arriba o la de abajo */
+            const wrapArriba = document.getElementById('paginacionPropiedadesWrapTop') || wrap;
+            wrapArriba.scrollIntoView({ behavior: 'smooth', block: 'start' });
           };
 
           wraps.forEach(wrap => {
