@@ -1926,9 +1926,14 @@
             paginaActualPropiedades = numeroPagina;
             ejecutarFiltros(false);
             /* Siempre sube hasta el inicio del listado (arriba), sin importar
-               si el clic se hizo en la paginación de arriba o la de abajo */
+               si el clic se hizo en la paginación de arriba o la de abajo.
+               Se resta la altura del header fijo (+ un margen) para que los
+               botones de paginación no queden tapados por el menú superior. */
             const wrapArriba = document.getElementById('paginacionPropiedadesWrapTop') || wrap;
-            wrapArriba.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            const header = document.querySelector('.site-header');
+            const alturaHeader = header ? header.offsetHeight : 0;
+            const posicionDestino = wrapArriba.getBoundingClientRect().top + window.scrollY - alturaHeader - 20;
+            window.scrollTo({ top: posicionDestino, behavior: 'smooth' });
           };
 
           wraps.forEach(wrap => {
