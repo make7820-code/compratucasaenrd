@@ -2473,7 +2473,19 @@
           if (num < 1 || num > totalPag || num === paginaActualGestion) return;
           paginaActualGestion = num;
           renderizarPaginaGestion();
-          contenedorPadre.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          /* Sube hasta el inicio del listado de gestión, descontando la altura
+             del header solo si está fijo/pegado en pantalla (típico en móvil);
+             en escritorio suele estar en el flujo normal y no debe descontarse */
+          const header = document.querySelector('.site-header');
+          let alturaHeader = 0;
+          if (header) {
+            const posicionHeader = window.getComputedStyle(header).position;
+            if (posicionHeader === 'fixed' || posicionHeader === 'sticky') {
+              alturaHeader = header.offsetHeight;
+            }
+          }
+          const posicionDestino = contenedorPadre.getBoundingClientRect().top + window.scrollY - alturaHeader - 20;
+          window.scrollTo({ top: posicionDestino, behavior: 'smooth' });
         };
 
         const btnPrimera = document.getElementById('btnPrimeraPaginaGestion');
