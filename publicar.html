@@ -1009,6 +1009,9 @@
           <button type="button" class="btn-view-archived" onclick="alternarVistaArchivadas()" id="btnAlternarArchivadas">
             <span>🗄️</span> Ver Archivadas (<span id="contadorArchivadas">0</span>)
           </button>
+          <button type="button" class="btn-view-archived" onclick="descargarPdfPropiedades()" id="btnDescargarPdf">
+            <span>📄</span> Descargar PDF
+          </button>
         </div>
       </div>
 
@@ -1928,21 +1931,155 @@
         }
       }
 
+      // Genera y descarga un PDF con todas las propiedades DISPONIBLES (no archivadas)
+      // en este mismo momento. Como consulta Firestore justo al hacer clic (igual que
+      // el resto del panel), el PDF siempre queda actualizado automáticamente: si
+      // agregaste o borraste una propiedad hace un segundo, ya sale reflejado aquí,
+      // sin necesidad de tocar nada más.
+      window.descargarPdfPropiedades = async function() {
+        const btn = document.getElementById('btnDescargarPdf');
+        const textoOriginal = btn ? btn.innerHTML : '';
+        if (btn) {
+          btn.disabled = true;
+          btn.innerHTML = '<span>⏳</span> Generando PDF...';
+        }
+
+        try {
+          const consultaPropiedades = esModoAdmin
+            ? collection(db, "propiedades")
+            : query(collection(db, "propiedades"), where("creadoPorUid", "==", usuarioActualUid));
+          const snap = await getDocs(consultaPropiedades);
+
+          // El PDF respeta la vista actual: si tienes activado "Ver Archivadas",
+          // descarga las archivadas; si no, descarga las disponibles.
+          let propiedades = [];
+          snap.forEach(docSnap => {
+            const data = docSnap.data();
+            const estaArchivada = data.archivada === true;
+            if (mostrandoArchivadas ? estaArchivada : !estaArchivada) {
+              propiedades.push({ id: docSnap.id, ...data });
+            }
+          });
+
+          if (propiedades.length === 0) {
+            alert(mostrandoArchivadas
+              ? "No hay propiedades archivadas para incluir en el PDF."
+              : "No hay propiedades disponibles para incluir en el PDF.");
+            return;
+          }
+
+          propiedades.sort((a, b) => new Date(b.fechaCreacion || 0) - new Date(a.fechaCreacion || 0));
+
+          const { jsPDF } = await import("https://cdn.jsdelivr.net/npm/jspdf@2.5.2/+esm");
+          const pdf = new jsPDF({ unit: 'pt', format: 'a4' });
+
+          const margenX = 40;
+          let y = 50;
+          const anchoPagina = pdf.internal.pageSize.getWidth();
+          const altoPagina = pdf.internal.pageSize.getHeight();
+          const anchoTexto = anchoPagina - margenX * 2;
+
+          function nuevaPaginaSiNecesario(alturaNecesaria) {
+            if (y + alturaNecesaria > altoPagina - 40) {
+              pdf.addPage();
+              y = 50;
+            }
+          }
+
+          const fechaGeneracion = new Date().toLocaleString('es-DO', { dateStyle: 'long', timeStyle: 'short' });
+
+          pdf.setFont('helvetica', 'bold');
+          pdf.setFontSize(18);
+          pdf.text(mostrandoArchivadas ? 'Listado de Propiedades Archivadas' : 'Listado de Propiedades Disponibles', margenX, y);
+          y += 22;
+
+          pdf.setFont('helvetica', 'normal');
+          pdf.setFontSize(10);
+          pdf.setTextColor(100);
+          pdf.text(`Generado el ${fechaGeneracion}  •  Total: ${propiedades.length} propiedad(es)`, margenX, y);
+          pdf.setTextColor(0);
+          y += 25;
+
+          propiedades.forEach((prop, index) => {
+            nuevaPaginaSiNecesario(95);
+
+            pdf.setDrawColor(230);
+            pdf.line(margenX, y, anchoPagina - margenX, y);
+            y += 16;
+
+            pdf.setFont('helvetica', 'bold');
+            pdf.setFontSize(13);
+            const tituloLineas = pdf.splitTextToSize(`${index + 1}. ${prop.titulo || 'Sin título'}`, anchoTexto);
+            pdf.text(tituloLineas, margenX, y);
+            y += tituloLineas.length * 15;
+
+            pdf.setFont('helvetica', 'normal');
+            pdf.setFontSize(11);
+            pdf.setTextColor(217, 119, 6);
+            pdf.text(`Precio: ${prop.precio || 'N/D'}`, margenX, y);
+            pdf.setTextColor(0);
+            y += 16;
+
+            pdf.text(`Ubicación: ${prop.ubicacion || 'N/D'}   |   Nivel: ${prop.nivel || 'N/D'}`, margenX, y);
+            y += 15;
+
+            pdf.text(`Habitaciones: ${prop.habitaciones ?? 'N/D'}   |   Baños: ${prop.banos ?? 'N/D'}   |   Parqueos: ${prop.parqueos ?? 'N/D'}   |   Metros: ${prop.metros || 'N/D'}`, margenX, y);
+            y += 15;
+
+            if (esModoAdmin) {
+              pdf.text(`Agente: ${prop.agente || 'N/D'}   |   Dueño: ${prop.dueno || 'N/D'}`, margenX, y);
+              y += 15;
+            }
+
+            if (prop.descripcion) {
+              pdf.setFont('helvetica', 'italic');
+              pdf.setFontSize(10);
+              const descLineas = pdf.splitTextToSize(prop.descripcion, anchoTexto);
+              descLineas.forEach(linea => {
+                nuevaPaginaSiNecesario(14);
+                pdf.text(linea, margenX, y);
+                y += 13;
+              });
+              pdf.setFont('helvetica', 'normal');
+            }
+
+            y += 12;
+          });
+
+          const prefijoArchivo = mostrandoArchivadas ? 'propiedades-archivadas' : 'propiedades-disponibles';
+          const nombreArchivo = `${prefijoArchivo}-${new Date().toISOString().slice(0, 10)}.pdf`;
+          pdf.save(nombreArchivo);
+
+        } catch (error) {
+          console.error("Error al generar el PDF:", error);
+          alert("Hubo un error al generar el PDF. Intenta de nuevo.");
+        } finally {
+          if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = textoOriginal;
+          }
+        }
+      }
+
       window.alternarVistaArchivadas = async function() {
         mostrandoArchivadas = !mostrandoArchivadas;
         const btn = document.getElementById('btnAlternarArchivadas');
         const tituloSeccion = document.getElementById('tituloSeccionActual');
         const toolbar = document.getElementById('toolbarBusqueda');
 
+        const btnPdf = document.getElementById('btnDescargarPdf');
+
         if (mostrandoArchivadas) {
           btn.innerHTML = '<span>🏠</span> Ver Activas';
           btn.style.borderColor = '#f59e0b';
           tituloSeccion.innerHTML = '<span>🗄️ Propiedades Archivadas</span>';
           if(toolbar) toolbar.style.display = 'none';
+          if (btnPdf) btnPdf.innerHTML = '<span>📄</span> Descargar PDF (Archivadas)';
         } else {
           const totalArchivadas = await actualizarContadorArchivadas();
           btn.innerHTML = `<span>🗄️</span> Ver Archivadas (<span id="contadorArchivadas">${totalArchivadas}</span>)`;
           btn.style.borderColor = '';
+          if (btnPdf) btnPdf.innerHTML = '<span>📄</span> Descargar PDF';
           tituloSeccion.innerHTML = '<span>📋 Propiedades Activas</span>';
           if(toolbar) toolbar.style.display = 'flex';
         }
