@@ -3,1060 +3,978 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Propiedades | Compra tu casa en RD</title>
-    <!-- Favicon (ícono pequeño de la pestaña) -->
-    <link rel="icon" type="image/x-icon" href="assets/icono.ico?v=2">
+    <title>Gestión de Publicaciones | Compra tu casa en RD</title>
+     <link rel="icon" type="image/x-icon" href="assets/icono.ico?v=2">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
-    <!-- FontAwesome para los iconos sociales exactos -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Hoja de Estilos -->
+    <!-- Hoja de Estilos Principal -->
     <link rel="stylesheet" href="styles.css">
+    <!-- Estilos Profesionales Avanzados -->
     <style>
-      /* ================= VARIABLES Y TEMAS (CLARO / OSCURO) ================= */
       :root {
-        --bg-main: #0b0b0e;
-        --bg-card: #121214;
-        --bg-dropdown: #18181b;
-        --bg-input: rgba(24, 24, 27, 0.8);
-        --text-main: #fff;
-        --text-muted: #a1a1aa;
-        --border-color: rgba(255, 255, 255, 0.1);
-        --filter-sidebar-bg: rgba(18, 18, 20, 0.85);
+        --primary-glow: #f59e0b;
+        --card-bg: rgba(255, 255, 255, 0.02);
+        --card-border: rgba(255, 255, 255, 0.08);
+        --text-main: #ffffff;
+        --text-muted: #9ca3af;
+      }
+      body.light-mode {
+        --card-bg: rgba(0, 0, 0, 0.02);
+        --card-border: rgba(0, 0, 0, 0.08);
+        --text-main: #111827;
+        --text-muted: #6b7280;
       }
 
-      [data-theme="light"] {
-        --bg-main: #f4f4f5;
-        --bg-card: #ffffff;
-        --bg-dropdown: #ffffff;
-        --bg-input: #f1f1f3;
-        --text-main: #18181b;
-        --text-muted: #52525b;
-        --border-color: rgba(0, 0, 0, 0.1);
-        --filter-sidebar-bg: rgba(255, 255, 255, 0.9);
-      }
-
-      /* Fondo general de la página */
-      body {
-        background-color: var(--bg-main);
-        margin: 0;
-        color: var(--text-main);
-        transition: background-color 0.3s, color 0.3s;
-      }
-
-      /* Contenedor principal con fondo fijo de la Plaza de la Bandera */
-      .main-page-wrapper {
-        position: relative;
-        background-image: url('assets/hero-plaza-bandera.jpg');
-        background-size: cover;
-        background-position: center center;
-        background-repeat: no-repeat;
-        background-attachment: fixed;
-        min-height: 100vh;
-        width: 100%;
-        overflow: hidden; /* contiene el margen negativo/colapsado de .properties-layout-overlap para que no se filtre el fondo del body antes del footer */
-      }
-
-      /* Capa oscura translúcida única para todo el contenedor principal */
-      .main-page-wrapper::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.65);
-        z-index: 1;
-        pointer-events: none;
-      }
-
-      /* Ajustes del banner superior para modo claro */
-      [data-theme="light"] .main-page-wrapper::before {
-        background: rgba(244, 244, 245, 0.75);
-      }
-
-      .properties-hero {
-        background: transparent !important;
-        border: none !important;
-      }
-
-      /* El oscurecimiento ya lo aporta .main-page-wrapper::before para toda la sección.
-         Se desactivan las capas propias de .hero (::before y ::after de styles.css)
-         para evitar que se sumen 3 capas oscuras sobre la misma imagen ("cristal" excesivo). */
-      .properties-hero::before,
-      .properties-hero::after {
-        display: none !important;
-      }
-
-      .properties-hero-overlap,
-      .properties-layout-overlap {
-        position: relative;
-        z-index: 2;
-      }
-
-      .properties-hero-overlap {
-        padding-top: 50px;
-        padding-bottom: 100px;
-      }
-
-      .properties-hero .hero-content {
-        max-width: 700px;
+      .publish-page-hero {
+        padding: 140px 20px 40px 20px;
+        max-width: 1200px;
         margin: 0 auto;
         text-align: center;
       }
-
-      [data-theme="light"] .hero-eyebrow {
-        background: rgba(0, 0, 0, 0.05) !important;
-        color: #18181b !important;
-        border: 1px solid rgba(0, 0, 0, 0.1) !important;
-      }
-
-      [data-theme="light"] .hero-title {
-        color: #18181b !important;
-        text-shadow: none !important;
-      }
-
-      [data-theme="light"] .hero-subtitle {
-        color: #52525b !important;
-        text-shadow: none !important;
-      }
-
-      /* Contenedor principal de filtros y propiedades */
-      .properties-layout-overlap {
-        display: flex;
-        gap: 30px;
-        max-width: 1400px;
-        margin: -70px auto 60px auto;
-        padding: 0 20px;
-      }
-
-      /* Panel sólido (sin cristal/blur) para los filtros */
-      .filters-sidebar {
-        width: 320px;
-        flex-shrink: 0;
-        background: var(--bg-card);
-        border: 1px solid var(--border-color);
-        border-radius: 20px;
-        padding: 24px;
-        height: fit-content;
-        box-shadow: 0 15px 35px rgba(0,0,0,0.18);
-      }
-
-      .filters-sidebar h3 {
-        padding-left: 12px;
-        border-left: 3px solid #ef4444;
-      }
-
-      .properties-content-area {
-        flex-grow: 1;
-      }
-
-      .filter-group {
-        margin-bottom: 20px;
-      }
-
-      .filter-group label {
-        display: block;
-        font-size: 13px;
-        font-weight: 600;
-        color: var(--text-muted);
+      .publish-page-title {
+        font-family: var(--font-display, 'Poppins', sans-serif);
+        font-size: 38px;
+        font-weight: 800;
         margin-bottom: 8px;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
+        color: var(--text-main);
+      }
+      .publish-page-subtitle {
+        font-size: 15px;
+        color: var(--text-muted);
+        margin-bottom: 25px;
+      }
+      .hero-buttons-wrapper {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        flex-wrap: wrap;
+      }
+      .btn-open-publish-modal {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        color: #111827;
+        border: none;
+        padding: 14px 28px;
+        border-radius: 999px;
+        font-weight: 700;
+        font-size: 15px;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        transition: all 0.25s ease;
+        box-shadow: 0 4px 20px rgba(245, 158, 11, 0.35);
+      }
+      .btn-open-publish-modal:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 25px rgba(245, 158, 11, 0.5);
+      }
+      .btn-view-archived {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--card-border);
+        color: var(--text-main);
+        padding: 14px 28px;
+        border-radius: 999px;
+        font-weight: 700;
+        font-size: 15px;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        transition: all 0.25s ease;
+      }
+      .btn-view-archived:hover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: #f59e0b;
       }
 
-      .filter-group input, .filter-group select {
+      /* Barra de Búsqueda y Filtro Superior */
+      .dashboard-toolbar {
+        max-width: 1200px;
+        margin: 0 auto 30px auto;
+        padding: 0 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 15px;
+        flex-wrap: wrap;
+      }
+      .search-box-container {
+        position: relative;
+        flex: 1;
+        min-width: 280px;
+      }
+      .search-box-container input {
         width: 100%;
-        background: var(--bg-input);
-        border: 1px solid var(--border-color);
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        border-radius: 14px;
+        padding: 12px 16px 12px 45px;
         color: var(--text-main);
-        padding: 10px 14px;
-        border-radius: 10px;
         font-size: 14px;
         outline: none;
         transition: border-color 0.2s;
       }
-
-      .filter-group input:focus, .filter-group select:focus {
-        border-color: #ef4444;
+      .search-box-container input:focus {
+        border-color: #f59e0b;
+      }
+      .search-icon-pos {
+        position: absolute;
+        left: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 16px;
       }
 
-      .filter-row {
-        display: flex;
-        gap: 10px;
+      /* Cuadrícula Profesional Estilo Grid */
+      .publicaciones-container {
+        max-width: 1200px;
+        margin: 0 auto 60px auto;
+        padding: 0 20px;
       }
-
-      .switch-row {
+      .section-category-title {
+        font-family: var(--font-display, 'Poppins', sans-serif);
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--text-main);
+        margin-bottom: 20px;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 10px;
-        margin-top: 4px;
-        margin-bottom: 20px;
-        padding-top: 14px;
-        border-top: 1px solid var(--border-color);
-        font-size: 13px;
-        color: var(--text-muted);
       }
-
-      .filter-switch {
-        width: 40px;
-        height: 22px;
-        background: var(--bg-input);
-        border: 1px solid var(--border-color);
-        border-radius: 999px;
-        position: relative;
-        cursor: pointer;
-        flex-shrink: 0;
-        transition: background-color 0.2s;
-      }
-
-      .filter-switch::after {
-        content: '';
-        position: absolute;
-        top: 2px;
-        left: 2px;
-        width: 16px;
-        height: 16px;
-        background: var(--text-muted);
-        border-radius: 50%;
-        transition: left 0.2s, background-color 0.2s;
-      }
-
-      .filter-switch.on {
-        background: #ef4444;
-        border-color: #ef4444;
-      }
-
-      .filter-switch.on::after {
-        left: 20px;
-        background: #fff;
-      }
-
-      /* Fila de botones del hero (Favoritos + Catálogo Premium) */
-      .hero-cta-row {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 14px;
-        flex-wrap: wrap;
-      }
-
-      .premium-cta {
-        border: none;
-        cursor: pointer;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        background: linear-gradient(135deg, #fde047, #f59e0b);
-        color: #1a1a1a;
-        padding: 12px 24px;
-        border-radius: 30px;
-        font-weight: 700;
-        text-decoration: none;
-        box-shadow: 0 10px 25px rgba(245, 158, 11, 0.4);
-        transition: transform 0.15s;
-      }
-
-      .premium-cta:hover {
-        transform: translateY(-2px);
-      }
-
-      /* Contador de propiedades debajo de los botones del hero */
-      .properties-counter {
-        margin-top: 16px;
-        display: flex;
-        justify-content: center;
-      }
-
-      .properties-counter span.counter-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        background: rgba(255, 255, 255, 0.08);
-        border: 1px solid rgba(255, 255, 255, 0.15);
-        color: var(--text-main, #fff);
-        padding: 8px 18px;
-        border-radius: 20px;
-        font-size: 13px;
-        font-weight: 600;
-        text-shadow: none;
-      }
-
-      [data-theme="light"] .properties-counter span.counter-badge {
-        background: rgba(0, 0, 0, 0.05);
-        border: 1px solid rgba(0, 0, 0, 0.1);
-        color: #18181b;
-      }
-
-      .properties-counter #propCounterNum {
-        color: #ef4444;
-        font-weight: 800;
-      }
-
-      .properties-grid {
+      .publicaciones-grid {
         display: grid;
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
         gap: 24px;
       }
 
-      /* Publicaciones en cuadrícula 3x3: en pantallas medianas bajamos a 2
-         columnas y en móvil a 1, para que siga viéndose profesional */
-      @media (max-width: 1150px) {
-        .properties-grid {
-          grid-template-columns: repeat(2, 1fr);
-        }
-      }
-
-      @media (max-width: 700px) {
-        .properties-grid {
-          grid-template-columns: 1fr;
-        }
-      }
-
-      .property-card {
-        background: var(--bg-card);
-        border: 1px solid var(--border-color);
+      /* Tarjeta de Propiedad Estilo Cuadrícula */
+      .propiedad-card-pro {
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
         border-radius: 20px;
         overflow: hidden;
-        transition: transform 0.2s, box-shadow 0.2s, background-color 0.3s;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        display: flex;
+        flex-direction: column;
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
       }
-
-      .property-card:hover {
+      .propiedad-card-pro:hover {
         transform: translateY(-4px);
-        box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+        border-color: rgba(245, 158, 11, 0.3);
       }
 
-      /* ================= ESTILOS DEL CARRUSEL DE LA TARJETA ================= */
-      .property-img-container {
+      /* Tarjeta publicada por un agente/agentepro: borde cian para diferenciarla
+         de las publicaciones de la empresa */
+      .propiedad-card-pro.publicada-por-agente {
+        border: 1px solid rgba(6, 182, 212, 0.5);
+        box-shadow: 0 0 0 1px rgba(6, 182, 212, 0.15) inset;
+      }
+      .propiedad-card-pro.publicada-por-agente:hover {
+        border-color: rgba(6, 182, 212, 0.7);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(6, 182, 212, 0.25) inset;
+      }
+
+      /* Tarjeta publicada por la empresa (admin/superadmin): borde rojo para
+         diferenciarla de las publicaciones de un agente */
+      .propiedad-card-pro.publicada-por-empresa {
+        border: 1px solid rgba(239, 68, 68, 0.5);
+        box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.15) inset;
+      }
+      .propiedad-card-pro.publicada-por-empresa:hover {
+        border-color: rgba(239, 68, 68, 0.7);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(239, 68, 68, 0.25) inset;
+      }
+
+      /* Etiqueta que marca que la propiedad fue publicada por un agente */
+      .badge-publicada-agente {
+        position: absolute;
+        bottom: 10px; right: 12px;
+        background: rgba(6, 182, 212, 0.85);
+        backdrop-filter: blur(4px);
+        color: #fff;
+        padding: 4px 8px;
+        border-radius: 8px;
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        z-index: 2;
+        border: 1px solid rgba(6, 182, 212, 0.5);
+      }
+
+      /* Etiqueta que marca que la propiedad fue publicada por la empresa */
+      .badge-publicada-empresa {
+        position: absolute;
+        bottom: 10px; right: 12px;
+        background: rgba(239, 68, 68, 0.85);
+        backdrop-filter: blur(4px);
+        color: #fff;
+        padding: 4px 8px;
+        border-radius: 8px;
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        z-index: 2;
+        border: 1px solid rgba(239, 68, 68, 0.5);
+      }
+
+      /* Carrusel de Imágenes dentro de la Tarjeta */
+      .card-carousel-wrapper {
         position: relative;
-        height: 220px;
-        background: #1e1e24;
+        width: 100%;
+        height: 200px;
+        background: #111;
         overflow: hidden;
       }
-
-      .property-carousel-track {
+      .carousel-track {
         display: flex;
         width: 100%;
         height: 100%;
-        transition: transform 0.4s ease-in-out;
+        transition: transform 0.3s ease-in-out;
       }
-
-      .property-carousel-slide {
+      .carousel-img {
         min-width: 100%;
-        height: 100%;
-        flex-shrink: 0;
-      }
-
-      .property-carousel-slide img {
-        width: 100%;
         height: 100%;
         object-fit: cover;
       }
-
-      /* Botones de navegación del carrusel (Flechas) */
-      .property-carousel-btn {
+      .carousel-btn {
         position: absolute;
         top: 50%;
         transform: translateY(-50%);
         background: rgba(0, 0, 0, 0.6);
         color: #fff;
         border: none;
-        width: 32px;
-        height: 32px;
+        width: 32px; height: 32px;
         border-radius: 50%;
         cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        opacity: 0;
-        transition: opacity 0.2s, background 0.2s;
-        z-index: 5;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 14px;
+        transition: background 0.2s;
+        z-index: 2;
+      }
+      .carousel-btn:hover { background: rgba(245, 158, 11, 0.9); color: #000; }
+      .carousel-prev { left: 8px; }
+      .carousel-next { right: 8px; }
+      
+      .badge-operacion {
+        position: absolute;
+        top: 12px; left: 12px;
+        background: rgba(0, 0, 0, 0.75);
         backdrop-filter: blur(4px);
-      }
-
-      .property-img-container:hover .property-carousel-btn {
-        opacity: 1;
-      }
-
-      .property-carousel-btn:hover {
-        background: rgba(239, 68, 68, 0.8);
-      }
-
-      .property-carousel-prev {
-        left: 10px;
-      }
-
-      .property-carousel-next {
-        right: 10px;
-      }
-
-      /* Indicadores de puntos (Dots) en la parte inferior de la imagen */
-      .property-carousel-dots {
-        position: absolute;
-        bottom: 12px;
-        left: 50%;
-        transform: translateX(-50%);
-        display: flex;
-        gap: 6px;
-        z-index: 5;
-      }
-
-      .property-dot {
-        width: 6px;
-        height: 6px;
-        border-radius: 50%;
-        background: rgba(255, 255, 255, 0.4);
-        cursor: pointer;
-        transition: background 0.2s, transform 0.2s;
-      }
-
-      .property-dot.active {
-        background: #fff;
-        transform: scale(1.3);
-      }
-
-      .property-badge-top {
-        position: absolute;
-        top: 12px;
-        left: 12px;
-        color: #fff;
+        color: #f59e0b;
+        padding: 4px 10px;
+        border-radius: 8px;
         font-size: 11px;
         font-weight: 700;
-        padding: 4px 10px;
-        border-radius: 20px;
         text-transform: uppercase;
-        z-index: 5;
+        z-index: 2;
+        border: 1px solid rgba(245, 158, 11, 0.3);
+      }
+      /* Etiqueta de Venta en Verde */
+      .badge-operacion.venta {
+        color: #10b981 !important;
+        border-color: rgba(16, 185, 129, 0.4) !important;
+      }
+      /* Etiqueta de Alquiler en Amarillo */
+      .badge-operacion.alquiler {
+        color: #eab308 !important;
+        border-color: rgba(234, 179, 8, 0.4) !important;
+      }
+      /* Etiqueta de Venta & Alquiler en Azul */
+      .badge-operacion.venta-alquiler {
+        color: #3b82f6 !important;
+        border-color: rgba(59, 130, 246, 0.4) !important;
       }
 
-      .property-actions-top {
+      /* Etiqueta del Tipo de Propiedad (Casa/Apartamento) */
+      .badge-tipo-propiedad {
         position: absolute;
-        top: 12px;
-        right: 12px;
-        display: flex;
-        gap: 8px;
-        z-index: 5;
-      }
-
-      .property-action-icon {
-        background: rgba(0, 0, 0, 0.6);
-        border: none;
-        color: #fff;
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
+        bottom: 10px; left: 12px;
+        background: rgba(0, 0, 0, 0.75);
         backdrop-filter: blur(4px);
-        transition: transform 0.1s;
-      }
-
-      .property-action-icon:active {
-        transform: scale(0.9);
-      }
-
-      .property-body {
-        padding: 20px;
-      }
-
-      .property-type {
-        font-size: 12px;
+        color: #fff;
+        padding: 4px 10px;
+        border-radius: 8px;
+        font-size: 10.5px;
+        font-weight: 700;
         text-transform: uppercase;
-        color: var(--text-muted);
+        z-index: 2;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+      }
+
+      /* Etiqueta de Extranjeros en la Tarjeta */
+      .badge-extranjeros {
+        position: absolute;
+        top: 12px; right: 12px;
+        background: rgba(59, 130, 246, 0.85);
+        backdrop-filter: blur(4px);
+        color: #fff;
+        padding: 4px 8px;
+        border-radius: 8px;
+        font-size: 10px;
         font-weight: 700;
-        letter-spacing: 0.5px;
-        margin-bottom: 4px;
+        text-transform: uppercase;
+        z-index: 2;
+        border: 1px solid rgba(59, 130, 246, 0.5);
       }
 
-      .property-title {
-        font-size: 18px;
+      /* Etiqueta de Amueblado en la Tarjeta */
+      .badge-amueblado {
+        position: absolute;
+        top: 44px; right: 12px;
+        background: rgba(139, 92, 246, 0.85);
+        backdrop-filter: blur(4px);
+        color: #fff;
+        padding: 4px 8px;
+        border-radius: 8px;
+        font-size: 10px;
         font-weight: 700;
-        color: var(--text-main);
-        margin-bottom: 8px;
+        text-transform: uppercase;
+        z-index: 2;
+        border: 1px solid rgba(139, 92, 246, 0.5);
       }
 
-      .property-title a {
-        color: var(--text-main);
-        text-decoration: none;
-        transition: color 0.2s;
-      }
-
-      .property-title a:hover {
-        color: #ef4444;
-      }
-
-      .property-location {
-        font-size: 13px;
-        color: var(--text-muted);
-        margin-bottom: 14px;
-        display: flex;
-        align-items: center;
-        gap: 4px;
-      }
-
-      .property-price {
-        font-size: 22px;
+      /* Etiqueta de Premium en la Tarjeta */
+      .badge-premium {
+        position: absolute;
+        top: 76px; right: 12px;
+        background: linear-gradient(135deg, #fde047, #f59e0b);
+        backdrop-filter: blur(4px);
+        color: #1a1a1a;
+        padding: 4px 8px;
+        border-radius: 8px;
+        font-size: 10px;
         font-weight: 800;
-        color: #10b981;
-        margin-bottom: 16px;
+        text-transform: uppercase;
+        z-index: 2;
+        border: 1px solid rgba(245, 158, 11, 0.6);
       }
 
-      .property-desc-preview {
-        font-size: 13px;
-        line-height: 1.5;
-        color: var(--text-muted);
-        margin: -6px 0 16px 0;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
+      /* Cuadrícula de checkboxes de Extras en el formulario */
+      .extras-checkbox-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 10px;
       }
-
-      .property-footer-info {
+      .extra-checkbox-item {
         display: flex;
-        gap: 16px;
-        border-top: 1px solid var(--border-color);
-        padding-top: 14px;
-        font-size: 13px;
-        color: var(--text-muted);
+        align-items: center;
+        gap: 8px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid var(--card-border);
+        border-radius: 10px;
+        padding: 10px 12px;
+        cursor: pointer;
+        font-size: 12.5px;
+        font-weight: 600;
+        color: var(--text-main);
+        transition: border-color 0.2s;
+      }
+      .extra-checkbox-item:hover { border-color: #f59e0b; }
+      .extra-checkbox-item input {
+        width: 16px;
+        height: 16px;
+        accent-color: #f59e0b;
+        cursor: pointer;
+        flex-shrink: 0;
       }
 
-      .property-extranjeros-pill {
-        margin-top: 12px;
-        display: inline-flex;
-        align-items: center;
+      /* Chips de extras en la vista previa */
+      .preview-extras-chips {
+        display: flex;
+        flex-wrap: wrap;
         gap: 6px;
-        background: rgba(59, 130, 246, 0.1);
-        border: 1px solid #3b82f6;
-        color: #3b82f6;
-        font-size: 11px;
+        margin-top: 10px;
+      }
+      .preview-extra-chip {
+        background: rgba(139, 92, 246, 0.12);
+        border: 1px solid rgba(139, 92, 246, 0.4);
+        color: #a78bfa;
+        font-size: 10.5px;
         font-weight: 700;
-        padding: 4px 10px;
+        padding: 3px 9px;
         border-radius: 999px;
       }
 
-      .property-amueblado-pill {
-        margin-top: 12px;
-        margin-left: 8px;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        background: rgba(139, 92, 246, 0.1);
-        border: 1px solid #8b5cf6;
-        color: #8b5cf6;
-        font-size: 11px;
-        font-weight: 700;
-        padding: 4px 10px;
-        border-radius: 999px;
-      }
-
-      /* ===== Paginación (Cuadrícula 3x3) ===== */
+      /* ===== Paginación (Cuadrícula 4x2 = 8 por página) ===== */
       .pagination-controls-wrap {
         display: flex;
         justify-content: center;
         align-items: center;
-        gap: 10px;
-        margin-top: 35px;
-        grid-column: 1 / -1;
+        gap: 6px;
+        margin: 35px auto 0 auto;
+        padding: 8px 10px;
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        border-radius: 999px;
+        width: fit-content;
         flex-wrap: wrap;
       }
-      #paginacionPropiedadesWrapTop {
-        margin-top: 0;
-        margin-bottom: 25px;
+      .pagination-edge-btn {
+        background: transparent;
+        border: none;
+        color: var(--text-main);
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+        transition: all 0.2s;
+      }
+      .pagination-edge-btn:hover:not(:disabled) {
+        background: rgba(245, 158, 11, 0.15);
+        color: #f59e0b;
+      }
+      .pagination-edge-btn:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
       }
       .pagination-btn {
-        background: rgba(20, 20, 23, 0.9);
-        border: 1px solid var(--border-color);
+        background: transparent;
+        border: none;
         color: var(--text-main);
-        padding: 10px 20px;
+        padding: 9px 16px;
         border-radius: 999px;
         font-weight: 700;
         font-size: 13px;
         cursor: pointer;
         display: inline-flex;
         align-items: center;
-        gap: 8px;
+        gap: 6px;
         transition: all 0.2s;
+        white-space: nowrap;
       }
       .pagination-btn:hover:not(:disabled) {
-        border-color: rgba(239, 68, 68, 0.55);
-        color: #ef4444;
-        box-shadow: 0 0 12px rgba(239, 68, 68, 0.35);
+        background: rgba(245, 158, 11, 0.12);
+        color: #f59e0b;
       }
       .pagination-btn:disabled {
         opacity: 0.35;
         cursor: not-allowed;
       }
-      /* Botones de flecha "Primera página" / "Última página", más compactos
-         que los de Anterior/Siguiente porque solo llevan el icono */
-      .pagination-btn-icon {
-        padding: 10px 14px;
-        font-size: 14px;
-      }
-      .pagination-page-label {
-        font-size: 13px;
-        font-weight: 700;
-        color: var(--text-muted);
-        min-width: 90px;
-        text-align: center;
-      }
-      /* Fila de números de página para saltar directo a la página deseada */
       .pagination-numbers {
         display: flex;
         align-items: center;
-        gap: 6px;
+        gap: 4px;
+        margin: 0 4px;
       }
-      .pagination-num-btn {
-        background: rgba(20, 20, 23, 0.9);
-        border: 1px solid var(--border-color);
-        color: var(--text-main);
+      .pagination-number-btn {
+        background: transparent;
+        border: 2px solid transparent;
+        color: var(--text-muted);
         width: 34px;
         height: 34px;
-        border-radius: 999px;
+        border-radius: 50%;
         font-weight: 700;
         font-size: 13px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+        flex-shrink: 0;
+      }
+      .pagination-number-btn:hover {
+        color: #f59e0b;
+        background: rgba(245, 158, 11, 0.08);
+      }
+      .pagination-number-btn.active {
+        border-color: #f59e0b;
+        color: #f59e0b;
+        background: rgba(245, 158, 11, 0.12);
+      }
+      .pagination-ellipsis {
+        color: var(--text-muted);
+        padding: 0 2px;
+        font-weight: 700;
+        min-width: 16px;
+        text-align: center;
+      }
+
+      /* Información de la Tarjeta */
+      .card-body-content {
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        cursor: pointer;
+      }
+      .card-title-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 6px;
+      }
+      .card-prop-title {
+        font-family: var(--font-display, 'Poppins', sans-serif);
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--text-main);
+        margin: 0;
+        line-height: 1.3;
+      }
+      /* Dinero / Precio en Venta o general */
+      .card-prop-price {
+        font-size: 15px;
+        font-weight: 800;
+        color: #10b981; /* Verde solicitado */
+      }
+      .card-prop-ubicacion {
+        font-size: 13px;
+        color: var(--text-muted);
+        margin-bottom: 12px;
+        display: -webkit-box;
+        -webkit-line-clamp: 1;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+      .card-features-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        font-size: 12px;
+        color: var(--text-muted);
+        margin-bottom: 12px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid var(--card-border);
+      }
+      .card-desc-text {
+        font-size: 14.5px;
+        line-height: 1.5;
+        color: var(--text-muted);
+        margin-bottom: 16px;
+        display: -webkit-box;
+        -webkit-line-clamp: 4;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        flex: 1;
+      }
+
+      /* Botones de Gestión (Estructura de botones uniforme) */
+      .card-actions-row {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 6px;
+        margin-top: auto;
+      }
+      .action-btn {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--card-border);
+        color: var(--text-main);
+        padding: 8px 4px;
+        border-radius: 8px;
+        font-size: 11px;
+        font-weight: 600;
         cursor: pointer;
         display: inline-flex;
         align-items: center;
         justify-content: center;
+        gap: 4px;
         transition: all 0.2s;
+        white-space: nowrap;
       }
-      .pagination-num-btn:hover:not(.active) {
-        border-color: rgba(239, 68, 68, 0.55);
-        color: #ef4444;
-        box-shadow: 0 0 12px rgba(239, 68, 68, 0.35);
-      }
-      /* Página activa: mismo "glow" rojo tenue sobre fondo oscuro que usa
-         el enlace activo del menú (Propiedades), en vez de un relleno sólido */
-      .pagination-num-btn.active {
-        background: rgba(239, 68, 68, 0.12);
-        border: 1px solid #ef4444;
-        color: #ef4444;
-        box-shadow: 0 0 14px rgba(239, 68, 68, 0.55), inset 0 0 8px rgba(239, 68, 68, 0.15);
-        cursor: default;
-      }
+      .action-btn:hover { background: rgba(255, 255, 255, 0.1); }
+      .action-btn.edit:hover { border-color: #3b82f6; color: #3b82f6; }
+      .action-btn.duplicate:hover { border-color: #10b981; color: #10b981; }
+      .action-btn.archive:hover { border-color: #f59e0b; color: #f59e0b; }
+      .action-btn.delete:hover { border-color: #ef4444; color: #ef4444; background: rgba(239, 68, 68, 0.1); }
+      .action-btn.unarchive:hover { border-color: #10b981; color: #10b981; }
+      .action-btn.location:hover { border-color: #38bdf8; color: #38bdf8; background: rgba(56, 189, 248, 0.1); }
+      .action-btn.video:hover { border-color: #ec4899; color: #ec4899; background: rgba(236, 72, 153, 0.1); }
+      .action-btn.copiado-card { border-color: #10b981 !important; color: #10b981 !important; background: rgba(16, 185, 129, 0.15) !important; }
 
-      /* En modo claro el fondo oscuro de las pastillas se reemplaza por el
-         color de tarjeta claro, conservando el mismo acento de brillo rojo */
-      [data-theme="light"] .pagination-btn,
-      [data-theme="light"] .pagination-num-btn {
-        background: var(--bg-card);
-      }
-      .pagination-ellipsis {
-        color: var(--text-muted);
-        font-weight: 700;
-        padding: 0 4px;
-      }
-
-      /* Estilos para el menú flotante del perfil y notificaciones */
-      .profile-dropdown-menu {
+      /* Ventana Flotante (Modal) */
+      .modal-overlay {
         display: none;
-        position: absolute;
-        right: 0;
-        top: 50px;
-        background: var(--bg-dropdown);
-        border: 1px solid var(--border-color);
-        border-radius: 16px;
-        box-shadow: 0 20px 40px rgba(0,0,0,0.3);
-        width: 260px;
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0, 0, 0, 0.85);
         z-index: 1000;
-        padding: 12px;
-        overflow: hidden;
-      }
-
-      .profile-dropdown-menu.show {
-        display: block;
-      }
-
-      .profile-dropdown-item {
-        display: flex;
+        justify-content: center;
         align-items: center;
-        gap: 12px;
+        padding: 20px;
+        backdrop-filter: blur(6px);
+      }
+      .modal-container {
+        background: #0d0d0d;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 24px;
         width: 100%;
-        padding: 12px 14px;
-        color: var(--text-main);
-        text-decoration: none;
-        background: none;
-        border: none;
-        font-size: 14px;
-        font-weight: 500;
-        border-radius: 10px;
-        cursor: pointer;
-        transition: background 0.2s;
-        text-align: left;
-      }
-
-      .profile-dropdown-item:hover {
-        background: rgba(128, 128, 128, 0.1);
-      }
-
-      .profile-dropdown-divider {
-        height: 1px;
-        background: var(--border-color);
-        margin: 8px 0;
-      }
-
-      .profile-dropdown-item.logout {
-        color: #ef4444;
-      }
-
-      .profile-dropdown-item.logout:hover {
-        background: rgba(239, 68, 68, 0.1);
-      }
-
-      /* Campanita y contenedor de acciones derechas en el header */
-      .header-right-actions {
-        display: flex;
-        align-items: center;
-        gap: 16px;
-      }
-
-      .notification-bell-wrapper {
-        position: relative;
-      }
-
-      #authContainer {
-        display: flex;
-        align-items: center;
-        gap: 15px;
-      }
-
-      @keyframes ringBell {
-        0% { transform: rotate(0deg); }
-        20% { transform: rotate(15deg); }
-        40% { transform: rotate(-15deg); }
-        60% { transform: rotate(10deg); }
-        80% { transform: rotate(-10deg); }
-        100% { transform: rotate(0deg); }
-      }
-
-      .bell-ringing {
-        animation: ringBell 1s infinite ease-in-out;
-        display: inline-block;
-      }
-
-      .notification-bell-btn {
-        background: transparent;
-        border: none;
-        color: var(--text-main);
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        position: relative;
-        font-size: 20px;
-      }
-
-      .notification-badge {
-        position: absolute;
-        top: -2px;
-        right: -2px;
-        background: #ef4444;
+        max-width: 900px;
+        max-height: 90vh;
+        overflow-y: auto;
+        padding: 35px;
+        box-shadow: 0 25px 50px rgba(0,0,0,0.8);
         color: #fff;
-        font-size: 10px;
-        font-weight: 700;
-        width: 18px;
-        height: 18px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border: 2px solid var(--bg-card);
+        position: relative;
       }
-
-      .notification-dropdown {
-        display: none;
-        position: absolute;
-        right: 0;
-        top: 50px;
-        background: var(--bg-dropdown);
-        border: 1px solid var(--border-color);
-        border-radius: 16px;
-        box-shadow: 0 20px 40px rgba(0,0,0,0.3);
-        width: 320px;
-        z-index: 1000;
-        overflow: hidden;
+      body.light-mode .modal-container {
+        background: #ffffff;
+        border-color: rgba(0,0,0,0.12);
+        color: #111827;
       }
-
-      .notification-dropdown.show {
-        display: block;
-      }
-
-      .notification-header {
-        padding: 14px 16px;
-        border-bottom: 1px solid var(--border-color);
+      .modal-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
+        margin-bottom: 25px;
+        border-bottom: 1px solid rgba(255,255,255,0.08);
+        padding-bottom: 15px;
       }
-
-      .notification-header h4 {
-        margin: 0;
-        color: var(--text-main);
-        font-size: 14px;
+      .modal-title {
+        font-family: var(--font-display, 'Poppins', sans-serif);
+        font-size: 22px;
         font-weight: 700;
       }
-
-      .notification-list {
-        max-height: 280px;
-        overflow-y: auto;
-      }
-
-      .notification-item {
-        padding: 12px 16px;
-        border-bottom: 1px solid var(--border-color);
+      .modal-close-btn {
+        background: transparent;
+        border: none;
         color: var(--text-muted);
-        font-size: 13px;
-        text-decoration: none;
-        display: block;
-        transition: background 0.2s;
+        font-size: 28px;
+        cursor: pointer;
+        transition: color 0.2s;
       }
+      .modal-close-btn:hover { color: #fff; }
 
-      .notification-item:hover {
-        background: rgba(128, 128, 128, 0.1);
+      /* ===== VISTA PREVIA EN VIVO DE LA TARJETA ===== */
+      .preview-card-wrap {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 25px;
+      }
+      .preview-card {
+        width: 100%;
+        max-width: 320px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--card-border);
+        border-radius: 18px;
+        overflow: hidden;
+      }
+      .preview-card-img {
+        position: relative;
+        height: 150px;
+        background: #1a1a1a center/cover no-repeat;
+      }
+      .preview-badge-operacion {
+        position: absolute;
+        top: 10px; left: 10px;
+        color: #fff;
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        padding: 4px 10px;
+        border-radius: 20px;
+        background: #10b981;
+      }
+      .preview-badge-extranjeros {
+        position: absolute;
+        top: 10px; right: 10px;
+        background: rgba(59, 130, 246, 0.85);
+        color: #fff;
+        font-size: 10px;
+        font-weight: 700;
+        padding: 4px 8px;
+        border-radius: 20px;
+      }
+      .preview-card-body { padding: 14px 16px; }
+      .preview-card-tipo {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+        font-weight: 700;
+        color: var(--text-muted);
+        margin-bottom: 3px;
+      }
+      .preview-card-title {
+        font-size: 15px;
+        font-weight: 700;
+        margin: 0 0 6px 0;
         color: var(--text-main);
       }
-
-      /* ================= FOOTER / BANNER INFERIOR ================= */
-      .site-footer {
-        background-color: #000000;
-        color: #a1a1aa;
-        border-top: 1px solid rgba(255, 255, 255, 0.08);
-        padding: 60px 20px 20px 20px;
-        position: relative;
-        z-index: 2;
-        transition: background-color 0.3s, color 0.3s;
+      .preview-card-loc {
+        font-size: 12px;
+        color: var(--text-muted);
+        margin: 0 0 8px 0;
+      }
+      .preview-card-price {
+        font-size: 18px;
+        font-weight: 800;
+        color: #10b981;
+        margin-bottom: 8px;
+      }
+      .preview-card-desc {
+        font-size: 12px;
+        color: var(--text-muted);
+        line-height: 1.4;
+        margin: 0 0 10px 0;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+      .preview-card-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        font-size: 11.5px;
+        color: var(--text-muted);
+        border-top: 1px solid var(--card-border);
+        padding-top: 10px;
       }
 
-      [data-theme="light"] .site-footer {
-        background-color: #e4e4e7;
-        color: #52525b;
-        border-top: 1px solid rgba(0, 0, 0, 0.1);
-      }
-
-      [data-theme="light"] .footer-col-title,
-      [data-theme="light"] .footer-brand-title {
-        color: #18181b !important;
-      }
-
-      [data-theme="light"] .footer-brand-desc,
-      [data-theme="light"] .footer-links a,
-      [data-theme="light"] .footer-contact-list li,
-      [data-theme="light"] .footer-bottom,
-      [data-theme="light"] .footer-bottom-links a {
-        color: #52525b !important;
-      }
-
-      [data-theme="light"] .footer-social-icon {
-        background: #ffffff;
-        border: 1px solid rgba(0, 0, 0, 0.1);
-        color: #18181b;
-      }
-
-      [data-theme="light"] .footer-social-icon:hover {
-        background: #ef4444;
-        color: #ffffff;
-        border-color: #ef4444;
-      }
-
-      .footer-container {
-        max-width: 1400px;
-        margin: 0 auto;
-        display: grid;
-        grid-template-columns: 2fr 1fr 1fr 1.5fr;
-        gap: 40px;
-        padding-bottom: 40px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-      }
-
-      [data-theme="light"] .footer-container {
-        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-      }
-
-      .footer-col-title {
-        color: #fff;
+      .form-section-heading {
+        font-family: var(--font-display, 'Poppins', sans-serif);
         font-size: 16px;
         font-weight: 700;
-        margin-bottom: 20px;
-        letter-spacing: 0.5px;
+        color: var(--text-main);
+        margin-bottom: 15px;
+        padding-bottom: 6px;
+        border-bottom: 1px solid var(--card-border);
+        display: flex;
+        align-items: center;
+        gap: 8px;
       }
-
-      .footer-brand-title {
-        color: #fff;
-        font-size: 24px;
-        font-weight: 800;
-        margin-bottom: 14px;
+      .form-grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+        margin-bottom: 15px;
       }
-
-      .footer-brand-title .highlight-red {
-        color: #ef4444;
+      @media(max-width: 768px) { .form-grid-2 { grid-template-columns: 1fr; } }
+      .form-group-full { grid-column: 1 / -1; margin-bottom: 15px; }
+      .publish-form-group label {
+        display: block;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        margin-bottom: 5px;
       }
-
-      .footer-brand-desc {
+      .publish-control {
+        width: 100%;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid var(--card-border);
+        border-radius: 10px;
+        padding: 10px 14px;
+        color: var(--text-main);
         font-size: 14px;
+        outline: none;
+        transition: border-color 0.2s;
+      }
+      body.light-mode .publish-control { background: rgba(0,0,0,0.03); }
+      .publish-control:focus { border-color: #f59e0b; }
+      textarea.publish-control { resize: vertical; min-height: 90px; }
+
+      select.publish-control {
+        color-scheme: dark;
+      }
+      body.light-mode select.publish-control {
+        color-scheme: light;
+      }
+      select.publish-control option {
+        background: #1a1a1a;
+        color: #ffffff;
+      }
+      body.light-mode select.publish-control option {
+        background: #ffffff;
+        color: #111827;
+      }
+      .publish-submit-btn {
+        background: #f59e0b;
+        color: #111827;
+        border: none;
+        padding: 14px;
+        border-radius: 999px;
+        font-weight: 700;
+        font-size: 15px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        width: 100%;
+        margin-top: 10px;
+        transition: background 0.2s;
+      }
+      .publish-submit-btn:hover { background: #d97706; color: #fff; }
+
+      .input-with-copy-btn {
+        display: flex;
+        gap: 8px;
+      }
+      .input-with-copy-btn .publish-control {
+        flex: 1;
+      }
+      .btn-copiar-link {
+        flex-shrink: 0;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--card-border);
+        color: var(--text-main);
+        padding: 0 16px;
+        border-radius: 10px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.2s;
+        white-space: nowrap;
+      }
+      .btn-copiar-link:hover {
+        border-color: #f59e0b;
+        color: #f59e0b;
+      }
+      .btn-copiar-link.copiado {
+        border-color: #10b981;
+        color: #10b981;
+      }
+
+      .checkbox-container {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid var(--card-border);
+        border-radius: 10px;
+        padding: 12px 14px;
+        cursor: pointer;
+      }
+      .checkbox-container input {
+        width: 18px;
+        height: 18px;
+        accent-color: #f59e0b;
+        cursor: pointer;
+      }
+
+      .thumbnails-edit-container {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 8px;
+        margin-bottom: 15px;
+      }
+      .thumbnail-item {
+        position: relative;
+        width: 70px;
+        height: 70px;
+        border-radius: 10px;
+        overflow: hidden;
+        border: 1px solid var(--card-border);
+        background: #111;
+      }
+      .thumbnail-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .thumbnail-delete-btn {
+        position: absolute;
+        top: 2px;
+        right: 2px;
+        background: rgba(239, 68, 68, 0.9);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        font-size: 10px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s;
+      }
+      .thumbnail-delete-btn:hover {
+        background: #ef4444;
+      }
+
+      /* ================= ESTILOS DEL FOOTER 4 COLUMNAS ================= */
+      .site-footer {
+        background: #0b0b0e;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        padding: 60px 20px 30px 20px;
+        margin-top: 80px;
+        color: #a1a1aa;
+      }
+      .footer-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr 2fr;
+        gap: 30px;
+        margin-bottom: 40px;
+      }
+      .footer-brand-title {
+        font-size: 20px;
+        font-weight: 800;
+        color: #fff;
+        margin-bottom: 12px;
+      }
+      .highlight-red { color: #ef4444; }
+      .footer-brand-desc {
+        font-size: 13px;
         line-height: 1.6;
         color: #a1a1aa;
         margin-bottom: 20px;
       }
-
-      .footer-socials {
-        display: flex;
-        gap: 12px;
-      }
-
-      .footer-social-icon {
-        background: #121214;
-        border: 1px solid rgba(255, 255, 255, 0.05);
-        color: #fff;
-        width: 38px;
-        height: 38px;
+      .footer-social-icons { display: flex; gap: 12px; }
+      .social-icon-btn {
+        width: 42px; height: 42px;
+        background: #18181b;
+        border: 1px solid rgba(255, 255, 255, 0.08);
         border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        text-decoration: none;
-        font-size: 16px;
-        transition: all 0.2s;
+        display: flex; align-items: center; justify-content: center;
+        color: #fff; text-decoration: none;
+        transition: background 0.2s, transform 0.2s, border-color 0.2s;
       }
-
-      .footer-links {
-        list-style: none;
-        padding: 0;
-        margin: 0;
+      .social-icon-btn:hover {
+        background: #ef4444; border-color: #ef4444; transform: translateY(-2px);
       }
-
-      .footer-links li {
-        margin-bottom: 12px;
-      }
-
-      .footer-links a {
-        color: #a1a1aa;
-        text-decoration: none;
-        font-size: 14px;
-        transition: color 0.2s;
-      }
-
-      .footer-links a:hover {
-        color: #ef4444;
-      }
-
-      .footer-contact-list {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-      }
-
-      .footer-contact-list li {
-        display: flex;
-        align-items: flex-start;
-        gap: 10px;
-        font-size: 14px;
-        color: #a1a1aa;
-        margin-bottom: 14px;
-      }
-
-      .footer-contact-list .contact-icon {
-        font-size: 16px;
-        flex-shrink: 0;
-      }
-
-      .footer-email {
-        color: #3b82f6;
-        text-decoration: none;
-      }
-
-      .footer-email:hover {
-        text-decoration: underline;
-      }
-
+      .social-icon-btn svg { width: 20px; height: 20px; fill: currentColor; }
+      .footer-col-title { font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 16px; }
+      .footer-links-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
+      .footer-links-list li a { color: #a1a1aa; text-decoration: none; font-size: 14px; transition: color 0.2s; }
+      .footer-links-list li a:hover { color: #fff; }
+      .footer-contact-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 12px; }
+      .footer-contact-list li { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: #a1a1aa; line-height: 1.4; }
+      .footer-email { color: #3b82f6; text-decoration: none; }
+      .footer-email:hover { text-decoration: underline; }
       .footer-bottom {
-        max-width: 1400px;
-        margin: 0 auto;
-        padding-top: 20px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        font-size: 13px;
-        color: #71717a;
+        max-width: 1200px; margin: 0 auto;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        padding-top: 20px; display: flex; justify-content: space-between; align-items: center;
+        font-size: 13px; color: #71717a;
       }
-
-      .footer-bottom-links {
-        display: flex;
-        gap: 20px;
-      }
-
-      .footer-bottom-links a {
-        color: #71717a;
-        text-decoration: none;
-        transition: color 0.2s;
-      }
-
-      .footer-bottom-links a:hover {
-        color: #fff;
-      }
-
+      .footer-bottom-links { display: flex; gap: 20px; }
+      .footer-bottom-links a { color: #71717a; text-decoration: none; transition: color 0.2s; }
+      .footer-bottom-links a:hover { color: #fff; }
       @media(max-width: 900px) {
-        .properties-layout-overlap {
-          flex-direction: column;
-        }
-        .filters-sidebar {
-          width: 100%;
-        }
-        .footer-container {
-          grid-template-columns: 1fr;
-          gap: 30px;
-        }
-        .footer-bottom {
-          flex-direction: column;
-          gap: 10px;
-          text-align: center;
-        }
+        .footer-container { grid-template-columns: 1fr; }
+        .footer-bottom { flex-direction: column; gap: 10px; text-align: center; }
       }
     </style>
-    <!-- SCRIPT DE CARGA INICIAL DE TEMA PARA EVITAR PARPADEOS -->
-    <script>
-      (function() {
-        const savedTheme = localStorage.getItem('app_theme');
-        if (savedTheme === 'light') {
-          document.documentElement.setAttribute('data-theme', 'light');
-        } else if (savedTheme === 'dark') {
-          document.documentElement.setAttribute('data-theme', 'dark');
-        }
-      })();
-    </script>
 </head>
 <body>
 
     <!-- ================= HEADER ================= -->
     <header class="site-header">
       <div class="header-inner">
-        
         <a href="index.html" class="brand">
-          <img src="assets/mi-logo.png" alt="Compra tu casa en RD" class="brand-logo">
+          <img src="assets/mi-logo.png" alt="Compra tu casa en RD" class="brand-logo" onerror="this.style.display='none'">
         </a>
-
         <nav class="main-nav" id="mainNav">
           <a href="index.html" class="nav-link"><span class="nav-emoji">🏠</span> Inicio</a>
-          <a href="propiedades.html" class="nav-link active"><span class="nav-emoji">🏢</span> Propiedades</a>
-          <a href="comunidad.html" class="nav-link"><span class="nav-emoji">👥</span> Comunidad</a>
-          <a href="blog.html" class="nav-link"><span class="nav-emoji">📰</span> Blog</a>
-          <a href="nosotros.html" class="nav-link"><span class="nav-emoji">ℹ️</span> Nosotros</a>
-          <a href="vender.html" class="nav-link"><span class="nav-emoji">🤝</span> Vender</a>
+          <a href="propiedades.html" class="nav-link"><span class="nav-emoji">🏢</span> Propiedades</a>
+          <a href="#" class="nav-link"><span class="nav-emoji">👥</span> Comunidad</a>
+          <a href="#" class="nav-link"><span class="nav-emoji">📰</span> Blog</a>
+          <a href="#" class="nav-link"><span class="nav-emoji">ℹ️</span> Nosotros</a>
+          <a href="gestiondeagente.html" class="nav-link" style="color: #f59e0b;"><span class="nav-emoji">🤝</span> Gestión</a>
         </nav>
-
-        <!-- CONTENEDOR DE SESIÓN / PERFIL + CAMPANITA -->
         <div class="header-right">
-          <div id="authContainer">
-            <a href="login.html" class="login-btn">
-              <span>🔐</span> <span>Iniciar sesión</span>
-            </a>
-          </div>
+          <div id="authContainer"></div>
 
           <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú" aria-expanded="false">
             <span></span>
@@ -1064,1019 +982,1754 @@
             <span></span>
           </button>
         </div>
-
       </div>
 
       <!-- MENÚ MÓVIL DESPLEGABLE -->
       <nav class="mobile-nav" id="mobileNav">
         <a href="index.html" class="mobile-nav-link"><span class="nav-emoji">🏠</span> Inicio</a>
-        <a href="propiedades.html" class="mobile-nav-link active"><span class="nav-emoji">🏢</span> Propiedades</a>
-        <a href="comunidad.html" class="mobile-nav-link"><span class="nav-emoji">👥</span> Comunidad</a>
-        <a href="blog.html" class="mobile-nav-link"><span class="nav-emoji">📰</span> Blog</a>
-        <a href="nosotros.html" class="mobile-nav-link"><span class="nav-emoji">ℹ️</span> Nosotros</a>
-        <a href="vender.html" class="mobile-nav-link"><span class="nav-emoji">🤝</span> Vender</a>
+        <a href="propiedades.html" class="mobile-nav-link"><span class="nav-emoji">🏢</span> Propiedades</a>
+        <a href="#" class="mobile-nav-link"><span class="nav-emoji">👥</span> Comunidad</a>
+        <a href="#" class="mobile-nav-link"><span class="nav-emoji">📰</span> Blog</a>
+        <a href="#" class="mobile-nav-link"><span class="nav-emoji">ℹ️</span> Nosotros</a>
+        <a href="gestiondeagente.html" class="mobile-nav-link" style="color: #f59e0b;"><span class="nav-emoji">🤝</span> Gestión</a>
       </nav>
     </header>
 
-    <!-- ================= CONTENEDOR GENERAL ================= -->
-    <div class="main-page-wrapper" id="pageWrapper">
-
-      <!-- CABECERA DE TEXTO SUPERIOR -->
-      <section class="hero properties-hero properties-hero-overlap">
-        <div class="hero-content" style="text-align: center;">
-          
-          <div class="hero-eyebrow" style="display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.08); padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; margin-bottom: 16px; border: 1px solid rgba(255,255,255,0.15); backdrop-filter: blur(4px);">
-            <span>🏠</span> CATÁLOGO EXCLUSIVO
-          </div>
-          
-          <h1 class="hero-title" style="font-size: 48px; font-weight: 800; margin-bottom: 12px; text-shadow: 0 2px 10px rgba(0,0,0,0.5);">Encuentra Tu Espacio Ideal</h1>
-          
-          <p class="hero-subtitle" style="font-size: 16px; margin-bottom: 24px; text-shadow: 0 1px 5px rgba(0,0,0,0.5);">Explora nuestra selección de propiedades premium, diseñadas para elevar tu estilo de vida.</p>
-          
-          <div class="hero-cta-row">
-            <button type="button" id="btnVerFavoritos" class="hero-cta" style="border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; background: #ef4444; color: #fff; padding: 12px 24px; border-radius: 30px; font-weight: 700; text-decoration: none; box-shadow: 0 10px 25px rgba(239, 68, 68, 0.4);">
-              <span id="favCtaIcon">❤️</span> <span id="favCtaText">Ver Mis Favoritos</span>
-            </button>
-
-            <button type="button" id="btnCatalogoPremium" class="premium-cta" style="border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; background: linear-gradient(135deg, #fde047, #f59e0b); color: #fff; padding: 12px 24px; border-radius: 30px; font-weight: 700; font-size: 16px; font-family: inherit; text-decoration: none; box-shadow: 0 10px 25px rgba(245, 158, 11, 0.4);">
-              <span id="premiumCtaIcon">💎</span> <span id="premiumCtaText">Catálogo Premium</span>
-            </button>
-          </div>
-
-          <div class="properties-counter">
-            <span class="counter-badge">🏘️ <span id="propCounterNum">0</span> propiedades disponibles</span>
-          </div>
-
-        </div>
-      </section>
-
-      <!-- CONTENEDOR DE FILTROS + PROPIEDADES -->
-      <div class="properties-layout-overlap">
+    <!-- ================= CONTENIDO PRINCIPAL ================= -->
+    <main>
+      <div class="publish-page-hero">
+        <h1 class="publish-page-title">Gestión Profesional de Publicaciones</h1>
+        <p class="publish-page-subtitle">Administra, edita, archiva o publica tus inmuebles con control total en la nube.</p>
+        <p id="badgeModoGestion" style="display:none; font-size:13px; font-weight:700; margin-bottom:15px;"></p>
         
-        <!-- BARRA LATERAL DE FILTROS -->
-        <aside class="filters-sidebar">
-          <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
-            <span>🔍</span> Filtros de Búsqueda
-          </h3>
-
-          <div class="filter-group">
-            <label>Búsqueda</label>
-            <input type="text" id="filterSearch" placeholder="Buscar...">
-          </div>
-
-          <div class="filter-group">
-            <label>Precio</label>
-            <div class="filter-row">
-              <input type="number" id="filterPrecioMin" placeholder="Menor">
-              <input type="number" id="filterPrecioMax" placeholder="Mayor">
-            </div>
-          </div>
-
-          <div class="filter-group">
-            <label>Provincia</label>
-            <select id="filterProvincia">
-              <option value="">Todas</option>
-              <option value="Azua">Azua</option>
-              <option value="Bahoruco">Bahoruco</option>
-              <option value="Barahona">Barahona</option>
-              <option value="Dajabón">Dajabón</option>
-              <option value="Distrito Nacional">Distrito Nacional</option>
-              <option value="Duarte">Duarte</option>
-              <option value="Elías Piña">Elías Piña</option>
-              <option value="El Seibo">El Seibo</option>
-              <option value="Espaillat">Espaillat</option>
-              <option value="Hato Mayor">Hato Mayor</option>
-              <option value="Hermanas Mirabal">Hermanas Mirabal</option>
-              <option value="Independencia">Independencia</option>
-              <option value="La Altagracia">La Altagracia</option>
-              <option value="La Romana">La Romana</option>
-              <option value="La Vega">La Vega</option>
-              <option value="María Trinidad Sánchez">María Trinidad Sánchez</option>
-              <option value="Monseñor Nouel">Monseñor Nouel</option>
-              <option value="Monte Cristi">Monte Cristi</option>
-              <option value="Monte Plata">Monte Plata</option>
-              <option value="Pedernales">Pedernales</option>
-              <option value="Peravia">Peravia</option>
-              <option value="Puerto Plata">Puerto Plata</option>
-              <option value="Samaná">Samaná</option>
-              <option value="San Cristóbal">San Cristóbal</option>
-              <option value="San José de Ocoa">San José de Ocoa</option>
-              <option value="San Juan">San Juan</option>
-              <option value="San Pedro de Macorís">San Pedro de Macorís</option>
-              <option value="Sánchez Ramírez">Sánchez Ramírez</option>
-              <option value="Santiago">Santiago</option>
-              <option value="Santiago Rodríguez">Santiago Rodríguez</option>
-              <option value="Santo Domingo">Santo Domingo</option>
-              <option value="Valverde">Valverde</option>
-            </select>
-          </div>
-
-          <div class="filter-group">
-            <label>Municipio</label>
-            <select id="filterMunicipio">
-              <option value="">Todos</option>
-            </select>
-          </div>
-
-          <div class="filter-group">
-            <label>Distrito</label>
-            <select id="filterDistrito">
-              <option value="">Todos</option>
-            </select>
-          </div>
-
-          <div class="filter-group">
-            <label>Tipo</label>
-            <select id="filterTipo">
-              <option value="">Todos</option>
-              <option value="Apartamento">Apartamento</option>
-              <option value="Casa">Casa</option>
-              <option value="Solar">Solar</option>
-              <option value="Local">Local</option>
-              <option value="Villa">Villa</option>
-              <option value="Penthouse">Penthouse</option>
-              <option value="Estudio">Estudio</option>
-              <option value="Finca">Finca</option>
-              <option value="Apartaestudio">Apartaestudio</option>
-              <option value="Terreno">Terreno</option>
-              <option value="Oficina">Oficina</option>
-              <option value="Nave Industrial">Nave Industrial</option>
-            </select>
-          </div>
-
-          <div class="filter-group">
-            <label>Oferta</label>
-            <select id="filterOferta">
-              <option value="">Todas</option>
-              <option value="Venta">Venta</option>
-              <option value="Alquiler">Alquiler</option>
-              <option value="Compra/Alquiler">Compra/Alquiler</option>
-            </select>
-          </div>
-
-          <div class="filter-group">
-            <label>Habs</label>
-            <select id="filterHabs">
-              <option value="">Cualquiera</option>
-              <option value="1">1</option>
-              <option value="2">2</option>
-              <option value="3">3+</option>
-            </select>
-          </div>
-
-          <div class="switch-row">
-            <span>🌍 Solo Propiedades que Aceptan Extranjeros</span>
-            <div class="filter-switch" id="filterExtranjeros" role="button" tabindex="0" aria-pressed="false"></div>
-          </div>
-
-          <div class="switch-row">
-            <span>🛋️ Solo Propiedades Amuebladas</span>
-            <div class="filter-switch" id="filterAmueblado" role="button" tabindex="0" aria-pressed="false"></div>
-          </div>
-
-          <button id="btnAplicarFiltros" style="width: 100%; background: #3b82f6; color: #fff; border: none; padding: 12px; border-radius: 10px; font-weight: 600; cursor: pointer; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px;">
-            <span>🔍</span> Aplicar Filtros
+        <div class="hero-buttons-wrapper">
+          <button type="button" class="btn-open-publish-modal" onclick="abrirModalPublicar()">
+            <span>➕</span> Publicar Nueva Propiedad
           </button>
-
-        </aside>
-
-        <!-- LISTADO DE PROPIEDADES -->
-        <main class="properties-content-area">
-          <div class="pagination-controls-wrap" id="paginacionPropiedadesWrapTop" style="display:none;"></div>
-          <div class="properties-grid" id="propertiesGrid">
-            <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #a1a1aa;">
-              Cargando propiedades desde la base de datos...
-            </div>
-          </div>
-          <div class="pagination-controls-wrap" id="paginacionPropiedadesWrap" style="display:none;"></div>
-        </main>
-
+          <button type="button" class="btn-view-archived" onclick="alternarVistaArchivadas()" id="btnAlternarArchivadas">
+            <span>🗄️</span> Ver Archivadas (<span id="contadorArchivadas">0</span>)
+          </button>
+          <button type="button" class="btn-view-archived" onclick="descargarPdfPropiedades()" id="btnDescargarPdf">
+            <span>📄</span> Descargar PDF
+          </button>
+        </div>
       </div>
 
-    </div>
+      <!-- Barra de Filtro y Búsqueda -->
+      <div class="dashboard-toolbar" id="toolbarBusqueda">
+        <div class="search-box-container">
+          <span class="search-icon-pos">🔍</span>
+          <input type="text" id="inputFiltroBusqueda" placeholder="Buscar por título, ubicación o agente..." oninput="filtrarPropiedades()">
+        </div>
+      </div>
 
-    <!-- ================= FOOTER ================= -->
-    <footer class="site-footer">
-      <div class="footer-container">
-        
-        <div class="footer-col footer-brand-col">
-          <h2 class="footer-brand-title">Compra tu casa en <span class="highlight-red">RD</span></h2>
-          <p class="footer-brand-desc">
-            Tu aliado confiable en la búsqueda y adquisición de propiedades en República Dominicana. Hacemos tus sueños de hogar una realidad.
-          </p>
-          <div class="footer-socials">
-            <a href="#" class="footer-social-icon"><i class="fa-brands fa-instagram"></i></a>
-            <a href="#" class="footer-social-icon"><i class="fa-brands fa-facebook-f"></i></a>
-            <a href="#" class="footer-social-icon"><i class="fa-brands fa-whatsapp"></i></a>
-            <a href="#" class="footer-social-icon"><i class="fa-brands fa-tiktok"></i></a>
-          </div>
+      <!-- Cuadrícula de Propiedades Recientes / Archivadas -->
+      <div class="publicaciones-container">
+        <div class="section-category-title" id="tituloSeccionActual">
+          <span>📋 Propiedades Activas</span>
+        </div>
+        <div id="listaPublicacionesGuardadas" class="publicaciones-grid">
+          <!-- Se inyectarán dinámicamente -->
+        </div>
+      </div>
+    </main>
+
+    <!-- ================= VENTANA FLOTANTE (MODAL) ================= -->
+    <div class="modal-overlay" id="modalPublicar">
+      <div class="modal-container">
+        <div class="modal-header">
+          <h3 class="modal-title" id="modalTituloTexto">🏠 Registrar / Editar Propiedad</h3>
+          <button type="button" class="modal-close-btn" onclick="cerrarModalPublicar()">&times;</button>
         </div>
 
+        <form id="formPublicarPropiedad" onsubmit="guardarPropiedad(event)">
+          <!-- CAMPO OCULTO CRUCIAL PARA LA EDICIÓN -->
+          <input type="hidden" id="propEditId" value="">
+
+          <!-- ===== VISTA PREVIA EN VIVO DE LA TARJETA ===== -->
+          <div class="form-section-heading"><span>👁️</span> Vista Previa de la Tarjeta</div>
+          <div class="preview-card-wrap">
+            <div class="preview-card" id="previewCard">
+              <div class="preview-card-img" id="previewCardImg">
+                <span class="preview-badge-operacion" id="previewBadgeOperacion">Venta</span>
+                <span class="preview-badge-extranjeros" id="previewBadgeExtranjeros" style="display:none;">🌍 Extranjeros</span>
+                <span class="preview-badge-extranjeros" id="previewBadgeAmueblado" style="display:none; top: 40px; background: rgba(139, 92, 246, 0.9);">🛋️ Amueblado</span>
+                <span class="preview-badge-extranjeros" id="previewBadgePremium" style="display:none; top: 70px; background: linear-gradient(135deg, #fde047, #f59e0b); color: #1a1a1a;">⭐ Premium</span>
+              </div>
+              <div class="preview-card-body">
+                <div class="preview-card-tipo" id="previewTipo">Casa</div>
+                <h4 class="preview-card-title" id="previewTitulo">Título de la propiedad</h4>
+                <p class="preview-card-loc" id="previewUbicacion">📍 Selecciona ubicación</p>
+                <div class="preview-card-price" id="previewPrecio">$ 0</div>
+                <p class="preview-card-desc" id="previewDescripcion"></p>
+                <div class="preview-card-meta">
+                  <span id="previewHabs">🛏️ 0 Hab</span>
+                  <span id="previewBanos">🛁 0 Baños</span>
+                  <span id="previewParqueos">🅿️ 0 Parq</span>
+                  <span id="previewNivel" style="display:none;">🏢</span>
+                </div>
+                <div class="preview-extras-chips" id="previewExtrasChips"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section-heading"><span>📝</span> Información Básica</div>
+          <div class="form-grid-2">
+            <div class="publish-form-group">
+              <label>Título del Inmueble</label>
+              <input type="text" id="propTitulo" class="publish-control" placeholder="Ej. Villa Exclusiva" required>
+            </div>
+            <div class="publish-form-group">
+              <label>Tipo de Propiedad</label>
+              <select id="propTipoPropiedad" class="publish-control">
+                <option value="Apartamento">Apartamento</option>
+                <option value="Casa">Casa</option>
+                <option value="Solar">Solar</option>
+                <option value="Local">Local</option>
+                <option value="Villa">Villa</option>
+                <option value="Penthouse">Penthouse</option>
+                <option value="Estudio">Estudio</option>
+                <option value="Finca">Finca</option>
+                <option value="Apartaestudio">Apartaestudio</option>
+                <option value="Terreno">Terreno</option>
+                <option value="Oficina">Oficina</option>
+                <option value="Nave Industrial">Nave Industrial</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="publish-form-group">
+              <label>Tipo de Operación</label>
+              <select id="propOperacion" class="publish-control">
+                <option value="Venta">Venta</option>
+                <option value="Alquiler">Alquiler</option>
+                <option value="Venta & Alquiler">Venta &amp; Alquiler</option>
+              </select>
+            </div>
+            <div class="publish-form-group">
+              <label>Nombre del Agente</label>
+              <input type="text" id="propAgente" class="publish-control" placeholder="Ej. Carlos Ruiz" required>
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="publish-form-group">
+              <label>WhatsApp del Agente (quien publica)</label>
+              <input type="text" id="propAgenteWhatsapp" class="publish-control" placeholder="Ej. 18091234567 (código país + número, sin + ni espacios) — si se deja vacío se usará el número por defecto">
+            </div>
+            <div class="publish-form-group">
+              <label>Dueño de la Propiedad</label>
+              <input type="text" id="propDueno" class="publish-control" placeholder="Ej. Juan Pérez (uso interno, solo visible para admin)">
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="publish-form-group">
+              <label>Precio</label>
+              <div style="display: flex; gap: 8px;">
+                <input type="number" id="propPrecio" class="publish-control" placeholder="Ej. 150000" required style="flex: 2;">
+                <select id="propMoneda" class="publish-control" style="flex: 1;">
+                  <option value="USD">USD ($)</option>
+                  <option value="DOP">DOP (RD$)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- NUEVOS APARTADOS: Depósito, Comisión y Extranjeros -->
+          <div class="form-grid-2">
+            <div class="publish-form-group">
+              <label>Número de Depósito</label>
+              <input type="text" id="propDeposito" class="publish-control" placeholder="Ej. Dep. #402 o Banco...">
+            </div>
+            <div class="publish-form-group">
+              <label>Porcentaje de Comisión (%)</label>
+              <input type="number" id="propComision" class="publish-control" placeholder="Ej. 5" min="0" max="100" step="0.1">
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="publish-form-group">
+              <label class="checkbox-container">
+                <input type="checkbox" id="propExtranjeros">
+                <span style="font-size: 13px; font-weight: 600; color: var(--text-main);">Apto disponible / apto para Extranjeros</span>
+              </label>
+            </div>
+            <div class="publish-form-group">
+              <label class="checkbox-container">
+                <input type="checkbox" id="propAmueblado">
+                <span style="font-size: 13px; font-weight: 600; color: var(--text-main);">🛋️ Propiedad Amueblada</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="publish-form-group form-group-full">
+              <label class="checkbox-container" style="border-color: rgba(245, 158, 11, 0.8); background: rgba(245, 158, 11, 0.08);">
+                <input type="checkbox" id="propPremium">
+                <span style="font-size: 13px; font-weight: 800; color: #f59e0b; text-transform: uppercase; letter-spacing: 0.5px;">⭐ [PROPIEDAD PREMIUM] - Destacar en Catálogo Principal ⭐</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-section-heading" style="margin-top: 20px;"><span>📍</span> Ubicación Geográfica y Enlaces</div>
+          <div class="form-grid-2">
+            <div class="publish-form-group">
+              <label>Provincia</label>
+              <select id="propProvincia" class="publish-control" onchange="cascadeUbicacion(true)" required>
+                <option value="">Selecciona</option>
+              </select>
+            </div>
+            <div class="publish-form-group">
+              <label>Municipio</label>
+              <select id="propMunicipio" class="publish-control" onchange="cascadeUbicacion(false)" disabled required>
+                <option value="">Selecciona</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="publish-form-group">
+              <label>Distrito Municipal / Sector</label>
+              <select id="propDistrito" class="publish-control" disabled>
+                <option value="">Selecciona</option>
+              </select>
+            </div>
+            <div class="publish-form-group">
+              <label>Dirección / Sector</label>
+              <input type="text" id="propDireccionDetalle" class="publish-control" placeholder="Ej. Sector, Calle y Número">
+            </div>
+          </div>
+
+          <!-- APARTADO: LINK DE UBICACIÓN -->
+          <div class="publish-form-group form-group-full">
+            <label>Link de Ubicación (Google Maps / Waze)</label>
+            <div class="input-with-copy-btn">
+              <input type="url" id="propLinkUbicacion" class="publish-control" placeholder="Ej. https://goo.gl/maps/...">
+              <button type="button" class="btn-copiar-link" onclick="copiarLinkCampo('propLinkUbicacion', this)">📋 Copiar</button>
+            </div>
+          </div>
+
+          <div class="form-section-heading" style="margin-top: 20px;"><span>🏠</span> Detalles, Redes y Multimedia</div>
+          <div class="form-grid-2">
+            <div class="publish-form-group">
+              <label>Habitaciones</label>
+              <input type="number" id="propHabitaciones" class="publish-control" placeholder="Ej. 3" min="0">
+            </div>
+            <div class="publish-form-group">
+              <label>Baños</label>
+              <input type="number" id="propBanos" class="publish-control" placeholder="Ej. 2" min="0" step="0.5">
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="publish-form-group">
+              <label>Nivel del Apartamento / Piso</label>
+              <input type="text" id="propNivel" class="publish-control" placeholder="Ej. 3er Piso, PH...">
+            </div>
+            <div class="publish-form-group">
+              <label>Número de Parqueos</label>
+              <input type="number" id="propParqueos" class="publish-control" placeholder="Ej. 2" min="0">
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="publish-form-group">
+              <label>Metros Cuadrados Construidos (m²)</label>
+              <input type="text" id="propMetros" class="publish-control" placeholder="Ej. 200 m²">
+            </div>
+            <!-- APARTADO: LINK DE VIDEO -->
+            <div class="publish-form-group">
+              <label>Link de Video (Instagram, TikTok, YouTube)</label>
+              <div class="input-with-copy-btn">
+                <input type="url" id="propLinkVideo" class="publish-control" placeholder="Ej. https://www.instagram.com/reel/...">
+                <button type="button" class="btn-copiar-link" onclick="copiarLinkCampo('propLinkVideo', this)">📋 Copiar</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- GESTIÓN Y SUBIDA DE VIDEO PROPIO (se reproduce dentro de la página) -->
+          <div class="publish-form-group form-group-full">
+            <label>Video Actual Subido (se reproduce directamente en tu página)</label>
+            <div id="contenedorVideoActual" class="thumbnails-edit-container">
+              <!-- Se carga dinámicamente al editar -->
+            </div>
+
+            <label style="margin-top: 10px;">Subir Video Propio (archivo, opcional — reemplaza el video actual si subes uno nuevo)</label>
+            <input type="file" id="propArchivoVideo" class="publish-control" accept="video/*" style="padding: 8px;">
+            <p style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">
+              Este video se reproduce dentro de la página (en la tarjeta y en el detalle). El link de arriba es opcional y se usa como alternativa/enlace externo.
+            </p>
+          </div>
+
+          <!-- Extras / Comodidades ubicado justo encima de las fotos para mejor orden visual -->
+          <div class="form-section-heading" style="margin-top: 20px;"><span>✨</span> Extras / Comodidades</div>
+          <div class="publish-form-group form-group-full">
+            <div class="extras-checkbox-grid" id="contenedorExtras">
+              <!-- Se genera dinámicamente con JS a partir de la lista LISTA_EXTRAS -->
+            </div>
+          </div>
+
+          <!-- GESTIÓN Y MINIATURAS DE FOTOS -->
+          <div class="publish-form-group form-group-full">
+            <label>Fotos Actuales (Miniaturas para borrar las que no desees)</label>
+            <div id="contenedorMiniaturasFotos" class="thumbnails-edit-container">
+              <!-- Se cargan dinámicamente al editar -->
+            </div>
+            
+            <label style="margin-top: 10px;">Subir Nuevas Fotos (Selección múltiple)</label>
+            <input type="file" id="propArchivos" class="publish-control" multiple style="padding: 8px;">
+          </div>
+
+          <div class="publish-form-group form-group-full">
+            <label>Descripción Completa</label>
+            <textarea id="propDescripcion" class="publish-control" placeholder="Detalles de amenidades, acabados..." required></textarea>
+          </div>
+
+          <button type="submit" class="publish-submit-btn">
+            <span>🚀</span> Guardar Cambios en la Nube
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- ================= PIE DE PÁGINA ================= -->
+    <footer class="site-footer">
+      <div class="footer-container">
         <div class="footer-col">
-          <h3 class="footer-col-title">Navegación Rápida</h3>
-          <ul class="footer-links">
+          <h3 class="footer-brand-title">Compra tu casa en <span class="highlight-red">RD</span></h3>
+          <p class="footer-brand-desc">Tu aliado confiable en la búsqueda y adquisición de propiedades en República Dominicana. Hacemos tus sueños de hogar una realidad.</p>
+          <div class="footer-social-icons">
+            <a href="https://instagram.com" target="_blank" class="social-icon-btn" title="Instagram">
+              <svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+            </a>
+            <a href="https://facebook.com" target="_blank" class="social-icon-btn" title="Facebook">
+              <svg viewBox="0 0 24 24"><path d="M9 8H6v4h3v12h5V12h3.642L18 8h-4V6.333C14 5.378 14.5 5 15.5 5H18V0h-3.808C10.59 0 9 1.581 9 4.615V8z"/></svg>
+            </a>
+            <a href="https://whatsapp.com" target="_blank" class="social-icon-btn" title="WhatsApp">
+              <svg viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+            </a>
+            <a href="https://tiktok.com" target="_blank" class="social-icon-btn" title="TikTok">
+              <svg viewBox="0 0 24 24"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/></svg>
+            </a>
+          </div>
+        </div>
+        <div class="footer-col">
+          <h4 class="footer-col-title">Navegación Rápida</h4>
+          <ul class="footer-links-list">
             <li><a href="index.html">Inicio</a></li>
             <li><a href="nosotros.html">Acerca de Nosotros</a></li>
             <li><a href="propiedades.html">Propiedades</a></li>
           </ul>
         </div>
-
         <div class="footer-col">
-          <h3 class="footer-col-title">Nuestros Servicios</h3>
-          <ul class="footer-links">
-            <li><a href="calculadora.html">Calculadora Hipotecaria</a></li>
+          <h4 class="footer-col-title">Nuestros Servicios</h4>
+          <ul class="footer-links-list">
+            <li><a href="#">Calculadora Hipotecaria</a></li>
           </ul>
         </div>
-
         <div class="footer-col">
-          <h3 class="footer-col-title">Contacto Directo</h3>
+          <h4 class="footer-col-title">Contacto Directo</h4>
           <ul class="footer-contact-list">
-            <li>
-              <span class="contact-icon">📍</span>
-              <span>Ubicación: República Dominicana, Santo Domingo Este, La Ureña, C. El Sol</span>
-            </li>
-            <li>
-              <span class="contact-icon">📞</span>
-              <span>Teléfono: +1 (849) 857-2321</span>
-            </li>
-            <li>
-              <span class="contact-icon">✉️</span>
-              <span>Correo electrónico:<br><a href="mailto:Danieldecena63@gmail.com" class="footer-email">Danieldecena63@gmail.com</a></span>
-            </li>
+            <li>📍 <span>Ubicación: República Dominicana, Santo Domingo Este, La Ureña, C. El Sol</span></li>
+            <li>📞 <span>Teléfono: +1 (849) 857-2321</span></li>
+            <li>✉️ <span>Correo electrónico:<br><a href="mailto:Danieldecena63@gmail.com" class="footer-email">Danieldecena63@gmail.com</a></span></li>
           </ul>
         </div>
-
       </div>
-
       <div class="footer-bottom">
         <p>© 2026 Compra tu casa en RD. Todos los derechos reservados.</p>
         <div class="footer-bottom-links">
-          <a href="privacidad.html">Política de Privacidad</a>
-          <a href="terminos.html">Términos de Servicio</a>
+          <a href="#">Política de Privacidad</a>
+          <a href="#">Términos de Servicio</a>
         </div>
       </div>
     </footer>
 
-    <!-- SCRIPT -->
+    <!-- SCRIPTS CON CONTROL DE ACCESO ESTRICTO Y VERSIONES UNIFICADAS DE FIREBASE (10.12.0) -->
     <script type="module">
-      import { db, collection, getDocs } from './firebase-config.js';
+      import { auth, db, storage } from './firebase-config.js';
+      import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+      import { 
+        collection, 
+        addDoc, 
+        getDocs, 
+        doc, 
+        getDoc,
+        updateDoc, 
+        deleteDoc,
+        query,
+        where
+      } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+      import { 
+        ref as storageRefFn, 
+        uploadBytes, 
+        getDownloadURL 
+      } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
-      // Reemplaza la miniatura de YouTube (facade) por el iframe real solo al hacer clic,
-      // para no cargar decenas de iframes de golpe en el listado de propiedades.
-      window.reproducirVideoFacade = function(elemento) {
-        const ytId = elemento.getAttribute('data-yt-id');
-        if (!ytId) return;
-        elemento.outerHTML = `
-          <div class="property-carousel-slide">
-            <iframe width="100%" height="100%" style="border:none;" src="https://www.youtube.com/embed/${ytId}?autoplay=1" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-          </div>
-        `;
+      let mostrandoArchivadas = false;
+      let imagenesEditandoActuales = []; 
+      let cachePropiedadesActuales = {};
+      let videoArchivoActualUrl = '';   // URL del video ya subido a Storage (si existe) al editar
+      let videoArchivoEliminado = false; // true si el usuario borró el video actual sin subir uno nuevo
+
+      // UIDs con control TOTAL fija de fábrica (superadmin / admins de confianza).
+      // Estos usuarios siempre pueden ver, editar y borrar TODAS las publicaciones,
+      // sin importar lo que diga su documento en Firestore.
+      const UIDS_AUTORIZADOS = [
+        "2E7tIaEfdGeVERzDtWvaXQEmPG02", 
+        "aO0EbKwTRFUupWq73OCTI83FaZ92",
+        "6pJApysgZfQu9Z59W7nUDryS37w2",
+          
+      ];
+
+      // Estado de sesión y permisos del usuario actual, se rellena en onAuthStateChanged.
+      let usuarioActualUid = null;
+      let esModoAdmin = false;       // true = ve y gestiona TODAS las publicaciones
+      let rolUsuarioActual = '';     // 'agente' | 'admin' | 'superadmin'
+      let perfilUsuarioActual = { nombre: '', foto: null, whatsapp: '' };
+
+      /* =========================================================
+         DATOS GEOGRÁFICOS: Provincia -> Municipio -> Distritos
+      ========================================================= */
+      const geoData = {
+        "Azua": {
+          "Azua de Compostela": ["Barreras","Barrio Arriba","Clavellina","Las Barías-La Estancia","Puerto Viejo"],
+          "Estebanía": [], "Guayabal": [],
+          "Las Charcas": ["Hatillo","Palmar de Ocoa"],
+          "Las Yayas de Viajama": ["Villarpando","Hato Nuevo-Cortés"],
+          "Padre Las Casas": ["La Siembra","Las Lagunas","Los Fríos"],
+          "Peralta": [], "Pueblo Viejo": [], "Sabana Yegua": [],
+          "Tábara Arriba": ["Amiama Gómez","Los Toros"]
+        },
+        "Bahoruco": { "Neiba": ["Los Ríos"], "Galván": [], "Tamayo": [], "Villa Jaragua": [] },
+        "Barahona": {
+          "Barahona": ["El Pozo","Cabral","La Guázara"], "Cabral": [], "El Peñón": [],
+          "Enriquillo": [], "Fundación": [], "Jaquimeyes": [], "La Ciénaga": [],
+          "Las Salinas": [], "Paraíso": [], "Polo": [], "Vicente Noble": []
+        },
+        "Dajabón": { "Dajabón": [], "El Pino": [], "Loma de Cabrera": [], "Partido": [], "Restauración": [] },
+        "Distrito Nacional": {
+          "Santo Domingo de Guzmán": ["Piantini","Naco","Gazcue","Ensanche Julieta","Zona Colonial","La Julia","Los Ríos"]
+        },
+        "Duarte": {
+          "San Francisco de Macorís": ["Arroyo Seco","Las Guáranas"], "Arenoso": [], "Castillo": [],
+          "Eugenio María de Hostos": [], "Las Guáranas": [], "Pimentel": [], "Villa Riva": []
+        },
+        "El Seibo": { "El Seibo": [], "Miches": [] },
+        "Elías Piña": { "Comendador": [], "Bánica": [], "El Llano": [], "Hondo Valle": [], "Juan Santiago": [], "Pedro Santana": [] },
+        "Espaillat": { "Moca": ["San Víctor"], "Cayetano Germosén": [], "Gaspar Hernández": [], "Jamao al Norte": [] },
+        "Hato Mayor": { "Hato Mayor del Rey": [], "Sabana de la Mar": [], "El Valle": [] },
+        "Hermanas Mirabal": { "Salcedo": [], "Tenares": [], "Villa Tapia": [] },
+        "Independencia": { "Jimaní": [], "Cristóbal": [], "Duvergé": [], "La Descubierta": [], "Mella": [], "Postrer Río": [] },
+        "La Altagracia": { "Higüey": ["Bávaro","Verón","Punta Cana"], "San Rafael del Yuma": [] },
+        "La Romana": { "La Romana": [], "Guaymate": [], "Villa Hermosa": [] },
+        "La Vega": { "La Vega": [], "Constanza": [], "Jarabacoa": [], "Jima Abajo": [] },
+        "María Trinidad Sánchez": { "Nagua": [], "Cabrera": [], "El Factor": [], "Río San Juan": [] },
+        "Monseñor Nouel": { "Bonao": [], "Maimón": [], "Piedra Blanca": [] },
+        "Montecristi": {
+          "Monte Cristi": [], "Castañuelas": [], "Guayubín": [], "Las Matas de Santa Cruz": [],
+          "Pepillo Salcedo": [], "Villa Vásquez": []
+        },
+        "Monte Plata": { "Monte Plata": [], "Bayaguana": [], "Peralvillo": [], "Sabana Grande de Boyá": [], "Yamasá": [] },
+        "Pedernales": { "Pedernales": [], "Oviedo": [] },
+        "Peravia": { "Baní": [], "Matanzas": [], "Nizao": [] },
+        "Puerto Plata": {
+          "Puerto Plata": [], "Altamira": [], "Guananico": [], "Imbert": [], "Los Hidalgos": [],
+          "Luperón": [], "Sosúa": ["Cabarete"], "Villa Isabela": [], "Villa Montellano": []
+        },
+        "Samaná": { "Samaná": [], "Las Terrenas": [], "Sánchez": [] },
+        "San Cristóbal": {
+          "San Cristóbal": [], "Bajos de Haina": [], "Cambita Garabitos": [], "Los Cacaos": [],
+          "Sabana Grande de Palenque": [], "San Gregorio de Nigua": [], "Villa Altagracia": [], "Yaguate": []
+        },
+        "San José de Ocoa": { "San José de Ocoa": [], "Rancho Arriba": [], "Sabana Larga": [] },
+        "San Juan": {
+          "San Juan de la Maguana": [], "Bohechío": [], "El Cercado": [], "Juan de Herrera": [],
+          "Las Matas de Farfán": [], "Vallejuelo": []
+        },
+        "San Pedro de Macorís": {
+          "San Pedro de Macorís": [], "Consuelo": [], "Guayacanes": [], "Quisqueya": [],
+          "Ramón Santana": [], "San José de Los Llanos": []
+        },
+        "Sánchez Ramírez": { "Cotuí": [], "Cevicos": [], "Fantino": [], "La Mata": [] },
+        "Santiago": {
+          "Santiago de los Caballeros": ["Gurabo","Cienfuegos","Los Jardines","Bella Vista"],
+          "Bisonó": [], "Jánico": [], "Licey al Medio": [], "Puñal": [], "Sabana Iglesia": [],
+          "San José de las Matas": [], "Tamboril": [], "Villa González": []
+        },
+        "Santiago Rodríguez": { "San Ignacio de Sabaneta": [], "Los Almácigos": [], "Monción": [] },
+        "Santo Domingo": {
+          "Santo Domingo Este": ["Los Mina","Ensanche Ozama","Alma Rosa","Invivienda","Las Américas","Los Frailes","San Isidro","Villa Faro","La Ureña"],
+          "Santo Domingo Norte": ["Sabana Perdida","Villa Mella","Los Guaricanos"],
+          "Santo Domingo Oeste": ["Manoguayabo","Buenos Aires","Herrera"],
+          "Boca Chica": [], "Los Alcarrizos": [], "Pedro Brand": [], "San Antonio de Guerra": [],
+          "La Victoria": [], "La Caleta": []
+        },
+        "Valverde": { "Mao": [], "Esperanza": [], "Laguna Salada": [] }
       };
 
-      window.addEventListener('DOMContentLoaded', async () => {
-        // ================= CARGA DE PROPIEDADES =================
-        const propertiesGrid = document.getElementById('propertiesGrid');
-        let querySnapshot = null;
-        const posiblesColecciones = ["propiedades", "properties", "inmuebles"];
+      /* =========================================================
+         LISTA DE EXTRAS / COMODIDADES DISPONIBLES
+      ========================================================= */
+      const LISTA_EXTRAS = [
+        { id: 'piscina', label: '🏊 Piscina' },
+        { id: 'gimnasio', label: '💪 Gimnasio' },
+        { id: 'seguridad24', label: '🛡️ Seguridad 24/7' },
+        { id: 'ascensor', label: '🛗 Ascensor' },
+        { id: 'terraza', label: '🌇 Terraza' },
+        { id: 'balcon', label: '🚪 Balcón' },
+        { id: 'areaBbq', label: '🍖 Área de BBQ' },
+        { id: 'plantaElectrica', label: '🔌 Planta Eléctrica' },
+        { id: 'cisterna', label: '💧 Cisterna' },
+        { id: 'areaSocial', label: '🎉 Área Social' },
+        { id: 'canchaDeportiva', label: '🏀 Cancha Deportiva' },
+        { id: 'aireAcondicionado', label: '❄️ Aire Acondicionado' },
+        { id: 'lavanderia', label: '🧺 Área de Lavado' },
+        { id: 'walkInCloset', label: '👗 Walk-in Closet' },
+        { id: 'jacuzzi', label: '🛁 Jacuzzi' },
+        { id: 'mascotas', label: '🐾 Acepta Mascotas' },
+        { id: 'cuartoServicio', label: '🧹 Cuarto de Servicio' },
+        { id: 'gasComun', label: '🔥 Gas Común' },
+        { id: 'lobby', label: '🛋️ Lobby' },
+        { id: 'portonElectrico', label: '🚧 Portón Eléctrico' },
+        { id: 'controlAcceso', label: '🔐 Control de Acceso' },
+        { id: 'cercaMetro', label: '🚇 Cerca del Metro' },
+        { id: 'patio', label: '🌳 Patio' }
+      ];
 
-        for (const nombreCol of posiblesColecciones) {
-          try {
-            const snapshotTemp = await getDocs(collection(db, nombreCol));
-            if (!snapshotTemp.empty) {
-              querySnapshot = snapshotTemp;
-              break;
-            }
-          } catch (err) {
-            console.warn(`No se pudo leer la colección: ${nombreCol}`);
-          }
-        }
+      /* Poblar el contenedor de checkboxes de Extras al cargar la página */
+      const contenedorExtras = document.getElementById('contenedorExtras');
+      if (contenedorExtras) {
+        LISTA_EXTRAS.forEach(extra => {
+          const label = document.createElement('label');
+          label.className = 'extra-checkbox-item';
+          label.innerHTML = `<input type="checkbox" class="extra-checkbox" value="${extra.id}" data-label="${extra.label}"> <span>${extra.label}</span>`;
+          contenedorExtras.appendChild(label);
+        });
+      }
 
-        propertiesGrid.innerHTML = '';
+      /* Poblar el select de provincia al cargar la página */
+      const selProvincia = document.getElementById('propProvincia');
+      if (selProvincia) {
+        Object.keys(geoData).sort((a,b) => a.localeCompare(b,'es')).forEach(prov => {
+          const opt = document.createElement('option');
+          opt.value = prov;
+          opt.textContent = prov;
+          selProvincia.appendChild(opt);
+        });
+      }
 
-        if (!querySnapshot || querySnapshot.empty) {
-          propertiesGrid.innerHTML = `
-            <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #a1a1aa; font-size: 16px;">
-              ❌ No hay propiedades publicadas en este momento. ¡Sé el primero en publicar una!
-            </div>
-          `;
+      /* Función global para copiar enlaces desde los botones rápidos de la tarjeta */
+      window.copiarLinkDirecto = function(idProp, tipoEnlace, btnEl) {
+        const prop = cachePropiedadesActuales[idProp];
+        if (!prop) {
+          alert("Propiedad no encontrada.");
           return;
         }
 
-        let favoritos = JSON.parse(localStorage.getItem('mis_favoritos') || '[]');
-
-        querySnapshot.forEach((docSnap) => {
-          const prop = docSnap.data();
-          const propId = docSnap.id;
-          const ownerId = prop.usuarioId || prop.ownerId || '';
-
-          const propTitle = prop.titulo || prop.title || 'Propiedad sin título';
-          const propLocation = prop.ubicacion || prop.location || 'República Dominicana';
-          const propType = prop.tipo || prop.type || 'Casa';
-          
-          const rawOffer = (prop.operacion || prop.oferta || prop.offer || prop.tipoOferta || prop.status || 'Venta').toString().toLowerCase();
-          const incluyeVenta = rawOffer.includes('venta');
-          const incluyeAlquiler = rawOffer.includes('alquiler');
-          /* Alquiler con opción a compra: se marca aparte de "Venta & Alquiler"
-             porque es una modalidad distinta (no es venta directa) */
-          const incluyeCompraAlquiler = rawOffer.includes('compra/alquiler') ||
-                                         rawOffer.includes('compra / alquiler') ||
-                                         rawOffer.includes('opcion a compra') ||
-                                         rawOffer.includes('opción a compra');
-          let propOffer = 'Venta';
-          if (incluyeCompraAlquiler) {
-            propOffer = 'Compra/Alquiler';
-          } else if (incluyeVenta && incluyeAlquiler) {
-            propOffer = 'Venta & Alquiler';
-          } else if (incluyeAlquiler) {
-            propOffer = 'Alquiler';
-          } else if (incluyeVenta) {
-            propOffer = 'Venta';
-          } else {
-            propOffer = rawOffer.charAt(0).toUpperCase() + rawOffer.slice(1);
-          }
-
-          const propPriceRaw = prop.precio || '0';
-          /* Se extrae solo el número (sin RD$, puntos ni comas que el usuario
-             haya escrito al publicar) y se formatea siempre igual, con puntos
-             como separador de miles, para que se vea consistente sin importar
-             cómo se haya guardado el precio en la base de datos */
-          const propPriceNum = parseFloat(propPriceRaw.toString().replace(/[^0-9]/g, '')) || 0;
-          const propPrice = 'RD$ ' + propPriceNum.toLocaleString('es-DO');
-          const propHabs = prop.habitaciones || prop.habs || '0';
-          const propBanos = prop.banos || '0';
-          const rawNivel = (prop.nivel || prop.altura || prop.piso || '').toString().trim();
-          /* El nivel/piso no se muestra si está vacío, es "0" o dice "N/D"
-             (no disponible), ya que en esos casos no existe ese dato real */
-          const nivelInvalido = rawNivel === '' || rawNivel === '0' || rawNivel.toLowerCase() === 'n/d';
-          const propNivel = nivelInvalido ? '' : rawNivel;
-          const propParqueos = prop.parqueos || prop.parking || prop.parqueo || '0';
-          const propDescripcion = prop.descripcion || prop.description || '';
-
-          /* Cada estadística (Hab, Baños, Parq) solo se muestra si su valor
-             numérico es 1 o más; si es 0 o no está definida, se oculta */
-          const numHabs = parseInt(propHabs, 10) || 0;
-          const numBanos = parseInt(propBanos, 10) || 0;
-          const numParqueos = parseInt(propParqueos, 10) || 0;
-
-          const rawExtranjero = prop.extranjeros !== undefined ? prop.extranjeros
-                              : prop.extranjero !== undefined ? prop.extranjero
-                              : prop.aceptanExtranjeros !== undefined ? prop.aceptanExtranjeros
-                              : prop.permiteExtranjeros;
-          const aceptaExtranjero = rawExtranjero === true || rawExtranjero === "true" || rawExtranjero === "si" || rawExtranjero === "sí" || rawExtranjero === 1 || rawExtranjero === "on";
-
-          const rawAmueblado = prop.amueblado !== undefined ? prop.amueblado : prop.furnished;
-          const esAmueblado = rawAmueblado === true || rawAmueblado === "true" || rawAmueblado === "si" || rawAmueblado === "sí" || rawAmueblado === 1 || rawAmueblado === "on";
-
-          const rawPremium = prop.premium;
-          const esPremium = rawPremium === true || rawPremium === "true" || rawPremium === "si" || rawPremium === "sí" || rawPremium === 1 || rawPremium === "on";
-
-          // Solo se cuentan como "fotos reales" las que el usuario subió. Si no hay
-          // ninguna, se deja la lista vacía por ahora: más abajo se decide si el video
-          // ocupa ese espacio (tarjeta más limpia) o si hay que usar la foto de relleno.
-          let listaImagenes = [];
-          if (prop.imagenes && Array.isArray(prop.imagenes) && prop.imagenes.length > 0) {
-            listaImagenes = prop.imagenes;
-          } else if (prop.image) {
-            listaImagenes = [prop.image];
-          }
-
-          let badgeBg = '#10b981'; // Venta = verde
-          if (propOffer === 'Venta & Alquiler') {
-            badgeBg = '#3b82f6'; // azul
-          } else if (propOffer === 'Alquiler') {
-            badgeBg = '#eab308'; // amarillo
-          } else if (propOffer === 'Compra/Alquiler') {
-            badgeBg = '#f97316'; // naranja
-          }
-          const esFavorito = favoritos.includes(propId);
-
-          // Slide de video: normalmente se agrega como una diapositiva más al final del
-          // carrusel, para que se reproduzca dentro de la misma tarjeta sin salir de la página.
-          // - Video propio subido: se puede reproducir directo con <video>.
-          // - Link de YouTube: se muestra una miniatura con botón de play; el iframe solo se
-          //   carga al hacer clic (para no cargar decenas de iframes de golpe en el listado).
-          // - Instagram/TikTok en tarjeta: se omite aquí (se reproducen en la página de detalle),
-          //   ya que sus embeds son pesados para mostrarlos en cada tarjeta del listado.
-          const propVideoArchivo = prop.videoArchivo || null;
-          const propLinkVideo = prop.linkVideo || null;
-          const ytMatchCard = propLinkVideo ? propLinkVideo.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]+)/) : null;
-
-          let videoSlideHtml = '';
-          if (propVideoArchivo) {
-            videoSlideHtml = `
-              <div class="property-carousel-slide">
-                <video src="${propVideoArchivo}" controls preload="none" style="width:100%; height:100%; object-fit:cover; background:#000;"></video>
-              </div>
-            `;
-          } else if (ytMatchCard) {
-            videoSlideHtml = `
-              <div class="property-carousel-slide video-facade" data-yt-id="${ytMatchCard[1]}" onclick="reproducirVideoFacade(this)" style="cursor:pointer; position:relative;">
-                <img src="https://img.youtube.com/vi/${ytMatchCard[1]}/hqdefault.jpg" alt="Video de ${propTitle}" style="width:100%; height:100%; object-fit:cover;">
-                <span style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:44px; color:#fff; text-shadow:0 2px 8px rgba(0,0,0,0.6);">▶</span>
-              </div>
-            `;
-          }
-
-          // Si no hay fotos reales, no se usa la foto de relleno genérica: el video pasa a
-          // ser la única diapositiva de la tarjeta, para que se vea limpia y ordenada.
-          // Si sí hay fotos, el video se agrega igual que antes al final del carrusel.
-          if (listaImagenes.length === 0 && !videoSlideHtml) {
-            listaImagenes = ['assets/puerto-marina.png'];
-          }
-
-          let slidesHtml = '';
-          let dotsHtml = '';
-
-          listaImagenes.forEach((imgUrl, index) => {
-            slidesHtml += `
-              <div class="property-carousel-slide">
-                <img src="${imgUrl}" alt="${propTitle}" onerror="this.src='assets/puerto-marina.png'">
-              </div>
-            `;
-            dotsHtml += `
-              <span class="property-dot ${index === 0 ? 'active' : ''}" data-index="${index}"></span>
-            `;
-          });
-
-          if (videoSlideHtml) {
-            slidesHtml += videoSlideHtml;
-            dotsHtml += `<span class="property-dot ${listaImagenes.length === 0 ? 'active' : ''}" data-index="${listaImagenes.length}">🎥</span>`;
-          }
-
-          const totalSlidesTarjeta = listaImagenes.length + (videoSlideHtml ? 1 : 0);
-          const showControls = totalSlidesTarjeta > 1;
-
-          const cardHtml = `
-            <div class="property-card" 
-                 data-id="${propId}"
-                 data-title="${propTitle.toLowerCase()}" 
-                 data-location="${propLocation.toLowerCase()}" 
-                 data-type="${propType}" 
-                 data-offer="${propOffer}" 
-                 data-price="${propPriceNum}" 
-                 data-habs="${propHabs}"
-                 data-extranjeros="${aceptaExtranjero ? '1' : '0'}"
-                 data-amueblado="${esAmueblado ? '1' : '0'}"
-                 data-premium="${esPremium ? '1' : '0'}">
-              
-              <div class="property-img-container" data-current-slide="0" data-total-slides="${totalSlidesTarjeta}">
-                <span class="property-badge-top" style="background: ${badgeBg}; ${propOffer === 'Alquiler' ? 'color:#1a1a1a;' : ''}">${propOffer}</span>
-                ${esAmueblado ? `<span class="property-badge-top" style="background: #8b5cf6; left: auto; top: 44px;">🛋️ Amueblado</span>` : ''}
-                ${esPremium ? `<span class="property-badge-top" style="background: linear-gradient(135deg, #fde047, #f59e0b); color: #1a1a1a; left: auto; top: ${esAmueblado ? '78px' : '44px'};">⭐ Premium</span>` : ''}
-                
-                <div class="property-carousel-track">
-                  ${slidesHtml}
-                </div>
-
-                ${showControls ? `
-                  <button class="property-carousel-btn property-carousel-prev" title="Anterior">❮</button>
-                  <button class="property-carousel-btn property-carousel-next" title="Siguiente">❯</button>
-                  <div class="property-carousel-dots">
-                    ${dotsHtml}
-                  </div>
-                ` : ''}
-
-                <div class="property-actions-top">
-                  <button class="property-action-icon btn-favorito-card" data-id="${propId}" title="Guardar en Favoritos">
-                    ${esFavorito ? '❤️' : '🤍'}
-                  </button>
-                </div>
-              </div>
-
-              <div class="property-body" data-property-link="detalle.html?id=${propId}" style="cursor: pointer;">
-                <div class="property-type">${propType}</div>
-                <h3 class="property-title"><a href="detalle.html?id=${propId}">${propTitle}</a></h3>
-                <p class="property-location">📍 ${propLocation}</p>
-                <div class="property-price">${propPrice}</div>
-                ${propDescripcion ? `<p class="property-desc-preview">${propDescripcion}</p>` : ''}
-                <div class="footer-info property-footer-info">
-                  ${numHabs >= 1 ? `<span>🛏️ ${numHabs} Hab</span>` : ''}
-                  ${numBanos >= 1 ? `<span>🛁 ${numBanos} Baños</span>` : ''}
-                  ${numParqueos >= 1 ? `<span>🅿️ ${numParqueos} Parq</span>` : ''}
-                  ${propNivel ? `<span>🏢 ${propNivel}</span>` : ''}
-                </div>
-                ${aceptaExtranjero ? `<div class="property-extranjeros-pill">🌍 Acepta extranjeros</div>` : ''}
-                ${esAmueblado ? `<div class="property-amueblado-pill">🛋️ Amueblado</div>` : ''}
-              </div>
-            </div>
-          `;
-          propertiesGrid.insertAdjacentHTML('beforeend', cardHtml);
-        });
-
-        const propCounterNum = document.getElementById('propCounterNum');
-        if (propCounterNum) {
-          propCounterNum.textContent = document.querySelectorAll('.property-card').length;
+        const urlACopiar = tipoEnlace === 'ubicacion' ? (prop.linkUbicacion || '') : (prop.linkVideo || '');
+        if (!urlACopiar.trim()) {
+          alert(`Esta propiedad no tiene configurado ningún link de ${tipoEnlace}.`);
+          return;
         }
 
-        document.querySelectorAll('.btn-favorito-card').forEach(btn => {
-          btn.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            const pId = btn.getAttribute('data-id');
-            let favs = JSON.parse(localStorage.getItem('mis_favoritos') || '[]');
-
-            if (favs.includes(pId)) {
-              favs = favs.filter(id => id !== pId);
-              btn.textContent = '🤍';
-            } else {
-              favs.push(pId);
-              btn.textContent = '❤️';
-            }
-            localStorage.setItem('mis_favoritos', JSON.stringify(favs));
-          });
-        });
-
-        document.querySelectorAll('.property-body[data-property-link]').forEach(body => {
-          body.addEventListener('click', (e) => {
-            if (e.target.closest('a')) return;
-            const link = body.getAttribute('data-property-link');
-            if (link) window.location.href = link;
-          });
-        });
-
-        document.querySelectorAll('.property-img-container').forEach(container => {
-          const track = container.querySelector('.property-carousel-track');
-          const slides = container.querySelectorAll('.property-carousel-slide');
-          const prevBtn = container.querySelector('.property-carousel-prev');
-          const nextBtn = container.querySelector('.property-carousel-next');
-          const dots = container.querySelectorAll('.property-dot');
-          
-          if (!track || slides.length <= 1) return;
-
-          let currentIndex = 0;
-          const totalSlides = slides.length;
-          let autoSlideInterval;
-
-          function updateCarousel(index) {
-            if (index < 0) {
-              currentIndex = totalSlides - 1;
-            } else if (index >= totalSlides) {
-              currentIndex = 0;
-            } else {
-              currentIndex = index;
-            }
-
-            track.style.transform = `translateX(-${currentIndex * 100}%)`;
-
-            dots.forEach((dot, idx) => {
-              if (idx === currentIndex) {
-                dot.classList.add('active');
-              } else {
-                dot.classList.remove('active');
-              }
-            });
-          }
-
-          function nextSlide() {
-            updateCarousel(currentIndex + 1);
-          }
-
-          function startAutoSlide() {
-            autoSlideInterval = setInterval(nextSlide, 4000);
-          }
-
-          function stopAutoSlide() {
-            clearInterval(autoSlideInterval);
-          }
-
-          startAutoSlide();
-          container.addEventListener('mouseenter', stopAutoSlide);
-          container.addEventListener('mouseleave', startAutoSlide);
-
-          if (nextBtn) {
-            nextBtn.addEventListener('click', (e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              updateCarousel(currentIndex + 1);
-            });
-          }
-
-          if (prevBtn) {
-            prevBtn.addEventListener('click', (e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              updateCarousel(currentIndex - 1);
-            });
-          }
-
-          dots.forEach((dot, idx) => {
-            dot.addEventListener('click', (e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              updateCarousel(idx);
-            });
-          });
-        });
-
-        /* =========================================================
-           DATOS GEOGRÁFICOS COMPLETOS: Provincia -> Municipio -> Distritos
-           (Idénticos a los usados en publicar.html para que el filtro
-           siempre coincida con las opciones disponibles al publicar)
-        ========================================================= */
-        const geoData = {
-          "Azua": {
-            "Azua de Compostela": ["Barreras","Barrio Arriba","Clavellina","Las Barías-La Estancia","Puerto Viejo"],
-            "Estebanía": [], "Guayabal": [],
-            "Las Charcas": ["Hatillo","Palmar de Ocoa"],
-            "Las Yayas de Viajama": ["Villarpando","Hato Nuevo-Cortés"],
-            "Padre Las Casas": ["La Siembra","Las Lagunas","Los Fríos"],
-            "Peralta": [], "Pueblo Viejo": [], "Sabana Yegua": [],
-            "Tábara Arriba": ["Amiama Gómez","Los Toros"]
-          },
-          "Bahoruco": { "Neiba": ["Los Ríos"], "Galván": [], "Tamayo": [], "Villa Jaragua": [] },
-          "Barahona": {
-            "Barahona": ["El Pozo","Cabral","La Guázara"], "Cabral": [], "El Peñón": [],
-            "Enriquillo": [], "Fundación": [], "Jaquimeyes": [], "La Ciénaga": [],
-            "Las Salinas": [], "Paraíso": [], "Polo": [], "Vicente Noble": []
-          },
-          "Dajabón": { "Dajabón": [], "El Pino": [], "Loma de Cabrera": [], "Partido": [], "Restauración": [] },
-          "Distrito Nacional": {
-            "Santo Domingo de Guzmán": ["Piantini","Naco","Gazcue","Ensanche Julieta","Zona Colonial","La Julia","Los Ríos"]
-          },
-          "Duarte": {
-            "San Francisco de Macorís": ["Arroyo Seco","Las Guáranas"], "Arenoso": [], "Castillo": [],
-            "Eugenio María de Hostos": [], "Las Guáranas": [], "Pimentel": [], "Villa Riva": []
-          },
-          "El Seibo": { "El Seibo": [], "Miches": [] },
-          "Elías Piña": { "Comendador": [], "Bánica": [], "El Llano": [], "Hondo Valle": [], "Juan Santiago": [], "Pedro Santana": [] },
-          "Espaillat": { "Moca": ["San Víctor"], "Cayetano Germosén": [], "Gaspar Hernández": [], "Jamao al Norte": [] },
-          "Hato Mayor": { "Hato Mayor del Rey": [], "Sabana de la Mar": [], "El Valle": [] },
-          "Hermanas Mirabal": { "Salcedo": [], "Tenares": [], "Villa Tapia": [] },
-          "Independencia": { "Jimaní": [], "Cristóbal": [], "Duvergé": [], "La Descubierta": [], "Mella": [], "Postrer Río": [] },
-          "La Altagracia": { "Higüey": ["Bávaro","Verón","Punta Cana"], "San Rafael del Yuma": [] },
-          "La Romana": { "La Romana": [], "Guaymate": [], "Villa Hermosa": [] },
-          "La Vega": { "La Vega": [], "Constanza": [], "Jarabacoa": [], "Jima Abajo": [] },
-          "María Trinidad Sánchez": { "Nagua": [], "Cabrera": [], "El Factor": [], "Río San Juan": [] },
-          "Monseñor Nouel": { "Bonao": [], "Maimón": [], "Piedra Blanca": [] },
-          "Montecristi": {
-            "Monte Cristi": [], "Castañuelas": [], "Guayubín": [], "Las Matas de Santa Cruz": [],
-            "Pepillo Salcedo": [], "Villa Vásquez": []
-          },
-          "Monte Plata": { "Monte Plata": [], "Bayaguana": [], "Peralvillo": [], "Sabana Grande de Boyá": [], "Yamasá": [] },
-          "Pedernales": { "Pedernales": [], "Oviedo": [] },
-          "Peravia": { "Baní": [], "Matanzas": [], "Nizao": [] },
-          "Puerto Plata": {
-            "Puerto Plata": [], "Altamira": [], "Guananico": [], "Imbert": [], "Los Hidalgos": [],
-            "Luperón": [], "Sosúa": ["Cabarete"], "Villa Isabela": [], "Villa Montellano": []
-          },
-          "Samaná": { "Samaná": [], "Las Terrenas": [], "Sánchez": [] },
-          "San Cristóbal": {
-            "San Cristóbal": [], "Bajos de Haina": [], "Cambita Garabitos": [], "Los Cacaos": [],
-            "Sabana Grande de Palenque": [], "San Gregorio de Nigua": [], "Villa Altagracia": [], "Yaguate": []
-          },
-          "San José de Ocoa": { "San José de Ocoa": [], "Rancho Arriba": [], "Sabana Larga": [] },
-          "San Juan": {
-            "San Juan de la Maguana": [], "Bohechío": [], "El Cercado": [], "Juan de Herrera": [],
-            "Las Matas de Farfán": [], "Vallejuelo": []
-          },
-          "San Pedro de Macorís": {
-            "San Pedro de Macorís": [], "Consuelo": [], "Guayacanes": [], "Quisqueya": [],
-            "Ramón Santana": [], "San José de Los Llanos": []
-          },
-          "Sánchez Ramírez": { "Cotuí": [], "Cevicos": [], "Fantino": [], "La Mata": [] },
-          "Santiago": {
-            "Santiago de los Caballeros": ["Gurabo","Cienfuegos","Los Jardines","Bella Vista"],
-            "Bisonó": [], "Jánico": [], "Licey al Medio": [], "Puñal": [], "Sabana Iglesia": [],
-            "San José de las Matas": [], "Tamboril": [], "Villa González": []
-          },
-          "Santiago Rodríguez": { "San Ignacio de Sabaneta": [], "Los Almácigos": [], "Monción": [] },
-          "Santo Domingo": {
-            "Santo Domingo Este": ["Los Mina","Ensanche Ozama","Alma Rosa","Invivienda","Las Américas","Los Frailes","San Isidro","Villa Faro","La Ureña"],
-            "Santo Domingo Norte": ["Sabana Perdida","Villa Mella","Los Guaricanos"],
-            "Santo Domingo Oeste": ["Manoguayabo","Buenos Aires","Herrera"],
-            "Boca Chica": [], "Los Alcarrizos": [], "Pedro Brand": [], "San Antonio de Guerra": [],
-            "La Victoria": [], "La Caleta": []
-          },
-          "Valverde": { "Mao": [], "Esperanza": [], "Laguna Salada": [] }
+        const textoOriginal = btnEl.innerHTML;
+        const marcarCopiadoCard = () => {
+          btnEl.innerHTML = tipoEnlace === 'ubicacion' ? '📍 ¡Ubicación Copiada!' : '🎥 ¡Video Copiado!';
+          btnEl.classList.add('copiado-card');
+          setTimeout(() => {
+            btnEl.innerHTML = textoOriginal;
+            btnEl.classList.remove('copiado-card');
+          }, 1800);
         };
 
-        const filterProvincia = document.getElementById('filterProvincia');
-        const filterMunicipio = document.getElementById('filterMunicipio');
-        const filterDistrito = document.getElementById('filterDistrito');
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(urlACopiar.trim())
+            .then(marcarCopiadoCard)
+            .catch(() => {
+              const tempInput = document.createElement('input');
+              tempInput.value = urlACopiar.trim();
+              document.body.appendChild(tempInput);
+              tempInput.select();
+              document.execCommand('copy');
+              document.body.removeChild(tempInput);
+              marcarCopiadoCard();
+            });
+        } else {
+          const tempInput = document.createElement('input');
+          tempInput.value = urlACopiar.trim();
+          document.body.appendChild(tempInput);
+          tempInput.select();
+          document.execCommand('copy');
+          document.body.removeChild(tempInput);
+          marcarCopiadoCard();
+        }
+      }
 
-        if (filterProvincia && filterMunicipio) {
-          filterProvincia.addEventListener('change', () => {
-            const provinciaSeleccionada = filterProvincia.value;
-            filterMunicipio.innerHTML = '<option value="">Todos</option>';
-            if (filterDistrito) filterDistrito.innerHTML = '<option value="">Todos</option>';
+      /* Cascada Provincia -> Municipio -> Distrito para el formulario de publicar */
+      window.copiarLinkCampo = function(idCampo, btnEl) {
+        const campo = document.getElementById(idCampo);
+        if (!campo || !campo.value.trim()) {
+          alert("No hay ningún link para copiar en este campo.");
+          return;
+        }
 
-            if (geoData[provinciaSeleccionada]) {
-              Object.keys(geoData[provinciaSeleccionada]).sort((a,b) => a.localeCompare(b,'es')).forEach(mun => {
-                const opt = document.createElement('option');
-                opt.value = mun;
-                opt.textContent = mun;
-                filterMunicipio.appendChild(opt);
+        const textoOriginalBtn = btnEl.innerHTML;
+
+        const marcarComoCopiado = () => {
+          btnEl.innerHTML = '✅ Copiado';
+          btnEl.classList.add('copiado');
+          setTimeout(() => {
+            btnEl.innerHTML = textoOriginalBtn;
+            btnEl.classList.remove('copiado');
+          }, 1800);
+        };
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(campo.value.trim())
+            .then(marcarComoCopiado)
+            .catch(() => {
+              campo.select();
+              document.execCommand('copy');
+              marcarComoCopiado();
+            });
+        } else {
+          campo.select();
+          document.execCommand('copy');
+          marcarComoCopiado();
+        }
+      }
+
+      window.cascadeUbicacion = function(fromProvincia) {
+        const provSel = document.getElementById('propProvincia');
+        const munSel = document.getElementById('propMunicipio');
+        const disSel = document.getElementById('propDistrito');
+        const prov = provSel.value;
+
+        if (fromProvincia) {
+          munSel.innerHTML = '<option value="">Selecciona</option>';
+          disSel.innerHTML = '<option value="">Selecciona</option>';
+          disSel.disabled = true;
+          if (prov && geoData[prov]) {
+            munSel.disabled = false;
+            Object.keys(geoData[prov]).sort((a,b) => a.localeCompare(b,'es')).forEach(mun => {
+              const opt = document.createElement('option');
+              opt.value = mun;
+              opt.textContent = mun;
+              munSel.appendChild(opt);
+            });
+          } else {
+            munSel.disabled = true;
+          }
+        } else {
+          const mun = munSel.value;
+          disSel.innerHTML = '<option value="">Selecciona</option>';
+          const distritos = (prov && mun && geoData[prov] && geoData[prov][mun]) ? geoData[prov][mun] : [];
+          if (distritos.length) {
+            disSel.disabled = false;
+            distritos.forEach(d => {
+              const opt = document.createElement('option');
+              opt.value = d;
+              opt.textContent = d;
+              disSel.appendChild(opt);
+            });
+          } else {
+            disSel.disabled = true;
+          }
+        }
+        actualizarVistaPrevia();
+      }
+
+      /* =========================================================
+         VISTA PREVIA EN VIVO DE LA TARJETA
+      ========================================================= */
+      let previewImgUrl = '';
+
+      function actualizarVistaPrevia() {
+        const titulo = (document.getElementById('propTitulo').value || 'Título de la propiedad').trim();
+        const tipoPropiedad = document.getElementById('propTipoPropiedad').value || 'Casa';
+        const operacion = document.getElementById('propOperacion').value || 'Venta';
+        const provincia = document.getElementById('propProvincia').value;
+        const municipio = document.getElementById('propMunicipio').value;
+        const distrito = document.getElementById('propDistrito').value;
+        const precio = document.getElementById('propPrecio').value;
+        const moneda = document.getElementById('propMoneda').value;
+        const habs = document.getElementById('propHabitaciones').value || '0';
+        const banos = document.getElementById('propBanos').value || '0';
+        const nivel = document.getElementById('propNivel').value;
+        const parqueos = document.getElementById('propParqueos').value || '0';
+        const extranjeros = document.getElementById('propExtranjeros').checked;
+        const amueblado = document.getElementById('propAmueblado').checked;
+        const premium = document.getElementById('propPremium').checked;
+        const descripcion = document.getElementById('propDescripcion').value;
+
+        document.getElementById('previewTitulo').textContent = titulo;
+        document.getElementById('previewTipo').textContent = tipoPropiedad;
+
+        const ubicacionPartes = [distrito, municipio, provincia].filter(Boolean);
+        document.getElementById('previewUbicacion').textContent = ubicacionPartes.length ? `📍 ${ubicacionPartes.join(', ')}` : '📍 Selecciona ubicación';
+
+        const precioFmt = precio ? `${moneda === 'USD' ? '$' : 'RD$'} ${Number(precio).toLocaleString()}` : '$ 0';
+        document.getElementById('previewPrecio').textContent = precioFmt;
+
+        document.getElementById('previewDescripcion').textContent = descripcion || '';
+
+        document.getElementById('previewHabs').textContent = `🛏️ ${habs} Hab`;
+        document.getElementById('previewBanos').textContent = `🛁 ${banos} Baños`;
+        document.getElementById('previewParqueos').textContent = `🅿️ ${parqueos} Parq`;
+        const previewNivel = document.getElementById('previewNivel');
+        if (nivel) {
+          previewNivel.style.display = 'inline';
+          previewNivel.textContent = `🏢 ${nivel}`;
+        } else {
+          previewNivel.style.display = 'none';
+        }
+
+        const badgeOp = document.getElementById('previewBadgeOperacion');
+        const opLower = operacion.toLowerCase();
+        badgeOp.textContent = operacion;
+        if (opLower.includes('venta') && opLower.includes('alquiler')) {
+          badgeOp.style.background = '#3b82f6';
+          badgeOp.style.color = '#fff';
+        } else if (opLower.includes('alquiler')) {
+          badgeOp.style.background = '#eab308';
+          badgeOp.style.color = '#1a1a1a';
+        } else {
+          badgeOp.style.background = '#10b981';
+          badgeOp.style.color = '#fff';
+        }
+
+        document.getElementById('previewBadgeExtranjeros').style.display = extranjeros ? 'inline-flex' : 'none';
+        document.getElementById('previewBadgeAmueblado').style.display = amueblado ? 'inline-flex' : 'none';
+        document.getElementById('previewBadgePremium').style.display = premium ? 'inline-flex' : 'none';
+
+        const extrasSeleccionados = Array.from(document.querySelectorAll('.extra-checkbox:checked'));
+        const contenedorChips = document.getElementById('previewExtrasChips');
+        if (contenedorChips) {
+          contenedorChips.innerHTML = extrasSeleccionados.map(chk => `<span class="preview-extra-chip">${chk.getAttribute('data-label')}</span>`).join('');
+        }
+
+        const previewImgEl = document.getElementById('previewCardImg');
+        if (previewImgUrl) {
+          previewImgEl.style.backgroundImage = `url('${previewImgUrl}')`;
+        } else {
+          previewImgEl.style.backgroundImage = '';
+        }
+      }
+
+      function inicializarPreviewFoto() {
+        const archivosInput = document.getElementById('propArchivos');
+        if (!archivosInput) return;
+        archivosInput.addEventListener('change', () => {
+          if (archivosInput.files && archivosInput.files.length > 0) {
+            previewImgUrl = URL.createObjectURL(archivosInput.files[0]);
+          } else {
+            previewImgUrl = '';
+          }
+          actualizarVistaPrevia();
+        });
+      }
+
+      function inicializarVistaPreviaListeners() {
+        const idsInputEvent = ['propTitulo', 'propPrecio', 'propHabitaciones', 'propBanos', 'propNivel', 'propParqueos', 'propDescripcion'];
+        const idsChangeEvent = ['propTipoPropiedad', 'propOperacion', 'propMoneda', 'propExtranjeros', 'propAmueblado', 'propPremium'];
+
+        idsInputEvent.forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.addEventListener('input', actualizarVistaPrevia);
+        });
+        idsChangeEvent.forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.addEventListener('change', actualizarVistaPrevia);
+        });
+
+        document.querySelectorAll('.extra-checkbox').forEach(chk => {
+          chk.addEventListener('change', actualizarVistaPrevia);
+        });
+
+        inicializarPreviewFoto();
+        actualizarVistaPrevia();
+      }
+
+      inicializarVistaPreviaListeners();
+
+      window.addEventListener('DOMContentLoaded', () => {
+        onAuthStateChanged(auth, async (user) => {
+          try {
+            if (!user) {
+              alert("Acceso denegado. Debes iniciar sesión.");
+              window.location.href = 'index.html';
+              return;
+            }
+
+            const savedTheme = localStorage.getItem('site_theme') || 'dark';
+            if (savedTheme === 'light') document.body.classList.add('light-mode');
+
+            let nombreCompleto = user.email.split('@')[0];
+            let fotoGuardada = null;
+            let userData = {};
+
+            try {
+              const docRef = doc(db, "usuarios", user.uid);
+              const docSnap = await getDoc(docRef);
+              if (docSnap.exists()) {
+                userData = docSnap.data();
+                nombreCompleto = userData.nombres || userData.nombre || nombreCompleto;
+                fotoGuardada = userData.fotoPerfil || userData.foto || null;
+              }
+            } catch (error) {
+              console.error("Error al obtener datos de Firestore:", error);
+            }
+
+            // --- Control de acceso y roles ---
+            // esModoAdmin = true  -> ve/gestiona TODAS las publicaciones de TODOS los agentes.
+            // rol 'agente'        -> solo ve/gestiona SUS PROPIAS publicaciones.
+            rolUsuarioActual = userData.rol || '';
+            esModoAdmin = UIDS_AUTORIZADOS.includes(user.uid) || rolUsuarioActual === 'admin' || rolUsuarioActual === 'superadmin';
+            const esAgenteAutorizado = esModoAdmin || rolUsuarioActual === 'agente' || rolUsuarioActual === 'agentepro';
+
+            if (!esAgenteAutorizado) {
+              alert("Acceso denegado. No tienes permiso para publicar propiedades. Contacta a un administrador para que te asigne el rol de agente.");
+              window.location.href = 'index.html';
+              return;
+            }
+
+            usuarioActualUid = user.uid;
+            perfilUsuarioActual = {
+              nombre: nombreCompleto,
+              foto: fotoGuardada,
+              whatsapp: userData.whatsapp || ''
+            };
+
+            const authContainer = document.getElementById('authContainer');
+            
+            if (authContainer) {
+              authContainer.innerHTML = `
+                <div class="profile-dropdown-container" style="position: relative; display: inline-block;">
+                  <button id="profileBtn" style="background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 12px; padding: 4px 8px 4px 4px; border-radius: 999px; transition: background 0.2s;">
+                    <img src="${fotoGuardada || 'assets/onlybladi-avatar.png'}" alt="Avatar" style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 2px solid #ef4444;" onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=${user.uid}'">
+                    <span style="color: var(--text-main); font-weight: 600; font-size: 15px;">${nombreCompleto}</span>
+                  </button>
+
+                  <div id="profileMenu" class="profile-menu">
+                    <button class="profile-menu-item" onclick="window.location.href='perfil.html'">
+                      <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                      Ir al Perfil
+                    </button>
+
+                    <div class="profile-menu-divider"></div>
+                    <div class="profile-menu-section-title">Aspecto físico</div>
+                    
+                    <div class="profile-theme-selector">
+                      <button class="theme-btn ${savedTheme === 'light' ? 'active' : ''}" data-theme="light" title="Claro">☀️</button>
+                      <button class="theme-btn ${savedTheme === 'system' ? 'active' : ''}" data-theme="system" title="Sistema">💻</button>
+                      <button class="theme-btn ${savedTheme === 'dark' ? 'active' : ''}" data-theme="dark" title="Oscuro">🌙</button>
+                    </div>
+
+                    <div class="profile-menu-divider"></div>
+                    <button class="profile-menu-item" id="cerrarSesionBtn" style="color: #ef4444;">
+                      <span style="font-size: 16px;">⎋</span> Cerrar Sesión
+                    </button>
+                  </div>
+                </div>
+              `;
+
+              const profileBtn = document.getElementById('profileBtn');
+              const profileMenu = document.getElementById('profileMenu');
+
+              if (profileBtn && profileMenu) {
+                profileBtn.addEventListener('click', (e) => {
+                  e.stopPropagation();
+                  profileMenu.classList.toggle('show');
+                });
+
+                document.addEventListener('click', (e) => {
+                  if (!profileMenu.contains(e.target) && !profileBtn.contains(e.target)) {
+                    profileMenu.classList.remove('show');
+                  }
+                });
+              }
+
+              const cerrarBtn = document.getElementById('cerrarSesionBtn');
+              if (cerrarBtn) {
+                cerrarBtn.addEventListener('click', async (event) => {
+                  event.stopPropagation();
+                  try {
+                    await signOut(auth);
+                    localStorage.removeItem('sesion_activa');
+                    localStorage.removeItem('usuario_activo');
+                    alert("Has cerrado sesión correctamente.");
+                    window.location.href = 'index.html';
+                  } catch (error) {
+                    console.error("Error al cerrar sesión:", error);
+                  }
+                });
+              }
+
+              const themeBtns = document.querySelectorAll('.theme-btn');
+              themeBtns.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                  e.stopPropagation();
+                  const theme = btn.getAttribute('data-theme');
+                  themeBtns.forEach(b => b.classList.remove('active'));
+                  btn.classList.add('active');
+
+                  if (theme === 'light') {
+                    document.body.classList.add('light-mode');
+                    localStorage.setItem('site_theme', 'light');
+                  } else if (theme === 'dark') {
+                    document.body.classList.remove('light-mode');
+                    localStorage.setItem('site_theme', 'dark');
+                  } else if (theme === 'system') {
+                    localStorage.setItem('site_theme', 'system');
+                    if (window.matchMedia('(prefers-color-scheme: light)').matches) {
+                      document.body.classList.add('light-mode');
+                    } else {
+                      document.body.classList.remove('light-mode');
+                    }
+                  }
+                });
               });
             }
-            ejecutarFiltros();
-          });
-        }
 
-        if (filterMunicipio && filterDistrito) {
-          filterMunicipio.addEventListener('change', () => {
-            const provinciaSeleccionada = filterProvincia ? filterProvincia.value : '';
-            const municipioSeleccionado = filterMunicipio.value;
-            filterDistrito.innerHTML = '<option value="">Todos</option>';
+            const badgeModo = document.getElementById('badgeModoGestion');
+            if (badgeModo) {
+              badgeModo.style.display = 'block';
+              if (esModoAdmin) {
+                badgeModo.textContent = '🛡️ Modo Administrador: viendo y gestionando las publicaciones de TODOS los agentes.';
+                badgeModo.style.color = '#f59e0b';
+              } else {
+                badgeModo.textContent = '👤 Viendo únicamente tus propias publicaciones como agente.';
+                badgeModo.style.color = 'var(--text-muted)';
+              }
+            }
 
-            const distritos = (geoData[provinciaSeleccionada] && geoData[provinciaSeleccionada][municipioSeleccionado]) || [];
-            distritos.forEach(dis => {
-              const opt = document.createElement('option');
-              opt.value = dis;
-              opt.textContent = dis;
-              filterDistrito.appendChild(opt);
-            });
-            ejecutarFiltros();
-          });
-        }
-
-        if (filterDistrito) {
-          filterDistrito.addEventListener('change', ejecutarFiltros);
-        }
-
-        const btnAplicarFiltros = document.getElementById('btnAplicarFiltros');
-        const btnVerFavoritos = document.getElementById('btnVerFavoritos');
-        const filterSearch = document.getElementById('filterSearch');
-        const filterPrecioMin = document.getElementById('filterPrecioMin');
-        const filterPrecioMax = document.getElementById('filterPrecioMax');
-        const filterTipo = document.getElementById('filterTipo');
-        const filterOferta = document.getElementById('filterOferta');
-        const filterHabs = document.getElementById('filterHabs');
-        const filterExtranjeros = document.getElementById('filterExtranjeros');
-        const filterAmueblado = document.getElementById('filterAmueblado');
-
-        let soloExtranjerosActivo = false;
-        let soloAmuebladoActivo = false;
-        let soloFavoritosActivo = false;
-        let soloPremiumActivo = false;
-        let noResultsMsg = document.createElement('div');
-        noResultsMsg.style.cssText = 'grid-column: 1 / -1; text-align: center; padding: 40px; color: #a1a1aa; font-size: 16px; display: none;';
-        noResultsMsg.innerHTML = '❌ No se encontraron propiedades con los filtros seleccionados.';
-        propertiesGrid.appendChild(noResultsMsg);
-
-        /* ===== Estado de Paginación (Cuadrícula 3x3 = 9 por página) ===== */
-        const ITEMS_POR_PAGINA_PROPIEDADES = 9;
-        let paginaActualPropiedades = 1;
-
-        function ejecutarFiltros(resetearPagina = true) {
-          const propertyCards = Array.from(document.querySelectorAll('.property-card'));
-          const texto = filterSearch ? filterSearch.value.toLowerCase().trim() : '';
-          const pMin = filterPrecioMin && filterPrecioMin.value ? parseFloat(filterPrecioMin.value) : 0;
-          const pMax = filterPrecioMax && filterPrecioMax.value ? parseFloat(filterPrecioMax.value) : Infinity;
-          const provVal = filterProvincia ? filterProvincia.value.toLowerCase() : '';
-          const munVal = filterMunicipio ? filterMunicipio.value.toLowerCase() : '';
-          const disVal = filterDistrito ? filterDistrito.value.toLowerCase() : '';
-          const tipoVal = filterTipo ? filterTipo.value : '';
-          const ofertaVal = filterOferta ? filterOferta.value : '';
-          const habsVal = filterHabs ? filterHabs.value : '';
-
-          let favoritos = JSON.parse(localStorage.getItem('mis_favoritos') || '[]');
-
-          if (resetearPagina) paginaActualPropiedades = 1;
-
-          const coincidentes = propertyCards.filter(card => {
-            const cardId = card.getAttribute('data-id');
-            const title = card.getAttribute('data-title');
-            const location = card.getAttribute('data-location');
-            const type = card.getAttribute('data-type');
-            const offer = card.getAttribute('data-offer');
-            const price = parseFloat(card.getAttribute('data-price')) || 0;
-            const habs = card.getAttribute('data-habs');
-            const extranjeros = card.getAttribute('data-extranjeros') === '1';
-            const amueblado = card.getAttribute('data-amueblado') === '1';
-            const premium = card.getAttribute('data-premium') === '1';
-
-            let cumpleFavoritos = !soloFavoritosActivo || favoritos.includes(cardId);
-            let cumplePremium = !soloPremiumActivo || premium;
-            let cumpleTexto = texto === '' || title.includes(texto) || location.includes(texto);
-            let cumplePrecio = price >= pMin && price <= pMax;
-            let cumpleProv = provVal === '' || location.includes(provVal);
-            let cumpleMun = munVal === '' || location.includes(munVal);
-            let cumpleDis = disVal === '' || location.includes(disVal);
-            let cumpleTipo = tipoVal === '' || type === tipoVal;
-            let cumpleOferta = ofertaVal === '' || offer === ofertaVal || offer.includes(ofertaVal) ||
-              (ofertaVal === 'Compra/Alquiler' && offer === 'Venta & Alquiler');
-            let cumpleHabs = habsVal === '' || (habsVal === '3' ? parseInt(habs) >= 3 : habs === habsVal);
-            let cumpleExtranjeros = !soloExtranjerosActivo || extranjeros;
-            let cumpleAmueblado = !soloAmuebladoActivo || amueblado;
-
-            return cumpleFavoritos && cumplePremium && cumpleTexto && cumplePrecio && cumpleProv && cumpleMun && cumpleDis && cumpleTipo && cumpleOferta && cumpleHabs && cumpleExtranjeros && cumpleAmueblado;
-          });
-
-          const totalPaginas = Math.max(1, Math.ceil(coincidentes.length / ITEMS_POR_PAGINA_PROPIEDADES));
-          if (paginaActualPropiedades > totalPaginas) paginaActualPropiedades = totalPaginas;
-
-          const inicio = (paginaActualPropiedades - 1) * ITEMS_POR_PAGINA_PROPIEDADES;
-          const fin = inicio + ITEMS_POR_PAGINA_PROPIEDADES;
-          const paginaVisible = coincidentes.slice(inicio, fin);
-
-          propertyCards.forEach(card => { card.style.display = 'none'; });
-          paginaVisible.forEach(card => { card.style.display = 'block'; });
-
-          noResultsMsg.style.display = (coincidentes.length === 0) ? 'block' : 'none';
-
-          const propCounterNum = document.getElementById('propCounterNum');
-          if (propCounterNum) {
-            propCounterNum.textContent = coincidentes.length;
+            actualizarContadorArchivadas();
+            renderizarPublicaciones();
+          } catch (e) {
+            console.error("Error al verificar permisos:", e);
+            alert("Error de seguridad al verificar el acceso.");
+            window.location.href = 'index.html';
           }
+        });
+      });
 
-          renderizarControlesPaginacionPropiedades(coincidentes.length, totalPaginas);
+      async function actualizarContadorArchivadas() {
+        try {
+          const consultaPropiedades = esModoAdmin
+            ? collection(db, "propiedades")
+            : query(collection(db, "propiedades"), where("creadoPorUid", "==", usuarioActualUid));
+          const snap = await getDocs(consultaPropiedades);
+          let total = 0;
+          snap.forEach(d => { if (d.data().archivada === true) total++; });
+          const contadorEl = document.getElementById('contadorArchivadas');
+          if (contadorEl) contadorEl.innerText = total;
+          return total;
+        } catch(e) {
+          console.error("Error al contar archivadas:", e);
+          return 0;
+        }
+      }
+
+      // Genera y descarga un PDF con todas las propiedades DISPONIBLES (no archivadas)
+      // en este mismo momento. Como consulta Firestore justo al hacer clic (igual que
+      // el resto del panel), el PDF siempre queda actualizado automáticamente: si
+      // agregaste o borraste una propiedad hace un segundo, ya sale reflejado aquí,
+      // sin necesidad de tocar nada más.
+      window.descargarPdfPropiedades = async function() {
+        const btn = document.getElementById('btnDescargarPdf');
+        const textoOriginal = btn ? btn.innerHTML : '';
+        if (btn) {
+          btn.disabled = true;
+          btn.innerHTML = '<span>⏳</span> Generando PDF...';
         }
 
-        /* Pinta los controles de paginación: Primera página, Anterior, números
-           de página clicables (con elipsis si hay muchas), Siguiente y Última página.
-           Se pinta tanto en el contenedor de arriba como en el de abajo del listado. */
-        function renderizarControlesPaginacionPropiedades(totalCoincidentes, totalPaginas) {
-          const wraps = [
-            document.getElementById('paginacionPropiedadesWrapTop'),
-            document.getElementById('paginacionPropiedadesWrap')
-          ].filter(Boolean);
-          if (wraps.length === 0) return;
+        try {
+          const consultaPropiedades = esModoAdmin
+            ? collection(db, "propiedades")
+            : query(collection(db, "propiedades"), where("creadoPorUid", "==", usuarioActualUid));
+          const snap = await getDocs(consultaPropiedades);
 
-          if (totalCoincidentes <= ITEMS_POR_PAGINA_PROPIEDADES) {
-            wraps.forEach(wrap => {
-              wrap.style.display = 'none';
-              wrap.innerHTML = '';
-            });
+          // El PDF respeta la vista actual: si tienes activado "Ver Archivadas",
+          // descarga las archivadas; si no, descarga las disponibles.
+          let propiedades = [];
+          snap.forEach(docSnap => {
+            const data = docSnap.data();
+            const estaArchivada = data.archivada === true;
+            if (mostrandoArchivadas ? estaArchivada : !estaArchivada) {
+              propiedades.push({ id: docSnap.id, ...data });
+            }
+          });
+
+          if (propiedades.length === 0) {
+            alert(mostrandoArchivadas
+              ? "No hay propiedades archivadas para incluir en el PDF."
+              : "No hay propiedades disponibles para incluir en el PDF.");
             return;
           }
 
-          const hayAnterior = paginaActualPropiedades > 1;
-          const haySiguiente = paginaActualPropiedades < totalPaginas;
+          propiedades.sort((a, b) => new Date(b.fechaCreacion || 0) - new Date(a.fechaCreacion || 0));
 
-          /* Calcula qué números de página mostrar: siempre la primera y la
-             última, la página actual con un vecino a cada lado, y "…" cuando
-             hay un salto entre grupos de números */
-          const paginasVisibles = new Set([1, totalPaginas]);
-          for (let p = paginaActualPropiedades - 1; p <= paginaActualPropiedades + 1; p++) {
-            if (p >= 1 && p <= totalPaginas) paginasVisibles.add(p);
+          const { jsPDF } = await import("https://cdn.jsdelivr.net/npm/jspdf@2.5.2/+esm");
+          const pdf = new jsPDF({ unit: 'pt', format: 'a4' });
+
+          const margenX = 40;
+          let y = 50;
+          const anchoPagina = pdf.internal.pageSize.getWidth();
+          const altoPagina = pdf.internal.pageSize.getHeight();
+          const anchoTexto = anchoPagina - margenX * 2;
+
+          function nuevaPaginaSiNecesario(alturaNecesaria) {
+            if (y + alturaNecesaria > altoPagina - 40) {
+              pdf.addPage();
+              y = 50;
+            }
           }
-          const paginasOrdenadas = Array.from(paginasVisibles).sort((a, b) => a - b);
 
-          let numerosHtml = '';
-          let anterior = 0;
-          paginasOrdenadas.forEach(p => {
-            if (anterior && p - anterior > 1) {
-              numerosHtml += `<span class="pagination-ellipsis">…</span>`;
+          const fechaGeneracion = new Date().toLocaleString('es-DO', { dateStyle: 'long', timeStyle: 'short' });
+
+          pdf.setFont('helvetica', 'bold');
+          pdf.setFontSize(18);
+          pdf.text(mostrandoArchivadas ? 'Listado de Propiedades Archivadas' : 'Listado de Propiedades Disponibles', margenX, y);
+          y += 22;
+
+          pdf.setFont('helvetica', 'normal');
+          pdf.setFontSize(10);
+          pdf.setTextColor(100);
+          pdf.text(`Generado el ${fechaGeneracion}  •  Total: ${propiedades.length} propiedad(es)`, margenX, y);
+          pdf.setTextColor(0);
+          y += 25;
+
+          propiedades.forEach((prop, index) => {
+            nuevaPaginaSiNecesario(95);
+
+            pdf.setDrawColor(230);
+            pdf.line(margenX, y, anchoPagina - margenX, y);
+            y += 16;
+
+            pdf.setFont('helvetica', 'bold');
+            pdf.setFontSize(13);
+            const tituloLineas = pdf.splitTextToSize(`${index + 1}. ${prop.titulo || 'Sin título'}`, anchoTexto);
+            pdf.text(tituloLineas, margenX, y);
+            y += tituloLineas.length * 15;
+
+            pdf.setFont('helvetica', 'normal');
+            pdf.setFontSize(11);
+            pdf.setTextColor(217, 119, 6);
+            pdf.text(`Precio: ${prop.precio || 'N/D'}`, margenX, y);
+            pdf.setTextColor(0);
+            y += 16;
+
+            pdf.text(`Ubicación: ${prop.ubicacion || 'N/D'}   |   Nivel: ${prop.nivel || 'N/D'}`, margenX, y);
+            y += 15;
+
+            pdf.text(`Habitaciones: ${prop.habitaciones ?? 'N/D'}   |   Baños: ${prop.banos ?? 'N/D'}   |   Parqueos: ${prop.parqueos ?? 'N/D'}   |   Metros: ${prop.metros || 'N/D'}`, margenX, y);
+            y += 15;
+
+            if (esModoAdmin) {
+              pdf.text(`Agente: ${prop.agente || 'N/D'}   |   Dueño: ${prop.dueno || 'N/D'}`, margenX, y);
+              y += 15;
             }
-            numerosHtml += `<button type="button" class="pagination-num-btn ${p === paginaActualPropiedades ? 'active' : ''}" data-pagina="${p}">${p}</button>`;
-            anterior = p;
+
+            if (prop.descripcion) {
+              pdf.setFont('helvetica', 'italic');
+              pdf.setFontSize(10);
+              const descLineas = pdf.splitTextToSize(prop.descripcion, anchoTexto);
+              descLineas.forEach(linea => {
+                nuevaPaginaSiNecesario(14);
+                pdf.text(linea, margenX, y);
+                y += 13;
+              });
+              pdf.setFont('helvetica', 'normal');
+            }
+
+            y += 12;
           });
 
-          const irAPagina = (numeroPagina, wrap) => {
-            paginaActualPropiedades = numeroPagina;
-            ejecutarFiltros(false);
-            /* Siempre sube hasta el inicio del listado (arriba), sin importar
-               si el clic se hizo en la paginación de arriba o la de abajo.
-               Se resta la altura del header fijo (+ un margen) para que los
-               botones de paginación no queden tapados por el menú superior. */
-            const wrapArriba = document.getElementById('paginacionPropiedadesWrapTop') || wrap;
-            const header = document.querySelector('.site-header');
-            const alturaHeader = header ? header.offsetHeight : 0;
-            const posicionDestino = wrapArriba.getBoundingClientRect().top + window.scrollY - alturaHeader - 20;
-            window.scrollTo({ top: posicionDestino, behavior: 'smooth' });
-          };
+          const prefijoArchivo = mostrandoArchivadas ? 'propiedades-archivadas' : 'propiedades-disponibles';
+          const nombreArchivo = `${prefijoArchivo}-${new Date().toISOString().slice(0, 10)}.pdf`;
+          pdf.save(nombreArchivo);
 
-          wraps.forEach(wrap => {
-            wrap.style.display = 'flex';
-            wrap.innerHTML = `
-              <button type="button" class="pagination-btn pagination-btn-icon" data-accion="primera" title="Primera página" ${!hayAnterior ? 'disabled' : ''}>⏮</button>
-              <button type="button" class="pagination-btn" data-accion="anterior" ${!hayAnterior ? 'disabled' : ''}>❮ Anterior</button>
-              <div class="pagination-numbers">${numerosHtml}</div>
-              <button type="button" class="pagination-btn" data-accion="siguiente" ${!haySiguiente ? 'disabled' : ''}>Siguiente ❯</button>
-              <button type="button" class="pagination-btn pagination-btn-icon" data-accion="ultima" title="Última página" ${!haySiguiente ? 'disabled' : ''}>⏭</button>
-            `;
+        } catch (error) {
+          console.error("Error al generar el PDF:", error);
+          alert("Hubo un error al generar el PDF. Intenta de nuevo.");
+        } finally {
+          if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = textoOriginal;
+          }
+        }
+      }
 
-            const btnPrimera = wrap.querySelector('[data-accion="primera"]');
-            const btnAnt = wrap.querySelector('[data-accion="anterior"]');
-            const btnSig = wrap.querySelector('[data-accion="siguiente"]');
-            const btnUltima = wrap.querySelector('[data-accion="ultima"]');
+      window.alternarVistaArchivadas = async function() {
+        mostrandoArchivadas = !mostrandoArchivadas;
+        const btn = document.getElementById('btnAlternarArchivadas');
+        const tituloSeccion = document.getElementById('tituloSeccionActual');
+        const toolbar = document.getElementById('toolbarBusqueda');
 
-            if (btnPrimera) {
-              btnPrimera.addEventListener('click', () => {
-                if (paginaActualPropiedades > 1) irAPagina(1, wrap);
-              });
-            }
-            if (btnAnt) {
-              btnAnt.addEventListener('click', () => {
-                if (paginaActualPropiedades > 1) irAPagina(paginaActualPropiedades - 1, wrap);
-              });
-            }
-            if (btnSig) {
-              btnSig.addEventListener('click', () => {
-                if (paginaActualPropiedades < totalPaginas) irAPagina(paginaActualPropiedades + 1, wrap);
-              });
-            }
-            if (btnUltima) {
-              btnUltima.addEventListener('click', () => {
-                if (paginaActualPropiedades < totalPaginas) irAPagina(totalPaginas, wrap);
-              });
-            }
+        const btnPdf = document.getElementById('btnDescargarPdf');
 
-            wrap.querySelectorAll('.pagination-num-btn').forEach(btn => {
-              btn.addEventListener('click', () => {
-                const numeroPagina = parseInt(btn.getAttribute('data-pagina'), 10);
-                if (numeroPagina !== paginaActualPropiedades) irAPagina(numeroPagina, wrap);
-              });
+        if (mostrandoArchivadas) {
+          btn.innerHTML = '<span>🏠</span> Ver Activas';
+          btn.style.borderColor = '#f59e0b';
+          tituloSeccion.innerHTML = '<span>🗄️ Propiedades Archivadas</span>';
+          if(toolbar) toolbar.style.display = 'none';
+          if (btnPdf) btnPdf.innerHTML = '<span>📄</span> Descargar PDF (Archivadas)';
+        } else {
+          const totalArchivadas = await actualizarContadorArchivadas();
+          btn.innerHTML = `<span>🗄️</span> Ver Archivadas (<span id="contadorArchivadas">${totalArchivadas}</span>)`;
+          btn.style.borderColor = '';
+          if (btnPdf) btnPdf.innerHTML = '<span>📄</span> Descargar PDF';
+          tituloSeccion.innerHTML = '<span>📋 Propiedades Activas</span>';
+          if(toolbar) toolbar.style.display = 'flex';
+        }
+        renderizarPublicaciones();
+      }
+
+      window.abrirModalPublicar = function(editarObj = null) {
+        const modal = document.getElementById('modalPublicar');
+        if(modal) modal.style.display = 'flex';
+        const form = document.getElementById('formPublicarPropiedad');
+        if(form) form.reset();
+        document.getElementById('propEditId').value = '';
+        imagenesEditandoActuales = [];
+        previewImgUrl = '';
+        renderizarMiniaturasEdicion();
+
+        document.querySelectorAll('.extra-checkbox').forEach(chk => { chk.checked = false; });
+
+        // Publicación nueva: precargamos nombre y WhatsApp del agente con los datos de su perfil.
+        if (!editarObj) {
+          document.getElementById('propAgente').value = perfilUsuarioActual.nombre || '';
+          document.getElementById('propAgenteWhatsapp').value = perfilUsuarioActual.whatsapp || '';
+        }
+
+        document.getElementById('propMunicipio').innerHTML = '<option value="">Selecciona</option>';
+        document.getElementById('propMunicipio').disabled = true;
+        document.getElementById('propDistrito').innerHTML = '<option value="">Selecciona</option>';
+        document.getElementById('propDistrito').disabled = true;
+
+        if (editarObj) {
+          document.getElementById('modalTituloTexto').innerText = '✏️ Editar Propiedad';
+          document.getElementById('propEditId').value = editarObj.id;
+          document.getElementById('propTitulo').value = editarObj.titulo || '';
+          document.getElementById('propTipoPropiedad').value = editarObj.tipo || 'Casa';
+          document.getElementById('propOperacion').value = editarObj.operacion || 'Venta';
+          document.getElementById('propAgente').value = editarObj.agente || '';
+          document.getElementById('propAgenteWhatsapp').value = editarObj.agenteWhatsapp || '';
+          document.getElementById('propDueno').value = editarObj.dueno || '';
+          document.getElementById('propDeposito').value = editarObj.deposito || '';
+          document.getElementById('propComision').value = editarObj.comision || '';
+          
+          if (editarObj.precio) {
+            const precioStr = String(editarObj.precio);
+            if (editarObj.moneda) {
+              // Preferimos el campo "moneda" guardado explícitamente (más confiable).
+              document.getElementById('propMoneda').value = editarObj.moneda;
+            } else if (precioStr.includes('RD') || precioStr.includes('DOP')) {
+              // Se revisa RD/DOP antes que "$" porque "RD$" también contiene ese símbolo,
+              // lo que antes hacía que siempre se seleccionara USD por error.
+              document.getElementById('propMoneda').value = 'DOP';
+            } else if (precioStr.includes('USD') || precioStr.includes('$')) {
+              document.getElementById('propMoneda').value = 'USD';
+            }
+            const soloNumeros = precioStr.replace(/[^0-9.]/g, '');
+            document.getElementById('propPrecio').value = soloNumeros;
+          }
+
+          document.getElementById('propExtranjeros').checked = !!editarObj.extranjeros;
+          document.getElementById('propAmueblado').checked = !!editarObj.amueblado;
+          document.getElementById('propPremium').checked = !!editarObj.premium;
+
+          if (editarObj.extras && Array.isArray(editarObj.extras)) {
+            document.querySelectorAll('.extra-checkbox').forEach(chk => {
+              chk.checked = editarObj.extras.includes(chk.value);
             });
-          });
+          }
+
+          document.getElementById('propProvincia').value = editarObj.provincia || '';
+          cascadeUbicacion(true);
+          document.getElementById('propMunicipio').value = editarObj.municipio || '';
+          cascadeUbicacion(false);
+          document.getElementById('propDistrito').value = editarObj.distrito || '';
+
+          document.getElementById('propHabitaciones').value = editarObj.habitaciones || '';
+          document.getElementById('propBanos').value = editarObj.banos || '';
+          document.getElementById('propNivel').value = editarObj.nivel || '';
+          document.getElementById('propParqueos').value = editarObj.parqueos || '';
+          document.getElementById('propMetros').value = editarObj.metros || '';
+          document.getElementById('propLinkUbicacion').value = editarObj.linkUbicacion || '';
+          document.getElementById('propLinkVideo').value = editarObj.linkVideo || '';
+          document.getElementById('propDescripcion').value = editarObj.descripcion || '';
+          
+          if (editarObj.imagenes && Array.isArray(editarObj.imagenes)) {
+            imagenesEditandoActuales = [...editarObj.imagenes];
+            previewImgUrl = editarObj.imagenes[0] || '';
+            renderizarMiniaturasEdicion();
+          }
+
+          videoArchivoActualUrl = editarObj.videoArchivo || '';
+          videoArchivoEliminado = false;
+          renderizarVideoActual();
+        } else {
+          document.getElementById('modalTituloTexto').innerText = '🏠 Registrar Nueva Propiedad';
+          videoArchivoActualUrl = '';
+          videoArchivoEliminado = false;
+          renderizarVideoActual();
         }
 
-        if (btnAplicarFiltros) {
-          btnAplicarFiltros.addEventListener('click', (e) => {
-            e.preventDefault();
-            ejecutarFiltros();
-          });
+        actualizarVistaPrevia();
+      }
+
+      function renderizarMiniaturasEdicion() {
+        const contenedor = document.getElementById('contenedorMiniaturasFotos');
+        if (!contenedor) return;
+
+        if (imagenesEditandoActuales.length === 0) {
+          contenedor.innerHTML = `<p style="font-size: 12px; color: var(--text-muted);">No hay fotos cargadas actualmente o es una propiedad nueva.</p>`;
+          return;
         }
 
-        if (filterSearch) {
-          filterSearch.addEventListener('input', ejecutarFiltros);
+        let html = '';
+        imagenesEditandoActuales.forEach((imgUrl, index) => {
+          html += `
+            <div class="thumbnail-item">
+              <img src="${imgUrl}" alt="Foto ${index + 1}">
+              <button type="button" class="thumbnail-delete-btn" onclick="eliminarFotoEdicion(${index})" title="Borrar foto">×</button>
+            </div>
+          `;
+        });
+        contenedor.innerHTML = html;
+      }
+
+      window.eliminarFotoEdicion = function(index) {
+        imagenesEditandoActuales.splice(index, 1);
+        renderizarMiniaturasEdicion();
+      }
+
+      function renderizarVideoActual() {
+        const contenedor = document.getElementById('contenedorVideoActual');
+        if (!contenedor) return;
+
+        if (!videoArchivoActualUrl || videoArchivoEliminado) {
+          contenedor.innerHTML = `<p style="font-size: 12px; color: var(--text-muted);">No hay video propio subido actualmente.</p>`;
+          return;
         }
 
-        if (filterExtranjeros) {
-          const toggleExtranjeros = () => {
-            soloExtranjerosActivo = !soloExtranjerosActivo;
-            filterExtranjeros.classList.toggle('on', soloExtranjerosActivo);
-            filterExtranjeros.setAttribute('aria-pressed', soloExtranjerosActivo ? 'true' : 'false');
-            ejecutarFiltros();
+        contenedor.innerHTML = `
+          <div class="thumbnail-item" style="width: 160px;">
+            <video src="${videoArchivoActualUrl}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;" muted></video>
+            <button type="button" class="thumbnail-delete-btn" onclick="eliminarVideoEdicion()" title="Borrar video">×</button>
+          </div>
+        `;
+      }
+
+      window.eliminarVideoEdicion = function() {
+        videoArchivoEliminado = true;
+        renderizarVideoActual();
+      }
+
+      window.cerrarModalPublicar = function() {
+        const modal = document.getElementById('modalPublicar');
+        if(modal) modal.style.display = 'none';
+      }
+
+      window.guardarPropiedad = async function(event) {
+        event.preventDefault();
+        const editId = document.getElementById('propEditId').value;
+        const archivosInput = document.getElementById('propArchivos');
+
+        // Seguridad: si se está editando, solo el dueño de la publicación o un admin pueden guardar cambios.
+        if (editId) {
+          const propOriginal = cachePropiedadesActuales[editId];
+          if (propOriginal && propOriginal.creadoPorUid && propOriginal.creadoPorUid !== usuarioActualUid && !esModoAdmin) {
+            alert("No tienes permiso para modificar esta propiedad. Solo el agente que la publicó o un administrador pueden editarla.");
+            return;
+          }
+        }
+        
+        try {
+          alert("Procesando y subiendo archivos a la nube...");
+
+          let imagenesUrls = [...imagenesEditandoActuales];
+          if (archivosInput && archivosInput.files && archivosInput.files.length > 0) {
+            for (let i = 0; i < archivosInput.files.length; i++) {
+              const file = archivosInput.files[i];
+              const fileRef = storageRefFn(storage, `propiedades/${Date.now()}_${file.name}`);
+              const snapshot = await uploadBytes(fileRef, file);
+              const downloadURL = await getDownloadURL(snapshot.ref);
+              imagenesUrls.push(downloadURL);
+            }
+          }
+
+          // Video propio (archivo subido): si el usuario eligió un archivo nuevo, se sube a Storage
+          // y reemplaza cualquier video anterior. Si no eligió uno nuevo, se conserva el actual
+          // (a menos que el usuario lo haya borrado con el botón ×).
+          const archivoVideoInput = document.getElementById('propArchivoVideo');
+          let videoArchivoUrlFinal = videoArchivoEliminado ? '' : videoArchivoActualUrl;
+          if (archivoVideoInput && archivoVideoInput.files && archivoVideoInput.files.length > 0) {
+            const videoFile = archivoVideoInput.files[0];
+            const videoRef = storageRefFn(storage, `propiedades_videos/${Date.now()}_${videoFile.name}`);
+            const videoSnapshot = await uploadBytes(videoRef, videoFile);
+            videoArchivoUrlFinal = await getDownloadURL(videoSnapshot.ref);
+          }
+
+          const provincia = document.getElementById('propProvincia').value;
+          const municipio = document.getElementById('propMunicipio').value;
+          const distrito = document.getElementById('propDistrito').value;
+          const detalle = document.getElementById('propDireccionDetalle').value;
+          const ubicacionCompleta = `${distrito}, ${municipio}, ${provincia} ${detalle ? ' - ' + detalle : ''}`;
+
+          const precioVal = document.getElementById('propPrecio').value;
+          const monedaVal = document.getElementById('propMoneda').value;
+          const precioFmt = `${monedaVal === 'USD' ? '$' : 'RD$'} ${Number(precioVal).toLocaleString()}`;
+
+          // Si quien publica es admin o superadmin, el perfil de contacto se muestra
+          // como la empresa (Compra tu casa en RD) en vez del agente individual.
+          const esAdminOSuperadmin = rolUsuarioActual === 'admin' || rolUsuarioActual === 'superadmin';
+          const nombreAgenteFinal = esAdminOSuperadmin ? 'Compra tu casa en RD' : document.getElementById('propAgente').value;
+
+          const datosPropiedad = {
+            titulo: document.getElementById('propTitulo').value,
+            tipo: document.getElementById('propTipoPropiedad').value || 'Casa',
+            operacion: document.getElementById('propOperacion').value,
+            precio: precioFmt,
+            moneda: monedaVal,
+            agente: nombreAgenteFinal,
+            agenteWhatsapp: (document.getElementById('propAgenteWhatsapp').value || '').replace(/[^0-9]/g, '') || '18498572321',
+            creadorRol: rolUsuarioActual,
+            dueno: document.getElementById('propDueno').value || '',
+            deposito: document.getElementById('propDeposito').value || '',
+            comision: document.getElementById('propComision').value || '',
+            extranjeros: document.getElementById('propExtranjeros').checked,
+            amueblado: document.getElementById('propAmueblado').checked,
+            premium: document.getElementById('propPremium').checked,
+            extras: Array.from(document.querySelectorAll('.extra-checkbox:checked')).map(chk => chk.value),
+            ubicacion: ubicacionCompleta,
+            provincia, 
+            municipio, 
+            distrito,
+            habitaciones: document.getElementById('propHabitaciones').value || '0',
+            banos: document.getElementById('propBanos').value || '0',
+            nivel: document.getElementById('propNivel').value || 'N/D',
+            parqueos: document.getElementById('propParqueos').value || '0',
+            metros: document.getElementById('propMetros').value || 'N/D',
+            linkUbicacion: document.getElementById('propLinkUbicacion').value || '',
+            linkVideo: document.getElementById('propLinkVideo').value || '',
+            videoArchivo: videoArchivoUrlFinal || '',
+            descripcion: document.getElementById('propDescripcion').value,
+            imagenes: imagenesUrls,
+            fechaActualizacion: new Date().toISOString()
           };
-          filterExtranjeros.addEventListener('click', toggleExtranjeros);
-          filterExtranjeros.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              toggleExtranjeros();
+
+          if (editId) {
+            if (esAdminOSuperadmin) {
+              datosPropiedad.agenteFotoCreador = 'assets/mi-logo.png';
             }
+            const docRef = doc(db, "propiedades", editId);
+            await updateDoc(docRef, datosPropiedad);
+            alert("¡Propiedad actualizada con éxito en la nube!");
+          } else {
+            datosPropiedad.fechaCreacion = new Date().toISOString();
+            // Se registra quién publicó la propiedad: solo el dueño (o un admin) podrá editarla/borrarla después,
+            // y detalle.html usará estos datos para dirigir los contactos al agente correcto.
+            datosPropiedad.creadoPorUid = usuarioActualUid;
+            datosPropiedad.agenteFotoCreador = esAdminOSuperadmin ? 'assets/mi-logo.png' : (perfilUsuarioActual.foto || '');
+            datosPropiedad.archivada = false;
+            await addDoc(collection(db, "propiedades"), datosPropiedad);
+            alert("¡Propiedad publicada con éxito en la nube!");
+          }
+
+          cerrarModalPublicar();
+          location.reload();
+
+        } catch (error) {
+          console.error("Error al guardar en Firebase:", error);
+          alert("Hubo un error al guardar la propiedad.");
+        }
+      }
+
+      /* ===== Estado de Paginación (Cuadrícula 4x2 = 8 por página) ===== */
+      const ITEMS_POR_PAGINA_GESTION = 8;
+      let paginaActualGestion = 1;
+      let listaFiltradaGestionActual = [];
+      let esArchivadaGestionActual = false;
+
+      async function renderizarPublicaciones(filtro = '') {
+        const contenedor = document.getElementById('listaPublicacionesGuardadas');
+        if(!contenedor) return;
+
+        paginaActualGestion = 1;
+
+        try {
+          contenedor.innerHTML = `<p style="color: var(--text-muted); text-align: center; grid-column: 1 / -1; padding: 40px;">Cargando propiedades desde Firebase...</p>`;
+          // Los administradores/superadmin ven TODAS las publicaciones (moderación),
+          // incluyendo archivadas, sin importar qué agente las haya creado.
+          // Un agente normal solo ve las que él mismo publicó (creadoPorUid).
+          const consultaPropiedades = esModoAdmin
+            ? collection(db, "propiedades")
+            : query(collection(db, "propiedades"), where("creadoPorUid", "==", usuarioActualUid));
+          const querySnapshot = await getDocs(consultaPropiedades);
+          let listaPropiedades = [];
+
+          querySnapshot.forEach((docSnap) => {
+            listaPropiedades.push({ id: docSnap.id, ...docSnap.data() });
           });
+
+          // El archivado ahora vive en Firestore (campo "archivada"), no en localStorage,
+          // así admin/superadmin pueden ver y restaurar archivadas de cualquier agente.
+          listaPropiedades = listaPropiedades.filter(p => mostrandoArchivadas ? p.archivada === true : p.archivada !== true);
+
+          listaPropiedades.sort((a, b) => new Date(b.fechaCreacion || 0) - new Date(a.fechaCreacion || 0));
+
+          if (filtro.trim() !== '') {
+            const queryText = filtro.toLowerCase();
+            listaPropiedades = listaPropiedades.filter(p => 
+              (p.titulo || '').toLowerCase().includes(queryText) || 
+              (p.ubicacion || '').toLowerCase().includes(queryText) || 
+              (p.agente || '').toLowerCase().includes(queryText)
+            );
+          }
+
+          esArchivadaGestionActual = mostrandoArchivadas;
+          listaFiltradaGestionActual = listaPropiedades;
+
+          if (listaPropiedades.length === 0) {
+            contenedor.innerHTML = `<p style="color: var(--text-muted); text-align: center; grid-column: 1 / -1; padding: 40px;">${mostrandoArchivadas ? 'No hay propiedades archivadas.' : 'No se encontraron propiedades publicadas.'}</p>`;
+            renderizarControlesPaginacionGestion();
+            return;
+          }
+
+          renderizarPaginaGestion();
+
+        } catch (error) {
+          console.error("Error al cargar de Firebase:", error);
+          contenedor.innerHTML = `<p style="color: #ef4444; text-align: center; grid-column: 1 / -1; padding: 40px;">Error al conectar con la base de datos.</p>`;
+        }
+      }
+
+      function renderizarPaginaGestion() {
+        const contenedor = document.getElementById('listaPublicacionesGuardadas');
+        if (!contenedor) return;
+
+        const inicio = (paginaActualGestion - 1) * ITEMS_POR_PAGINA_GESTION;
+        const fin = inicio + ITEMS_POR_PAGINA_GESTION;
+        const pagina = listaFiltradaGestionActual.slice(inicio, fin);
+
+        dibujarTarjetas(pagina, contenedor, esArchivadaGestionActual);
+        renderizarControlesPaginacionGestion();
+      }
+
+      function generarNumerosPaginaGestion(paginaActual, totalPaginas) {
+        const paginas = [];
+        for (let i = 1; i <= totalPaginas; i++) {
+          const esExtremo = (i === 1 || i === totalPaginas);
+          const esCercana = (i >= paginaActual - 1 && i <= paginaActual + 1);
+          if (esExtremo || esCercana) {
+            paginas.push(i);
+          } else if (paginas[paginas.length - 1] !== '...') {
+            paginas.push('...');
+          }
+        }
+        return paginas;
+      }
+
+      function renderizarControlesPaginacionGestion() {
+        let controles = document.getElementById('paginacionGestionWrap');
+        const contenedorPadre = document.querySelector('.publicaciones-container');
+
+        const totalPaginas = Math.max(1, Math.ceil(listaFiltradaGestionActual.length / ITEMS_POR_PAGINA_GESTION));
+        const hayPaginaSiguiente = paginaActualGestion < totalPaginas;
+        const hayPaginaAnterior = paginaActualGestion > 1;
+
+        if (!controles) {
+          controles = document.createElement('div');
+          controles.id = 'paginacionGestionWrap';
+          controles.className = 'pagination-controls-wrap';
+          contenedorPadre.appendChild(controles);
         }
 
-        if (filterAmueblado) {
-          const toggleAmueblado = () => {
-            soloAmuebladoActivo = !soloAmuebladoActivo;
-            filterAmueblado.classList.toggle('on', soloAmuebladoActivo);
-            filterAmueblado.setAttribute('aria-pressed', soloAmuebladoActivo ? 'true' : 'false');
-            ejecutarFiltros();
-          };
-          filterAmueblado.addEventListener('click', toggleAmueblado);
-          filterAmueblado.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              toggleAmueblado();
-            }
-          });
+        if (listaFiltradaGestionActual.length <= ITEMS_POR_PAGINA_GESTION) {
+          controles.innerHTML = '';
+          return;
         }
 
-        if (btnVerFavoritos) {
-          btnVerFavoritos.addEventListener('click', (e) => {
-            e.preventDefault();
-            soloFavoritosActivo = !soloFavoritosActivo;
-            const ctaIcon = document.getElementById('favCtaIcon');
-            const ctaText = document.getElementById('favCtaText');
+        const numerosPagina = generarNumerosPaginaGestion(paginaActualGestion, totalPaginas);
+        const numerosHtml = numerosPagina.map(n => {
+          if (n === '...') return `<span class="pagination-ellipsis">…</span>`;
+          return `<button type="button" class="pagination-number-btn ${n === paginaActualGestion ? 'active' : ''}" data-page="${n}">${n}</button>`;
+        }).join('');
 
-            if (soloFavoritosActivo) {
-              btnVerFavoritos.style.background = '#10b981';
-              if (ctaIcon) ctaIcon.textContent = '🏠';
-              if (ctaText) ctaText.textContent = 'Ver Todas las Propiedades';
-            } else {
-              btnVerFavoritos.style.background = '#ef4444';
-              if (ctaIcon) ctaIcon.textContent = '❤️';
-              if (ctaText) ctaText.textContent = 'Ver Mis Favoritos';
+        controles.innerHTML = `
+          <button type="button" class="pagination-edge-btn" id="btnPrimeraPaginaGestion" title="Primera página" ${!hayPaginaAnterior ? 'disabled' : ''}>⏮</button>
+          <button type="button" class="pagination-btn" id="btnPaginaAnteriorGestion" ${!hayPaginaAnterior ? 'disabled' : ''}>❮ Anterior</button>
+          <div class="pagination-numbers">${numerosHtml}</div>
+          <button type="button" class="pagination-btn" id="btnPaginaSiguienteGestion" ${!hayPaginaSiguiente ? 'disabled' : ''}>Siguiente ❯</button>
+          <button type="button" class="pagination-edge-btn" id="btnUltimaPaginaGestion" title="Última página" ${!hayPaginaSiguiente ? 'disabled' : ''}>⏭</button>
+        `;
+
+        const irAPagina = (num) => {
+          const totalPag = Math.max(1, Math.ceil(listaFiltradaGestionActual.length / ITEMS_POR_PAGINA_GESTION));
+          if (num < 1 || num > totalPag || num === paginaActualGestion) return;
+          paginaActualGestion = num;
+          renderizarPaginaGestion();
+          /* Sube hasta el inicio del listado de gestión, descontando la altura
+             del header solo si está fijo/pegado en pantalla (típico en móvil);
+             en escritorio suele estar en el flujo normal y no debe descontarse */
+          const header = document.querySelector('.site-header');
+          let alturaHeader = 0;
+          if (header) {
+            const posicionHeader = window.getComputedStyle(header).position;
+            if (posicionHeader === 'fixed' || posicionHeader === 'sticky') {
+              alturaHeader = header.offsetHeight;
             }
+          }
+          const posicionDestino = contenedorPadre.getBoundingClientRect().top + window.scrollY - alturaHeader - 20;
+          window.scrollTo({ top: posicionDestino, behavior: 'smooth' });
+        };
 
-            ejecutarFiltros();
-          });
+        const btnPrimera = document.getElementById('btnPrimeraPaginaGestion');
+        const btnUltima = document.getElementById('btnUltimaPaginaGestion');
+        const btnAnterior = document.getElementById('btnPaginaAnteriorGestion');
+        const btnSiguiente = document.getElementById('btnPaginaSiguienteGestion');
+
+        if (btnPrimera) btnPrimera.addEventListener('click', () => irAPagina(1));
+        if (btnUltima) btnUltima.addEventListener('click', () => irAPagina(totalPaginas));
+        if (btnAnterior) btnAnterior.addEventListener('click', () => irAPagina(paginaActualGestion - 1));
+        if (btnSiguiente) btnSiguiente.addEventListener('click', () => irAPagina(paginaActualGestion + 1));
+
+        controles.querySelectorAll('.pagination-number-btn').forEach(btn => {
+          btn.addEventListener('click', () => irAPagina(parseInt(btn.dataset.page, 10)));
+        });
+      }
+
+      function dibujarTarjetas(fuenteDatos, contenedor, esArchivada) {
+        cachePropiedadesActuales = {};
+        fuenteDatos.forEach(p => { cachePropiedadesActuales[p.id] = p; });
+
+        let html = '';
+        fuenteDatos.forEach(prop => {
+          const imgs = prop.imagenes || [];
+
+          let carouselImgsHtml = '';
+          if (imgs.length > 0) {
+            imgs.forEach((imgSrc, idx) => {
+              carouselImgsHtml += `<img src="${imgSrc}" class="carousel-img" data-index="${idx}">`;
+            });
+          } else {
+            carouselImgsHtml = `<div class="carousel-img" style="display:flex;align-items:center;justify-content:center;background:#1a1a1a;color:#777;font-size:13px;">Sin foto</div>`;
+          }
+
+          const propIdSeguro = prop.id;
+          const opTexto = (prop.operacion || 'Venta').toLowerCase();
+          let claseOperacion = 'venta';
+          if (opTexto.includes('venta') && opTexto.includes('alquiler')) {
+            claseOperacion = 'venta-alquiler';
+          } else if (opTexto.includes('alquiler')) {
+            claseOperacion = 'alquiler';
+          }
+
+          // Se resalta cada tarjeta según quién publicó: cian si fue un agente/agentepro,
+          // rojo si fue la empresa (admin/superadmin, o publicaciones antiguas sin ese dato).
+          const publicadaPorAgente = prop.creadorRol === 'agente' || prop.creadorRol === 'agentepro';
+          const claseCreador = publicadaPorAgente ? 'publicada-por-agente' : 'publicada-por-empresa';
+
+          html += `
+            <div class="propiedad-card-pro ${claseCreador}" id="card-${prop.id}">
+              <div class="card-carousel-wrapper" id="track-wrapper-${prop.id}">
+                <span class="badge-operacion ${claseOperacion}">${prop.operacion || 'Venta'}</span>
+                <span class="badge-tipo-propiedad">${prop.tipo || 'Casa'}</span>
+                ${prop.extranjeros ? `<span class="badge-extranjeros">Extranjeros</span>` : ''}
+                ${prop.amueblado ? `<span class="badge-amueblado">🛋️ Amueblado</span>` : ''}
+                ${prop.premium ? `<span class="badge-premium">⭐ Premium</span>` : ''}
+                ${publicadaPorAgente ? `<span class="badge-publicada-agente">🧑‍💼 Agente</span>` : `<span class="badge-publicada-empresa">🏢 Empresa</span>`}
+                <div class="carousel-track" id="track-${prop.id}" style="transform: translateX(0%);">
+                  ${carouselImgsHtml}
+                </div>
+                ${imgs.length > 1 ? `
+                  <button class="carousel-btn carousel-prev" onclick="moverCarrusel('${prop.id}', -1)">❮</button>
+                  <button class="carousel-btn carousel-next" onclick="moverCarrusel('${prop.id}', 1)">❯</button>
+                ` : ''}
+              </div>
+              <div class="card-body-content" onclick="window.location.href='detalle.html?id=${prop.id}'">
+                <div class="card-title-row">
+                  <h4 class="card-prop-title">${prop.titulo}</h4>
+                  <span class="card-prop-price">${prop.precio}</span>
+                </div>
+                <p class="card-prop-ubicacion">📍 ${prop.ubicacion}</p>
+                ${esModoAdmin ? `<p class="card-prop-ubicacion" style="opacity:0.8;">🧑‍💼 Agente: ${prop.agente || 'N/D'}</p>` : ''}
+                ${esModoAdmin ? `<p class="card-prop-ubicacion" style="opacity:0.8;">🏠 Dueño: ${prop.dueno || 'N/D'}</p>` : ''}
+                
+                <div class="card-features-grid">
+                  <span>🛏️ ${prop.habitaciones} hab</span>
+                  <span>🚿 ${prop.banos} baños</span>
+                  <span>🏢 ${prop.nivel || 'N/D'}</span>
+                  <span>🅿️ ${prop.parqueos} parq</span>
+                  <span>📐 ${prop.metros}</span>
+                </div>
+
+                <p class="card-desc-text">${prop.descripcion}</p>
+              </div>
+              
+              <div style="padding: 0 16px 16px 16px;">
+                <div class="card-actions-row">
+                  ${esArchivada ? `
+                    <button class="action-btn unarchive" onclick="desarchivarPublicacion('${prop.id}')">📂 Restaurar</button>
+                    <button class="action-btn delete" onclick="eliminarDefinitivoArchivada('${prop.id}')">🗑️ Borrar</button>
+                  ` : `
+                    <button class="action-btn edit" onclick="editarPublicacionPorId('${propIdSeguro}')">✏️ Editar</button>
+                    <button class="action-btn duplicate" onclick="duplicarPublicacionPorId('${propIdSeguro}')">📋 Duplicar</button>
+                    <button class="action-btn archive" onclick="archivarPublicacionPorId('${propIdSeguro}')">🗄️ Archivar</button>
+                    <button class="action-btn delete" onclick="eliminarPublicacionActiva('${prop.id}')">🗑️ Borrar</button>
+                    <button class="action-btn location" onclick="copiarLinkDirecto('${propIdSeguro}', 'ubicacion', this)">📍 Ubicación</button>
+                    <button class="action-btn video" onclick="copiarLinkDirecto('${propIdSeguro}', 'video', this)">🎥 Video</button>
+                  `}
+                </div>
+              </div>
+            </div>
+          `;
+        });
+        contenedor.innerHTML = html;
+      }
+
+      // Confirma que el usuario actual puede gestionar (editar/borrar/archivar) esta propiedad:
+      // debe ser quien la publicó, o un admin/superadmin.
+      function puedeGestionar(prop) {
+        if (esModoAdmin) return true;
+        if (!prop.creadoPorUid) return true; // publicaciones antiguas sin dueño asignado
+        return prop.creadoPorUid === usuarioActualUid;
+      }
+
+      window.editarPublicacionPorId = function(id) {
+        const prop = cachePropiedadesActuales[id];
+        if (!prop) return;
+        if (!puedeGestionar(prop)) {
+          alert("No tienes permiso para editar esta propiedad. Solo el agente que la publicó o un administrador pueden hacerlo.");
+          return;
         }
+        abrirModalPublicar(prop);
+      }
 
-        const btnCatalogoPremium = document.getElementById('btnCatalogoPremium');
-        if (btnCatalogoPremium) {
-          btnCatalogoPremium.addEventListener('click', (e) => {
-            e.preventDefault();
-            soloPremiumActivo = !soloPremiumActivo;
-            const premiumIcon = document.getElementById('premiumCtaIcon');
-            const premiumText = document.getElementById('premiumCtaText');
-
-            if (soloPremiumActivo) {
-              btnCatalogoPremium.style.background = '#10b981';
-              btnCatalogoPremium.style.color = '#fff';
-              if (premiumIcon) premiumIcon.textContent = '🏠';
-              if (premiumText) premiumText.textContent = 'Ver Todas las Propiedades';
-            } else {
-              btnCatalogoPremium.style.background = 'linear-gradient(135deg, #fde047, #f59e0b)';
-              btnCatalogoPremium.style.color = '#fff';
-              if (premiumIcon) premiumIcon.textContent = '💎';
-              if (premiumText) premiumText.textContent = 'Catálogo Premium';
-            }
-
-            ejecutarFiltros();
-          });
+      window.duplicarPublicacionPorId = async function(id) {
+        const prop = cachePropiedadesActuales[id];
+        if (!prop) return;
+        if (!puedeGestionar(prop)) {
+          alert("No tienes permiso para duplicar esta propiedad.");
+          return;
         }
+        try {
+          alert("Duplicando propiedad en la nube...");
+          const nuevaProp = { ...prop };
+          delete nuevaProp.id;
+          nuevaProp.titulo = `${prop.titulo} (Copia)`;
+          nuevaProp.fechaCreacion = new Date().toISOString();
+          nuevaProp.creadoPorUid = usuarioActualUid;
+          nuevaProp.agenteFotoCreador = perfilUsuarioActual.foto || '';
+          nuevaProp.archivada = false;
 
-        /* Ejecuta el filtrado/paginación una vez al cargar, para que desde
-           el inicio solo se muestren 9 propiedades (3x3) por página */
-        ejecutarFiltros();
-      });
+          await addDoc(collection(db, "propiedades"), nuevaProp);
+          alert("¡Propiedad duplicada con éxito!");
+          location.reload();
+        } catch (error) {
+          console.error("Error al duplicar:", error);
+          alert("Hubo un error al duplicar la propiedad.");
+        }
+      }
+
+      window.archivarPublicacionPorId = async function(id) {
+        const prop = cachePropiedadesActuales[id];
+        if (!prop) return;
+        if (!puedeGestionar(prop)) {
+          alert("No tienes permiso para archivar esta propiedad.");
+          return;
+        }
+        try {
+          // El archivado ya no borra el documento: solo marca "archivada: true" en Firestore,
+          // así queda visible para admin/superadmin y se puede restaurar desde cualquier lugar.
+          await updateDoc(doc(db, "propiedades", prop.id), { archivada: true });
+
+          alert("¡Propiedad archivada correctamente!");
+          renderizarPublicaciones();
+        } catch (error) {
+          console.error("Error al archivar:", error);
+          alert("Hubo un error al archivar la propiedad.");
+        }
+      }
+
+      const carruselIndices = {};
+      window.moverCarrusel = function(id, direccion) {
+        const track = document.getElementById(`track-${id}`);
+        if (!track) return;
+        const totalImgs = track.children.length;
+        if (!carruselIndices[id]) carruselIndices[id] = 0;
+        
+        carruselIndices[id] += direccion;
+        if (carruselIndices[id] < 0) carruselIndices[id] = totalImgs - 1;
+        if (carruselIndices[id] >= totalImgs) carruselIndices[id] = 0;
+
+        track.style.transform = `translateX(-${carruselIndices[id] * 100}%)`;
+      }
+
+      window.filtrarPropiedades = function() {
+        const queryInput = document.getElementById('inputFiltroBusqueda');
+        if(queryInput) {
+          renderizarPublicaciones(queryInput.value);
+        }
+      }
+
+      window.desarchivarPublicacion = async function(id) {
+        const prop = cachePropiedadesActuales[id];
+        if (prop && !puedeGestionar(prop)) {
+          alert("No tienes permiso para restaurar esta propiedad.");
+          return;
+        }
+        try {
+          await updateDoc(doc(db, "propiedades", id), { archivada: false });
+
+          alert("¡Propiedad desarchivada y restaurada con éxito!");
+          renderizarPublicaciones();
+        } catch (error) {
+          console.error("Error al desarchivar:", error);
+          alert("Hubo un error al desarchivar la propiedad.");
+        }
+      }
+
+      window.eliminarPublicacionActiva = async function(id) {
+        const prop = cachePropiedadesActuales[id];
+        if (prop && !puedeGestionar(prop)) {
+          alert("No tienes permiso para eliminar esta propiedad.");
+          return;
+        }
+        if (!confirm("¿Estás seguro de eliminar permanentemente esta propiedad de la base de datos?")) return;
+        try {
+          await deleteDoc(doc(db, "propiedades", id));
+          alert("¡Propiedad eliminada con éxito!");
+          renderizarPublicaciones();
+        } catch (error) {
+          console.error("Error al eliminar de Firebase:", error);
+          alert("Hubo un error al eliminar la propiedad.");
+        }
+      }
+
+      window.eliminarDefinitivoArchivada = async function(id) {
+        const prop = cachePropiedadesActuales[id];
+        if (prop && !puedeGestionar(prop)) {
+          alert("No tienes permiso para eliminar esta propiedad.");
+          return;
+        }
+        if (!confirm("¿Estás seguro de eliminar permanentemente esta propiedad archivada?")) return;
+        try {
+          await deleteDoc(doc(db, "propiedades", id));
+          alert("¡Propiedad eliminada permanentemente!");
+          renderizarPublicaciones();
+        } catch (error) {
+          console.error("Error al eliminar definitivamente:", error);
+          alert("Hubo un error al eliminar la propiedad.");
+        }
+      }
     </script>
-
-    <!-- Campanita de notificaciones y menú de perfil (compartido con comunidad.html e index.html) -->
-    <script type="module" src="notifications.js"></script>
 
     <!-- Menú hamburguesa (móvil) -->
     <script>
@@ -2097,6 +2750,5 @@
         });
       });
     </script>
-
 </body>
 </html>
