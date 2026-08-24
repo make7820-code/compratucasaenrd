@@ -1121,7 +1121,7 @@
 
           <div class="filter-group">
             <label>Búsqueda</label>
-            <input type="text" id="filterSearch" placeholder="Buscar...">
+            <input type="text" id="filterSearch" placeholder="Ej: 2 habitaciones, 3 baños, con marquesina...">
           </div>
 
           <div class="filter-group">
@@ -1506,6 +1506,8 @@
           const totalSlidesTarjeta = listaImagenes.length + (videoSlideHtml ? 1 : 0);
           const showControls = totalSlidesTarjeta > 1;
 
+          const propDescLower = propDescripcion.toLowerCase().replace(/"/g, '&quot;');
+
           const cardHtml = `
             <div class="property-card" 
                  data-id="${propId}"
@@ -1515,6 +1517,10 @@
                  data-offer="${propOffer}" 
                  data-price="${propPriceNum}" 
                  data-habs="${propHabs}"
+                 data-banos="${propBanos}"
+                 data-parqueos="${propParqueos}"
+                 data-nivel="${propNivel.toLowerCase()}"
+                 data-desc="${propDescLower}"
                  data-extranjeros="${aceptaExtranjero ? '1' : '0'}"
                  data-amueblado="${esAmueblado ? '1' : '0'}"
                  data-premium="${esPremium ? '1' : '0'}">
@@ -1824,6 +1830,11 @@
            buscar solo coincidencia literal en el título/ubicación. */
         const STOPWORDS_BUSQUEDA = new Set(['de','del','la','el','los','las','en','con','para','por','un','una','unos','unas','y','o','a','al','que','se','busco','quiero','necesito']);
         const PALABRAS_HABITACION = new Set(['habitacion','habitaciones','habs','hab','cuarto','cuartos','dormitorio','dormitorios','recamara','recamaras','pieza','piezas']);
+        const PALABRAS_BANO = new Set(['bano','banos','baño','baños','servicio','servicios','sanitario','sanitarios']);
+        /* "marquesina" es como la gente de RD le dice al parqueo/garaje, por eso
+           entra en el mismo grupo que parqueo/parking/garaje */
+        const PALABRAS_PARQUEO = new Set(['parqueo','parqueos','parking','marquesina','marquesinas','garage','garages','garaje','garajes','estacionamiento','estacionamientos']);
+        const PALABRAS_NIVEL = new Set(['nivel','niveles','piso','pisos','planta','plantas','altura']);
         const SINONIMOS_TIPO = { apto: 'apartamento', aptos: 'apartamento', depto: 'apartamento', deptos: 'apartamento', departamento: 'apartamento', departamentos: 'apartamento' };
         const SINONIMOS_ALQUILER = new Set(['renta','rentar','arriendo','alquilar','arrendar','rento']);
         const SINONIMOS_VENTA = new Set(['comprar','compra','vendo']);
@@ -1834,12 +1845,38 @@
           return texto.split(/\s+/).map(t => t.replace(/[.,;:()¿?¡!"']/g, '')).filter(Boolean);
         }
 
-        function tokenSatisfecho(token, datos) {
+        /* Cuando el usuario escribe un número suelto (ej. "2 baños" o "3 habitaciones"),
+           miramos la palabra vecina (antes o después) para saber si ese número se
+           refiere a habitaciones, baños o parqueos/marquesina. Si no hay ninguna
+           pista cerca, se asume habitaciones (comportamiento de siempre). */
+        function campoDelNumero(idx, tokens) {
+          const vecinos = [tokens[idx + 1], tokens[idx - 1]].filter(Boolean);
+          for (const v of vecinos) {
+            if (PALABRAS_BANO.has(v)) return 'banos';
+            if (PALABRAS_PARQUEO.has(v)) return 'parqueos';
+            if (PALABRAS_HABITACION.has(v)) return 'habs';
+          }
+          return 'habs';
+        }
+
+        function tokenSatisfecho(token, idx, tokens, datos) {
           if (STOPWORDS_BUSQUEDA.has(token)) return true;
           if (PALABRAS_HABITACION.has(token)) return true;
+          if (PALABRAS_BANO.has(token)) return true;
+          if (PALABRAS_PARQUEO.has(token)) return true;
+          if (PALABRAS_NIVEL.has(token)) return true;
           if (/^\d+$/.test(token)) {
             const num = parseInt(token, 10);
             if (num <= 10) {
+              const campo = campoDelNumero(idx, tokens);
+              if (campo === 'banos') {
+                const banosNum = parseInt(datos.banos, 10) || 0;
+                return num >= 3 ? banosNum >= 3 : banosNum === num;
+              }
+              if (campo === 'parqueos') {
+                const parqNum = parseInt(datos.parqueos, 10) || 0;
+                return num >= 3 ? parqNum >= 3 : parqNum === num;
+              }
               const habsNum = parseInt(datos.habs, 10) || 0;
               return num >= 3 ? habsNum >= 3 : habsNum === num;
             }
@@ -1855,7 +1892,7 @@
 
         function cumpleBusquedaInteligente(tokens, datos) {
           if (tokens.length === 0) return true;
-          return tokens.every(token => tokenSatisfecho(token, datos));
+          return tokens.every((token, idx) => tokenSatisfecho(token, idx, tokens, datos));
         }
 
         function ejecutarFiltros(resetearPagina = true) {
@@ -1883,6 +1920,10 @@
             const offer = card.getAttribute('data-offer');
             const price = parseFloat(card.getAttribute('data-price')) || 0;
             const habs = card.getAttribute('data-habs');
+            const banos = card.getAttribute('data-banos');
+            const parqueos = card.getAttribute('data-parqueos');
+            const nivel = card.getAttribute('data-nivel') || '';
+            const desc = card.getAttribute('data-desc') || '';
             const extranjeros = card.getAttribute('data-extranjeros') === '1';
             const amueblado = card.getAttribute('data-amueblado') === '1';
             const premium = card.getAttribute('data-premium') === '1';
@@ -1890,10 +1931,12 @@
             let cumpleFavoritos = !soloFavoritosActivo || favoritos.includes(cardId);
             let cumplePremium = !soloPremiumActivo || premium;
             let cumpleTexto = cumpleBusquedaInteligente(tokensBusqueda, {
-              haystack: `${title} ${location} ${(type || '').toLowerCase()} ${(offer || '').toLowerCase()}`,
+              haystack: `${title} ${location} ${(type || '').toLowerCase()} ${(offer || '').toLowerCase()} ${nivel} ${desc}`,
               type: (type || '').toLowerCase(),
               offer: (offer || '').toLowerCase(),
               habs,
+              banos,
+              parqueos,
               price,
               amueblado,
               extranjeros
