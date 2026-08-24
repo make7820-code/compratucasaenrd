@@ -1817,9 +1817,51 @@
         const ITEMS_POR_PAGINA_PROPIEDADES = 9;
         let paginaActualPropiedades = 1;
 
+        /* ===== Búsqueda inteligente por texto libre =====
+           Permite que el usuario escriba cosas como "2 habitaciones",
+           "apartamento en alquiler", "casa amueblada", etc. en el campo
+           de búsqueda y que el filtro entienda esas palabras, en vez de
+           buscar solo coincidencia literal en el título/ubicación. */
+        const STOPWORDS_BUSQUEDA = new Set(['de','del','la','el','los','las','en','con','para','por','un','una','unos','unas','y','o','a','al','que','se','busco','quiero','necesito']);
+        const PALABRAS_HABITACION = new Set(['habitacion','habitaciones','habs','hab','cuarto','cuartos','dormitorio','dormitorios','recamara','recamaras','pieza','piezas']);
+        const SINONIMOS_TIPO = { apto: 'apartamento', aptos: 'apartamento', depto: 'apartamento', deptos: 'apartamento', departamento: 'apartamento', departamentos: 'apartamento' };
+        const SINONIMOS_ALQUILER = new Set(['renta','rentar','arriendo','alquilar','arrendar','rento']);
+        const SINONIMOS_VENTA = new Set(['comprar','compra','vendo']);
+        const SINONIMOS_AMUEBLADO = new Set(['amueblado','amoblado','amueblada','amoblada']);
+        const SINONIMOS_EXTRANJEROS = new Set(['extranjero','extranjeros','extranjera','extranjeras']);
+
+        function tokenizarBusqueda(texto) {
+          return texto.split(/\s+/).map(t => t.replace(/[.,;:()¿?¡!"']/g, '')).filter(Boolean);
+        }
+
+        function tokenSatisfecho(token, datos) {
+          if (STOPWORDS_BUSQUEDA.has(token)) return true;
+          if (PALABRAS_HABITACION.has(token)) return true;
+          if (/^\d+$/.test(token)) {
+            const num = parseInt(token, 10);
+            if (num <= 10) {
+              const habsNum = parseInt(datos.habs, 10) || 0;
+              return num >= 3 ? habsNum >= 3 : habsNum === num;
+            }
+            return String(datos.price).includes(token);
+          }
+          if (SINONIMOS_TIPO[token]) return datos.type.includes(SINONIMOS_TIPO[token]);
+          if (SINONIMOS_ALQUILER.has(token)) return datos.offer.includes('alquiler');
+          if (SINONIMOS_VENTA.has(token)) return datos.offer.includes('venta');
+          if (SINONIMOS_AMUEBLADO.has(token)) return datos.amueblado;
+          if (SINONIMOS_EXTRANJEROS.has(token)) return datos.extranjeros;
+          return datos.haystack.includes(token);
+        }
+
+        function cumpleBusquedaInteligente(tokens, datos) {
+          if (tokens.length === 0) return true;
+          return tokens.every(token => tokenSatisfecho(token, datos));
+        }
+
         function ejecutarFiltros(resetearPagina = true) {
           const propertyCards = Array.from(document.querySelectorAll('.property-card'));
           const texto = filterSearch ? filterSearch.value.toLowerCase().trim() : '';
+          const tokensBusqueda = tokenizarBusqueda(texto);
           const pMin = filterPrecioMin && filterPrecioMin.value ? parseFloat(filterPrecioMin.value) : 0;
           const pMax = filterPrecioMax && filterPrecioMax.value ? parseFloat(filterPrecioMax.value) : Infinity;
           const provVal = filterProvincia ? filterProvincia.value.toLowerCase() : '';
@@ -1847,7 +1889,15 @@
 
             let cumpleFavoritos = !soloFavoritosActivo || favoritos.includes(cardId);
             let cumplePremium = !soloPremiumActivo || premium;
-            let cumpleTexto = texto === '' || title.includes(texto) || location.includes(texto);
+            let cumpleTexto = cumpleBusquedaInteligente(tokensBusqueda, {
+              haystack: `${title} ${location} ${(type || '').toLowerCase()} ${(offer || '').toLowerCase()}`,
+              type: (type || '').toLowerCase(),
+              offer: (offer || '').toLowerCase(),
+              habs,
+              price,
+              amueblado,
+              extranjeros
+            });
             let cumplePrecio = price >= pMin && price <= pMax;
             let cumpleProv = provVal === '' || location.includes(provVal);
             let cumpleMun = munVal === '' || location.includes(munVal);
