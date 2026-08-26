@@ -797,7 +797,11 @@
           const docRef = doc(db, "propiedades", propertyId);
           const docSnap = await getDoc(docRef);
           if (docSnap.exists()) {
-            selectedProperty = docSnap.data();
+            const datosProp = docSnap.data();
+            // Si la propiedad fue archivada, se trata como no encontrada
+            if (datosProp.archivada !== true) {
+              selectedProperty = datosProp;
+            }
           }
         } catch (error) {
           console.warn("No se pudo cargar desde Firebase:", error);
