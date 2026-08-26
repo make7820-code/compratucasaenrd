@@ -904,6 +904,17 @@
                </div>`
             : '';
 
+          // Verificación de Precio Negociable
+          const rawNegociable = selectedProperty.negociable;
+          const esNegociable = rawNegociable === true || rawNegociable === "true" || rawNegociable === "si" || rawNegociable === "sí" || rawNegociable === 1 || rawNegociable === "on";
+
+          const negociableBadgeHtml = esNegociable
+            ? `<div class="spec-card">
+                 <span>Precio</span>
+                 <strong style="color: #22c55e;">🤝 Negociable</strong>
+               </div>`
+            : '';
+
           // Mapa de IDs de extras guardados en publicar.html -> etiqueta visible con emoji
           const MAPA_EXTRAS = {
             piscina: '🏊 Piscina',
@@ -928,7 +939,8 @@
             portonElectrico: '🚧 Portón Eléctrico',
             controlAcceso: '🔐 Control de Acceso',
             cercaMetro: '🚇 Cerca del Metro',
-            patio: '🌳 Patio'
+            patio: '🌳 Patio',
+            galeria: '🖼️ Galería'
           };
 
           const listaExtrasProp = Array.isArray(selectedProperty.extras) ? selectedProperty.extras : [];
@@ -1072,6 +1084,7 @@
                 ${parqueosHtml}
                 ${extranjeroBadgeHtml}
                 ${amuebladoBadgeHtml}
+                ${negociableBadgeHtml}
                 ${depositosHtml}
               </div>
 
