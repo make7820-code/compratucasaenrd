@@ -1415,12 +1415,21 @@
           }
 
           const propPriceRaw = prop.precio || '0';
-          /* Se extrae solo el número (sin RD$, puntos ni comas que el usuario
+          const propMoneda = (prop.moneda || prop.currency || '').toUpperCase();
+          /* Misma lógica que en detalle.html: se determina si el precio está
+             en dólares revisando el campo moneda, o si el valor guardado del
+             precio ya trae USD/US$/$ escrito */
+          const propIsDolar = propMoneda === 'USD' || propMoneda === 'US$' || propMoneda === 'DÓLARES' || propMoneda === 'DOLARES' ||
+                               propPriceRaw.toString().toUpperCase().includes('USD') ||
+                               propPriceRaw.toString().includes('US$') ||
+                               propPriceRaw.toString().startsWith('$');
+          const propCurrencyLabel = propIsDolar ? '$ ' : 'RD$ ';
+          /* Se extrae solo el número (sin símbolo de moneda, puntos ni comas que el usuario
              haya escrito al publicar) y se formatea siempre igual, con puntos
              como separador de miles, para que se vea consistente sin importar
              cómo se haya guardado el precio en la base de datos */
           const propPriceNum = parseFloat(propPriceRaw.toString().replace(/[^0-9]/g, '')) || 0;
-          const propPrice = 'RD$ ' + propPriceNum.toLocaleString('es-DO');
+          const propPrice = propCurrencyLabel + propPriceNum.toLocaleString('es-DO');
           const propHabs = prop.habitaciones || prop.habs || '0';
           const propBanos = prop.banos || '0';
           const rawNivel = (prop.nivel || prop.altura || prop.piso || '').toString().trim();
