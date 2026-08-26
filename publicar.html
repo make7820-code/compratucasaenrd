@@ -348,6 +348,20 @@
         z-index: 2;
         border: 1px solid rgba(245, 158, 11, 0.6);
       }
+      .badge-negociable {
+        position: absolute;
+        top: 108px; right: 12px;
+        background: rgba(34, 197, 94, 0.85);
+        backdrop-filter: blur(4px);
+        color: #fff;
+        padding: 4px 8px;
+        border-radius: 8px;
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        z-index: 2;
+        border: 1px solid rgba(34, 197, 94, 0.5);
+      }
 
       /* Cuadrícula de checkboxes de Extras en el formulario */
       .extras-checkbox-grid {
@@ -746,6 +760,13 @@
         margin-bottom: 15px;
       }
       @media(max-width: 768px) { .form-grid-2 { grid-template-columns: 1fr; } }
+      .form-grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+        margin-bottom: 15px;
+      }
+      @media(max-width: 768px) { .form-grid-3 { grid-template-columns: 1fr; } }
       .form-group-full { grid-column: 1 / -1; margin-bottom: 15px; }
       .publish-form-group label {
         display: block;
@@ -1059,6 +1080,7 @@
                 <span class="preview-badge-extranjeros" id="previewBadgeExtranjeros" style="display:none;">🌍 Extranjeros</span>
                 <span class="preview-badge-extranjeros" id="previewBadgeAmueblado" style="display:none; top: 40px; background: rgba(139, 92, 246, 0.9);">🛋️ Amueblado</span>
                 <span class="preview-badge-extranjeros" id="previewBadgePremium" style="display:none; top: 70px; background: linear-gradient(135deg, #fde047, #f59e0b); color: #1a1a1a;">⭐ Premium</span>
+                <span class="preview-badge-extranjeros" id="previewBadgeNegociable" style="display:none; top: 100px; background: rgba(34, 197, 94, 0.9);">🤝 Negociable</span>
               </div>
               <div class="preview-card-body">
                 <div class="preview-card-tipo" id="previewTipo">Casa</div>
@@ -1153,7 +1175,7 @@
             </div>
           </div>
 
-          <div class="form-grid-2">
+          <div class="form-grid-3">
             <div class="publish-form-group">
               <label class="checkbox-container">
                 <input type="checkbox" id="propExtranjeros">
@@ -1164,6 +1186,12 @@
               <label class="checkbox-container">
                 <input type="checkbox" id="propAmueblado">
                 <span style="font-size: 13px; font-weight: 600; color: var(--text-main);">🛋️ Propiedad Amueblada</span>
+              </label>
+            </div>
+            <div class="publish-form-group">
+              <label class="checkbox-container" style="border-color: rgba(34, 197, 94, 0.8); background: rgba(34, 197, 94, 0.08);">
+                <input type="checkbox" id="propNegociable">
+                <span style="font-size: 13px; font-weight: 600; color: #22c55e;">🤝 Precio Negociable</span>
               </label>
             </div>
           </div>
@@ -1500,7 +1528,8 @@
         { id: 'portonElectrico', label: '🚧 Portón Eléctrico' },
         { id: 'controlAcceso', label: '🔐 Control de Acceso' },
         { id: 'cercaMetro', label: '🚇 Cerca del Metro' },
-        { id: 'patio', label: '🌳 Patio' }
+        { id: 'patio', label: '🌳 Patio' },
+        { id: 'galeria', label: '🖼️ Galería' }
       ];
 
       /* Poblar el contenedor de checkboxes de Extras al cargar la página */
@@ -1667,6 +1696,7 @@
         const extranjeros = document.getElementById('propExtranjeros').checked;
         const amueblado = document.getElementById('propAmueblado').checked;
         const premium = document.getElementById('propPremium').checked;
+        const negociable = document.getElementById('propNegociable').checked;
         const descripcion = document.getElementById('propDescripcion').value;
 
         document.getElementById('previewTitulo').textContent = titulo;
@@ -1708,6 +1738,7 @@
         document.getElementById('previewBadgeExtranjeros').style.display = extranjeros ? 'inline-flex' : 'none';
         document.getElementById('previewBadgeAmueblado').style.display = amueblado ? 'inline-flex' : 'none';
         document.getElementById('previewBadgePremium').style.display = premium ? 'inline-flex' : 'none';
+        document.getElementById('previewBadgeNegociable').style.display = negociable ? 'inline-flex' : 'none';
 
         const extrasSeleccionados = Array.from(document.querySelectorAll('.extra-checkbox:checked'));
         const contenedorChips = document.getElementById('previewExtrasChips');
@@ -1738,7 +1769,7 @@
 
       function inicializarVistaPreviaListeners() {
         const idsInputEvent = ['propTitulo', 'propPrecio', 'propHabitaciones', 'propBanos', 'propNivel', 'propParqueos', 'propDescripcion'];
-        const idsChangeEvent = ['propTipoPropiedad', 'propOperacion', 'propMoneda', 'propExtranjeros', 'propAmueblado', 'propPremium'];
+        const idsChangeEvent = ['propTipoPropiedad', 'propOperacion', 'propMoneda', 'propExtranjeros', 'propAmueblado', 'propPremium', 'propNegociable'];
 
         idsInputEvent.forEach(id => {
           const el = document.getElementById(id);
@@ -2146,6 +2177,7 @@
           document.getElementById('propExtranjeros').checked = !!editarObj.extranjeros;
           document.getElementById('propAmueblado').checked = !!editarObj.amueblado;
           document.getElementById('propPremium').checked = !!editarObj.premium;
+          document.getElementById('propNegociable').checked = !!editarObj.negociable;
 
           if (editarObj.extras && Array.isArray(editarObj.extras)) {
             document.querySelectorAll('.extra-checkbox').forEach(chk => {
@@ -2310,6 +2342,7 @@
             extranjeros: document.getElementById('propExtranjeros').checked,
             amueblado: document.getElementById('propAmueblado').checked,
             premium: document.getElementById('propPremium').checked,
+            negociable: document.getElementById('propNegociable').checked,
             extras: Array.from(document.querySelectorAll('.extra-checkbox:checked')).map(chk => chk.value),
             ubicacion: ubicacionCompleta,
             provincia, 
@@ -2572,6 +2605,7 @@
                 ${prop.extranjeros ? `<span class="badge-extranjeros">Extranjeros</span>` : ''}
                 ${prop.amueblado ? `<span class="badge-amueblado">🛋️ Amueblado</span>` : ''}
                 ${prop.premium ? `<span class="badge-premium">⭐ Premium</span>` : ''}
+                ${prop.negociable ? `<span class="badge-negociable">🤝 Negociable</span>` : ''}
                 ${publicadaPorAgente ? `<span class="badge-publicada-agente">🧑‍💼 Agente</span>` : `<span class="badge-publicada-empresa">🏢 Empresa</span>`}
                 <div class="carousel-track" id="track-${prop.id}" style="transform: translateX(0%);">
                   ${carouselImgsHtml}
