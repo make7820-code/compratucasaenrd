@@ -1028,6 +1028,7 @@
         <div class="section-category-title" id="tituloSeccionActual">
           <span>📋 Propiedades Activas</span>
         </div>
+        <div id="paginacionGestionWrapTop" class="pagination-controls-wrap"></div>
         <div id="listaPublicacionesGuardadas" class="publicaciones-grid">
           <!-- Se inyectarán dinámicamente -->
         </div>
@@ -2357,11 +2358,13 @@
       let listaFiltradaGestionActual = [];
       let esArchivadaGestionActual = false;
 
-      async function renderizarPublicaciones(filtro = '') {
+      async function renderizarPublicaciones(filtro = '', mantenerPagina = false) {
         const contenedor = document.getElementById('listaPublicacionesGuardadas');
         if(!contenedor) return;
 
-        paginaActualGestion = 1;
+        if (!mantenerPagina) {
+          paginaActualGestion = 1;
+        }
 
         try {
           contenedor.innerHTML = `<p style="color: var(--text-muted); text-align: center; grid-column: 1 / -1; padding: 40px;">Cargando propiedades desde Firebase...</p>`;
@@ -2395,6 +2398,14 @@
 
           esArchivadaGestionActual = mostrandoArchivadas;
           listaFiltradaGestionActual = listaPropiedades;
+
+          // Si tras borrar/archivar la página actual quedó fuera de rango
+          // (ej. era el único elemento de la última página), se ajusta al
+          // último valor válido en vez de reiniciar a la página 1.
+          const totalPaginasTrasCambio = Math.max(1, Math.ceil(listaPropiedades.length / ITEMS_POR_PAGINA_GESTION));
+          if (paginaActualGestion > totalPaginasTrasCambio) {
+            paginaActualGestion = totalPaginasTrasCambio;
+          }
 
           if (listaPropiedades.length === 0) {
             contenedor.innerHTML = `<p style="color: var(--text-muted); text-align: center; grid-column: 1 / -1; padding: 40px;">${mostrandoArchivadas ? 'No hay propiedades archivadas.' : 'No se encontraron propiedades publicadas.'}</p>`;
@@ -2437,22 +2448,24 @@
       }
 
       function renderizarControlesPaginacionGestion() {
-        let controles = document.getElementById('paginacionGestionWrap');
         const contenedorPadre = document.querySelector('.publicaciones-container');
+        let controlesAbajo = document.getElementById('paginacionGestionWrap');
+        const controlesArriba = document.getElementById('paginacionGestionWrapTop');
 
         const totalPaginas = Math.max(1, Math.ceil(listaFiltradaGestionActual.length / ITEMS_POR_PAGINA_GESTION));
         const hayPaginaSiguiente = paginaActualGestion < totalPaginas;
         const hayPaginaAnterior = paginaActualGestion > 1;
 
-        if (!controles) {
-          controles = document.createElement('div');
-          controles.id = 'paginacionGestionWrap';
-          controles.className = 'pagination-controls-wrap';
-          contenedorPadre.appendChild(controles);
+        if (!controlesAbajo) {
+          controlesAbajo = document.createElement('div');
+          controlesAbajo.id = 'paginacionGestionWrap';
+          controlesAbajo.className = 'pagination-controls-wrap';
+          contenedorPadre.appendChild(controlesAbajo);
         }
 
         if (listaFiltradaGestionActual.length <= ITEMS_POR_PAGINA_GESTION) {
-          controles.innerHTML = '';
+          controlesAbajo.innerHTML = '';
+          if (controlesArriba) controlesArriba.innerHTML = '';
           return;
         }
 
@@ -2462,19 +2475,23 @@
           return `<button type="button" class="pagination-number-btn ${n === paginaActualGestion ? 'active' : ''}" data-page="${n}">${n}</button>`;
         }).join('');
 
-        controles.innerHTML = `
-          <button type="button" class="pagination-edge-btn" id="btnPrimeraPaginaGestion" title="Primera página" ${!hayPaginaAnterior ? 'disabled' : ''}>⏮</button>
-          <button type="button" class="pagination-btn" id="btnPaginaAnteriorGestion" ${!hayPaginaAnterior ? 'disabled' : ''}>❮ Anterior</button>
+        const htmlControles = `
+          <button type="button" class="pagination-edge-btn" data-accion="primera" title="Primera página" ${!hayPaginaAnterior ? 'disabled' : ''}>⏮</button>
+          <button type="button" class="pagination-btn" data-accion="anterior" ${!hayPaginaAnterior ? 'disabled' : ''}>❮ Anterior</button>
           <div class="pagination-numbers">${numerosHtml}</div>
-          <button type="button" class="pagination-btn" id="btnPaginaSiguienteGestion" ${!hayPaginaSiguiente ? 'disabled' : ''}>Siguiente ❯</button>
-          <button type="button" class="pagination-edge-btn" id="btnUltimaPaginaGestion" title="Última página" ${!hayPaginaSiguiente ? 'disabled' : ''}>⏭</button>
+          <button type="button" class="pagination-btn" data-accion="siguiente" ${!hayPaginaSiguiente ? 'disabled' : ''}>Siguiente ❯</button>
+          <button type="button" class="pagination-edge-btn" data-accion="ultima" title="Última página" ${!hayPaginaSiguiente ? 'disabled' : ''}>⏭</button>
         `;
 
-        const irAPagina = (num) => {
+        controlesAbajo.innerHTML = htmlControles;
+        if (controlesArriba) controlesArriba.innerHTML = htmlControles;
+
+        const irAPagina = (num, hacerScroll) => {
           const totalPag = Math.max(1, Math.ceil(listaFiltradaGestionActual.length / ITEMS_POR_PAGINA_GESTION));
           if (num < 1 || num > totalPag || num === paginaActualGestion) return;
           paginaActualGestion = num;
           renderizarPaginaGestion();
+          if (!hacerScroll) return;
           /* Sube hasta el inicio del listado de gestión, descontando la altura
              del header solo si está fijo/pegado en pantalla (típico en móvil);
              en escritorio suele estar en el flujo normal y no debe descontarse */
@@ -2490,19 +2507,27 @@
           window.scrollTo({ top: posicionDestino, behavior: 'smooth' });
         };
 
-        const btnPrimera = document.getElementById('btnPrimeraPaginaGestion');
-        const btnUltima = document.getElementById('btnUltimaPaginaGestion');
-        const btnAnterior = document.getElementById('btnPaginaAnteriorGestion');
-        const btnSiguiente = document.getElementById('btnPaginaSiguienteGestion');
+        const vincularControles = (contenedorControles, hacerScroll) => {
+          if (!contenedorControles) return;
+          const btnPrimera = contenedorControles.querySelector('[data-accion="primera"]');
+          const btnUltima = contenedorControles.querySelector('[data-accion="ultima"]');
+          const btnAnterior = contenedorControles.querySelector('[data-accion="anterior"]');
+          const btnSiguiente = contenedorControles.querySelector('[data-accion="siguiente"]');
 
-        if (btnPrimera) btnPrimera.addEventListener('click', () => irAPagina(1));
-        if (btnUltima) btnUltima.addEventListener('click', () => irAPagina(totalPaginas));
-        if (btnAnterior) btnAnterior.addEventListener('click', () => irAPagina(paginaActualGestion - 1));
-        if (btnSiguiente) btnSiguiente.addEventListener('click', () => irAPagina(paginaActualGestion + 1));
+          if (btnPrimera) btnPrimera.addEventListener('click', () => irAPagina(1, hacerScroll));
+          if (btnUltima) btnUltima.addEventListener('click', () => irAPagina(totalPaginas, hacerScroll));
+          if (btnAnterior) btnAnterior.addEventListener('click', () => irAPagina(paginaActualGestion - 1, hacerScroll));
+          if (btnSiguiente) btnSiguiente.addEventListener('click', () => irAPagina(paginaActualGestion + 1, hacerScroll));
 
-        controles.querySelectorAll('.pagination-number-btn').forEach(btn => {
-          btn.addEventListener('click', () => irAPagina(parseInt(btn.dataset.page, 10)));
-        });
+          contenedorControles.querySelectorAll('.pagination-number-btn').forEach(btn => {
+            btn.addEventListener('click', () => irAPagina(parseInt(btn.dataset.page, 10), hacerScroll));
+          });
+        };
+
+        // El de abajo sube el scroll al cambiar de página; el de arriba ya está
+        // arriba, así que no hace falta desplazar la pantalla.
+        vincularControles(controlesAbajo, true);
+        vincularControles(controlesArriba, false);
       }
 
       function dibujarTarjetas(fuenteDatos, contenedor, esArchivada) {
@@ -2651,7 +2676,7 @@
           await updateDoc(doc(db, "propiedades", prop.id), { archivada: true });
 
           alert("¡Propiedad archivada correctamente!");
-          renderizarPublicaciones();
+          renderizarPublicaciones(obtenerFiltroActual(), true);
         } catch (error) {
           console.error("Error al archivar:", error);
           alert("Hubo un error al archivar la propiedad.");
@@ -2679,6 +2704,13 @@
         }
       }
 
+      // Devuelve el texto de búsqueda actual, para no perderlo al recargar
+      // la lista después de archivar/restaurar/borrar una propiedad.
+      function obtenerFiltroActual() {
+        const queryInput = document.getElementById('inputFiltroBusqueda');
+        return queryInput ? queryInput.value : '';
+      }
+
       window.desarchivarPublicacion = async function(id) {
         const prop = cachePropiedadesActuales[id];
         if (prop && !puedeGestionar(prop)) {
@@ -2689,7 +2721,7 @@
           await updateDoc(doc(db, "propiedades", id), { archivada: false });
 
           alert("¡Propiedad desarchivada y restaurada con éxito!");
-          renderizarPublicaciones();
+          renderizarPublicaciones(obtenerFiltroActual(), true);
         } catch (error) {
           console.error("Error al desarchivar:", error);
           alert("Hubo un error al desarchivar la propiedad.");
@@ -2706,7 +2738,7 @@
         try {
           await deleteDoc(doc(db, "propiedades", id));
           alert("¡Propiedad eliminada con éxito!");
-          renderizarPublicaciones();
+          renderizarPublicaciones(obtenerFiltroActual(), true);
         } catch (error) {
           console.error("Error al eliminar de Firebase:", error);
           alert("Hubo un error al eliminar la propiedad.");
@@ -2723,7 +2755,7 @@
         try {
           await deleteDoc(doc(db, "propiedades", id));
           alert("¡Propiedad eliminada permanentemente!");
-          renderizarPublicaciones();
+          renderizarPublicaciones(obtenerFiltroActual(), true);
         } catch (error) {
           console.error("Error al eliminar definitivamente:", error);
           alert("Hubo un error al eliminar la propiedad.");
