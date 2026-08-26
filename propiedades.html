@@ -553,6 +553,21 @@
         border-radius: 999px;
       }
 
+      .property-negociable-pill {
+        margin-top: 12px;
+        margin-left: 8px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(34, 197, 94, 0.1);
+        border: 1px solid #22c55e;
+        color: #22c55e;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 4px 10px;
+        border-radius: 999px;
+      }
+
       /* ===== Paginación (Cuadrícula 3x3) ===== */
       .pagination-controls-wrap {
         display: flex;
@@ -1434,6 +1449,9 @@
           const rawPremium = prop.premium;
           const esPremium = rawPremium === true || rawPremium === "true" || rawPremium === "si" || rawPremium === "sí" || rawPremium === 1 || rawPremium === "on";
 
+          const rawNegociable = prop.negociable;
+          const esNegociable = rawNegociable === true || rawNegociable === "true" || rawNegociable === "si" || rawNegociable === "sí" || rawNegociable === 1 || rawNegociable === "on";
+
           // Solo se cuentan como "fotos reales" las que el usuario subió. Si no hay
           // ninguna, se deja la lista vacía por ahora: más abajo se decide si el video
           // ocupa ese espacio (tarjeta más limpia) o si hay que usar la foto de relleno.
@@ -1527,12 +1545,14 @@
                  data-desc="${propDescLower}"
                  data-extranjeros="${aceptaExtranjero ? '1' : '0'}"
                  data-amueblado="${esAmueblado ? '1' : '0'}"
-                 data-premium="${esPremium ? '1' : '0'}">
+                 data-premium="${esPremium ? '1' : '0'}"
+                 data-negociable="${esNegociable ? '1' : '0'}">
               
               <div class="property-img-container" data-current-slide="0" data-total-slides="${totalSlidesTarjeta}">
                 <span class="property-badge-top" style="background: ${badgeBg}; ${propOffer === 'Alquiler' ? 'color:#1a1a1a;' : ''}">${propOffer}</span>
                 ${esAmueblado ? `<span class="property-badge-top" style="background: #8b5cf6; left: auto; top: 44px;">🛋️ Amueblado</span>` : ''}
                 ${esPremium ? `<span class="property-badge-top" style="background: linear-gradient(135deg, #fde047, #f59e0b); color: #1a1a1a; left: auto; top: ${esAmueblado ? '78px' : '44px'};">⭐ Premium</span>` : ''}
+                ${esNegociable ? `<span class="property-badge-top" style="background: #22c55e; left: auto; top: ${44 + (esAmueblado ? 34 : 0) + (esPremium ? 34 : 0)}px;">🤝 Negociable</span>` : ''}
                 
                 <div class="property-carousel-track">
                   ${slidesHtml}
@@ -1567,6 +1587,7 @@
                 </div>
                 ${aceptaExtranjero ? `<div class="property-extranjeros-pill">🌍 Acepta extranjeros</div>` : ''}
                 ${esAmueblado ? `<div class="property-amueblado-pill">🛋️ Amueblado</div>` : ''}
+                ${esNegociable ? `<div class="property-negociable-pill">🤝 Precio Negociable</div>` : ''}
               </div>
             </div>
           `;
