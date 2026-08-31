@@ -811,6 +811,13 @@
           const offer = selectedProperty.operacion || selectedProperty.offer || 'Venta';
           const isVenta = offer.toLowerCase() === 'venta';
           const badgeBg = isVenta ? '#10b981' : '#f59e0b';
+
+          // Etiqueta de tipo de propiedad (Apartamento, Villa, BNB, etc.), se muestra
+          // junto a la etiqueta de operación en la galería si el dato existe.
+          const tipoPropiedad = selectedProperty.tipo || selectedProperty.type || '';
+          const tipoBadgeHtml = tipoPropiedad
+            ? `<span class="property-tag-badge" style="background:#6366f1;">${tipoPropiedad}</span>`
+            : '';
           
           const title = selectedProperty.titulo || selectedProperty.title || selectedProperty.nombre || 'Sin título';
           const location = selectedProperty.ubicacion || selectedProperty.location || selectedProperty.direccion || 'República Dominicana';
@@ -1040,6 +1047,7 @@
               <div class="property-gallery${videoEnGaleriaPrincipal ? ' gallery-video-mode' : ''}" id="propertyGalleryBox">
                 <div style="position: absolute; top: 16px; left: 16px; z-index: 3; display: flex; gap: 8px; align-items: center;">
                   <span class="property-tag-badge" style="background: ${badgeBg};">${offer}</span>
+                  ${tipoBadgeHtml}
                 </div>
 
                 ${videoEnGaleriaPrincipal ? `
