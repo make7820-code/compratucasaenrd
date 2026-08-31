@@ -1120,6 +1120,7 @@
                 <option value="Terreno">Terreno</option>
                 <option value="Oficina">Oficina</option>
                 <option value="Nave Industrial">Nave Industrial</option>
+                <option value="BNB">BNB</option>
               </select>
             </div>
           </div>
@@ -2272,6 +2273,22 @@
         if(modal) modal.style.display = 'none';
       }
 
+      // Límite de publicaciones activas para el rol "agente" (gratuito/básico).
+      // El rol "agentepro" y los administradores no tienen límite.
+      const LIMITE_PROPIEDADES_AGENTE = 15;
+
+      // Cuenta cuántas propiedades ACTIVAS (no archivadas) tiene publicadas
+      // el usuario actual, consultando Firestore en tiempo real.
+      async function contarPropiedadesActivasDelUsuario() {
+        const consulta = query(collection(db, "propiedades"), where("creadoPorUid", "==", usuarioActualUid));
+        const snapshot = await getDocs(consulta);
+        let total = 0;
+        snapshot.forEach((docSnap) => {
+          if (!docSnap.data().archivada) total++;
+        });
+        return total;
+      }
+
       window.guardarPropiedad = async function(event) {
         event.preventDefault();
         const editId = document.getElementById('propEditId').value;
@@ -2282,6 +2299,22 @@
           const propOriginal = cachePropiedadesActuales[editId];
           if (propOriginal && propOriginal.creadoPorUid && propOriginal.creadoPorUid !== usuarioActualUid && !esModoAdmin) {
             alert("No tienes permiso para modificar esta propiedad. Solo el agente que la publicó o un administrador pueden editarla.");
+            return;
+          }
+        }
+
+        // Límite de publicaciones: el rol "agente" solo puede tener un máximo de
+        // LIMITE_PROPIEDADES_AGENTE propiedades activas. "agentepro" y admin/superadmin son ilimitados.
+        if (!editId && rolUsuarioActual === 'agente') {
+          try {
+            const totalActivas = await contarPropiedadesActivasDelUsuario();
+            if (totalActivas >= LIMITE_PROPIEDADES_AGENTE) {
+              alert(`Has alcanzado el límite de ${LIMITE_PROPIEDADES_AGENTE} propiedades publicadas para el plan Agente. Archiva o elimina alguna publicación, o actualiza a Agente Pro para publicar sin límite.`);
+              return;
+            }
+          } catch (error) {
+            console.error("Error al verificar el límite de propiedades:", error);
+            alert("No se pudo verificar tu límite de propiedades. Inténtalo de nuevo.");
             return;
           }
         }
