@@ -876,6 +876,94 @@
         border-radius: 8px;
         white-space: nowrap;
       }
+
+      /* ===== Barra de selección múltiple para borrado masivo ===== */
+      .bulk-select-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 12px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--card-border);
+        border-radius: 14px;
+        padding: 12px 18px;
+      }
+      body.light-mode .bulk-select-bar { background: rgba(0,0,0,0.02); }
+      .bulk-select-left {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .bulk-select-toggle {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        user-select: none;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-main);
+      }
+      .bulk-select-toggle input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        accent-color: #f59e0b;
+        cursor: pointer;
+        margin: 0;
+      }
+      .bulk-select-count {
+        font-size: 13px;
+        color: var(--text-muted);
+        border-left: 1px solid var(--card-border);
+        padding-left: 12px;
+      }
+      .bulk-select-count strong { color: var(--text-main); }
+      .btn-bulk-delete {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(239, 68, 68, 0.12);
+        color: #ef4444;
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        padding: 9px 18px;
+        border-radius: 10px;
+        font-weight: 700;
+        font-size: 13px;
+        cursor: pointer;
+        transition: background 0.2s, opacity 0.2s;
+        white-space: nowrap;
+      }
+      .btn-bulk-delete:hover:not(:disabled) {
+        background: rgba(239, 68, 68, 0.22);
+      }
+      .btn-bulk-delete:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+      }
+
+      /* Checkbox de selección sobre cada tarjeta */
+      .card-select-checkbox-wrap {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        z-index: 5;
+        background: rgba(0, 0, 0, 0.55);
+        backdrop-filter: blur(2px);
+        border-radius: 8px;
+        padding: 5px;
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+      }
+      .card-select-checkbox-wrap input[type="checkbox"] {
+        width: 19px;
+        height: 19px;
+        accent-color: #f59e0b;
+        cursor: pointer;
+        margin: 0;
+        display: block;
+      }
       .publish-submit-btn {
         background: #f59e0b;
         color: #111827;
@@ -1119,15 +1207,16 @@
       </div>
 
       <!-- Barra de selección múltiple para borrado masivo -->
-      <div class="dashboard-toolbar" id="toolbarSeleccionMasiva" style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
-        <button type="button" class="btn-view-archived" onclick="seleccionarTodasPropiedades()" id="btnSeleccionarTodas">
-          <span>☑️</span> Seleccionar todas
-        </button>
-        <button type="button" class="btn-view-archived" onclick="deseleccionarTodasPropiedades()">
-          <span>⬜</span> Quitar selección
-        </button>
-        <button type="button" class="action-btn delete" onclick="borrarSeleccionadas()" id="btnBorrarSeleccionadas" style="opacity:0.5;" disabled>
-          <span>🗑️</span> Borrar seleccionadas (<span id="contadorSeleccionadas">0</span>)
+      <div class="bulk-select-bar" id="toolbarSeleccionMasiva">
+        <div class="bulk-select-left">
+          <label class="bulk-select-toggle">
+            <input type="checkbox" id="checkboxSeleccionarTodas" onchange="alternarSeleccionarTodas(this)">
+            Seleccionar todo
+          </label>
+          <span class="bulk-select-count"><strong id="contadorSeleccionadas">0</strong> seleccionada(s)</span>
+        </div>
+        <button type="button" class="btn-bulk-delete" onclick="borrarSeleccionadas()" id="btnBorrarSeleccionadas" disabled>
+          🗑️ Borrar seleccionadas
         </button>
       </div>
 
@@ -2793,8 +2882,8 @@
           html += `
             <div class="propiedad-card-pro ${claseCreador}" id="card-${prop.id}">
               ${puedeGestionar(prop) ? `
-                <label style="position:absolute; top:8px; left:8px; z-index:5; background:rgba(0,0,0,0.6); border-radius:6px; padding:4px 6px; display:flex; align-items:center; cursor:pointer;">
-                  <input type="checkbox" class="checkbox-seleccion-propiedad" data-id="${prop.id}" onchange="actualizarContadorSeleccionadas()" style="width:18px; height:18px; cursor:pointer; margin:0;">
+                <label class="card-select-checkbox-wrap">
+                  <input type="checkbox" class="checkbox-seleccion-propiedad" data-id="${prop.id}" onchange="actualizarContadorSeleccionadas()">
                 </label>
               ` : ''}
               <div class="card-carousel-wrapper" id="track-wrapper-${prop.id}">
@@ -2868,19 +2957,19 @@
         const contador = document.getElementById('contadorSeleccionadas');
         const btnBorrar = document.getElementById('btnBorrarSeleccionadas');
         if (contador) contador.textContent = marcados.length;
-        if (btnBorrar) {
-          btnBorrar.disabled = marcados.length === 0;
-          btnBorrar.style.opacity = marcados.length === 0 ? '0.5' : '1';
+        if (btnBorrar) btnBorrar.disabled = marcados.length === 0;
+
+        // Mantiene sincronizado el checkbox "Seleccionar todo" con el estado real
+        const checkboxTodas = document.getElementById('checkboxSeleccionarTodas');
+        const total = document.querySelectorAll('.checkbox-seleccion-propiedad').length;
+        if (checkboxTodas) {
+          checkboxTodas.checked = total > 0 && marcados.length === total;
+          checkboxTodas.indeterminate = marcados.length > 0 && marcados.length < total;
         }
       }
 
-      window.seleccionarTodasPropiedades = function() {
-        document.querySelectorAll('.checkbox-seleccion-propiedad').forEach(cb => { cb.checked = true; });
-        actualizarContadorSeleccionadas();
-      }
-
-      window.deseleccionarTodasPropiedades = function() {
-        document.querySelectorAll('.checkbox-seleccion-propiedad').forEach(cb => { cb.checked = false; });
+      window.alternarSeleccionarTodas = function(checkboxOrigen) {
+        document.querySelectorAll('.checkbox-seleccion-propiedad').forEach(cb => { cb.checked = checkboxOrigen.checked; });
         actualizarContadorSeleccionadas();
       }
 
