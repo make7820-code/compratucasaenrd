@@ -1047,6 +1047,83 @@
     </script>
 </head>
 <body>
+    <!-- ================= TRADUCTOR DE PÁGINA (Google Translate oculto) ================= -->
+    <div id="google_translate_element" style="display:none;"></div>
+    <style>
+      /* Oculta la barra superior por defecto de Google Translate y evita que empuje el contenido */
+      .goog-te-banner-frame.skiptranslate { display: none !important; }
+      body { top: 0px !important; }
+      .goog-tooltip, .goog-tooltip:hover { display: none !important; }
+      .goog-text-highlight { background: none !important; box-shadow: none !important; }
+
+      /* Selector de idioma con banderitas */
+      .lang-switcher {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-right: 6px;
+      }
+      .lang-flag {
+        font-size: 20px;
+        line-height: 1;
+        cursor: pointer;
+        background: none;
+        border: none;
+        padding: 4px;
+        border-radius: 8px;
+        opacity: 0.55;
+        transition: opacity 0.2s, background-color 0.2s, transform 0.15s;
+      }
+      .lang-flag:hover {
+        opacity: 0.9;
+        transform: translateY(-1px);
+      }
+      .lang-flag.active {
+        opacity: 1;
+        background: var(--bg-input, rgba(255,255,255,0.1));
+      }
+    </style>
+    <script>
+      // Inicializa Google Translate con inglés, español y criollo haitiano
+      function googleTranslateElementInit() {
+        new google.translate.TranslateElement(
+          { pageLanguage: 'es', includedLanguages: 'en,es,ht', autoDisplay: false },
+          'google_translate_element'
+        );
+        // Si el usuario ya había elegido un idioma antes, lo vuelve a aplicar
+        const idiomaGuardado = localStorage.getItem('idiomaSitio');
+        if (idiomaGuardado && idiomaGuardado !== 'es') {
+          cambiarIdiomaPagina(idiomaGuardado, false);
+        } else {
+          marcarBanderaActiva('es');
+        }
+      }
+
+      // Busca el <select> interno que crea Google Translate y le cambia el valor
+      function cambiarIdiomaPagina(lang, guardar = true) {
+        let intentos = 0;
+        const intervalo = setInterval(() => {
+          const combo = document.querySelector('.goog-te-combo');
+          intentos++;
+          if (combo) {
+            combo.value = lang;
+            combo.dispatchEvent(new Event('change'));
+            clearInterval(intervalo);
+            marcarBanderaActiva(lang);
+            if (guardar) localStorage.setItem('idiomaSitio', lang);
+          } else if (intentos > 30) {
+            clearInterval(intervalo);
+          }
+        }, 200);
+      }
+
+      function marcarBanderaActiva(lang) {
+        document.querySelectorAll('.lang-flag').forEach(btn => {
+          btn.classList.toggle('active', btn.getAttribute('data-lang') === lang);
+        });
+      }
+    </script>
+    <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 
     <!-- ================= HEADER ================= -->
     <header class="site-header">
@@ -1067,6 +1144,13 @@
 
         <!-- CONTENEDOR DE SESIÓN / PERFIL + CAMPANITA -->
         <div class="header-right">
+          <!-- Selector de idioma (banderitas) -->
+          <div class="lang-switcher" id="langSwitcher" translate="no">
+            <button type="button" class="lang-flag active" data-lang="es" title="Español" onclick="cambiarIdiomaPagina('es')">🇪🇸</button>
+            <button type="button" class="lang-flag" data-lang="en" title="English" onclick="cambiarIdiomaPagina('en')">🇺🇸</button>
+            <button type="button" class="lang-flag" data-lang="ht" title="Kreyòl Ayisyen" onclick="cambiarIdiomaPagina('ht')">🇭🇹</button>
+          </div>
+
           <div id="authContainer">
             <a href="login.html" class="login-btn">
               <span>🔐</span> <span>Iniciar sesión</span>
@@ -1090,6 +1174,13 @@
         <a href="blog.html" class="mobile-nav-link"><span class="nav-emoji">📰</span> Blog</a>
         <a href="nosotros.html" class="mobile-nav-link"><span class="nav-emoji">ℹ️</span> Nosotros</a>
         <a href="vender.html" class="mobile-nav-link"><span class="nav-emoji">🤝</span> Vender</a>
+
+        <!-- Selector de idioma (banderitas) - versión móvil -->
+        <div class="lang-switcher" id="langSwitcherMobile" translate="no" style="justify-content: center; margin: 12px 0;">
+          <button type="button" class="lang-flag active" data-lang="es" title="Español" onclick="cambiarIdiomaPagina('es')">🇪🇸</button>
+          <button type="button" class="lang-flag" data-lang="en" title="English" onclick="cambiarIdiomaPagina('en')">🇺🇸</button>
+          <button type="button" class="lang-flag" data-lang="ht" title="Kreyòl Ayisyen" onclick="cambiarIdiomaPagina('ht')">🇭🇹</button>
+        </div>
       </nav>
     </header>
 
