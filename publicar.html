@@ -155,6 +155,7 @@
         overflow: hidden;
         display: flex;
         flex-direction: column;
+        position: relative;
         transition: transform 0.25s ease, box-shadow 0.25s ease;
       }
       .propiedad-card-pro:hover {
@@ -1047,6 +1048,19 @@
         </div>
       </div>
 
+      <!-- Barra de selección múltiple para borrado masivo -->
+      <div class="dashboard-toolbar" id="toolbarSeleccionMasiva" style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+        <button type="button" class="btn-view-archived" onclick="seleccionarTodasPropiedades()" id="btnSeleccionarTodas">
+          <span>☑️</span> Seleccionar todas
+        </button>
+        <button type="button" class="btn-view-archived" onclick="deseleccionarTodasPropiedades()">
+          <span>⬜</span> Quitar selección
+        </button>
+        <button type="button" class="action-btn delete" onclick="borrarSeleccionadas()" id="btnBorrarSeleccionadas" style="opacity:0.5;" disabled>
+          <span>🗑️</span> Borrar seleccionadas (<span id="contadorSeleccionadas">0</span>)
+        </button>
+      </div>
+
       <!-- Cuadrícula de Propiedades Recientes / Archivadas -->
       <div class="publicaciones-container">
         <div class="section-category-title" id="tituloSeccionActual">
@@ -1398,8 +1412,31 @@
       import { 
         ref as storageRefFn, 
         uploadBytes, 
-        getDownloadURL 
+        getDownloadURL,
+        deleteObject
       } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
+
+      // Borra de Firebase Storage todas las fotos y el video de una propiedad,
+      // a partir de sus URLs guardadas en Firestore (prop.imagenes y prop.videoArchivo).
+      // Se usa antes de eliminar el documento para no dejar archivos huérfanos
+      // que sigan generando costo en Cloud Storage.
+      async function borrarArchivosDeStorage(prop) {
+        const urls = [];
+        if (prop && Array.isArray(prop.imagenes)) urls.push(...prop.imagenes);
+        if (prop && prop.videoArchivo) urls.push(prop.videoArchivo);
+
+        for (const url of urls) {
+          if (!url) continue;
+          try {
+            const archivoRef = storageRefFn(storage, url);
+            await deleteObject(archivoRef);
+          } catch (error) {
+            // Si el archivo ya no existe o la URL no es de nuestro Storage,
+            // no interrumpimos el borrado del resto.
+            console.warn("No se pudo borrar un archivo de Storage:", url, error);
+          }
+        }
+      }
 
       let mostrandoArchivadas = false;
       let imagenesEditandoActuales = []; 
@@ -2500,6 +2537,7 @@
 
         dibujarTarjetas(pagina, contenedor, esArchivadaGestionActual);
         renderizarControlesPaginacionGestion();
+        if (typeof actualizarContadorSeleccionadas === 'function') actualizarContadorSeleccionadas();
       }
 
       function generarNumerosPaginaGestion(paginaActual, totalPaginas) {
@@ -2632,6 +2670,11 @@
 
           html += `
             <div class="propiedad-card-pro ${claseCreador}" id="card-${prop.id}">
+              ${puedeGestionar(prop) ? `
+                <label style="position:absolute; top:8px; left:8px; z-index:5; background:rgba(0,0,0,0.6); border-radius:6px; padding:4px 6px; display:flex; align-items:center; cursor:pointer;">
+                  <input type="checkbox" class="checkbox-seleccion-propiedad" data-id="${prop.id}" onchange="actualizarContadorSeleccionadas()" style="width:18px; height:18px; cursor:pointer; margin:0;">
+                </label>
+              ` : ''}
               <div class="card-carousel-wrapper" id="track-wrapper-${prop.id}">
                 <span class="badge-operacion ${claseOperacion}">${prop.operacion || 'Venta'}</span>
                 <span class="badge-tipo-propiedad">${prop.tipo || 'Casa'}</span>
@@ -2695,6 +2738,67 @@
         if (esModoAdmin) return true;
         if (!prop.creadoPorUid) return true; // publicaciones antiguas sin dueño asignado
         return prop.creadoPorUid === usuarioActualUid;
+      }
+
+      // ===== Selección múltiple para borrado masivo =====
+      window.actualizarContadorSeleccionadas = function() {
+        const marcados = document.querySelectorAll('.checkbox-seleccion-propiedad:checked');
+        const contador = document.getElementById('contadorSeleccionadas');
+        const btnBorrar = document.getElementById('btnBorrarSeleccionadas');
+        if (contador) contador.textContent = marcados.length;
+        if (btnBorrar) {
+          btnBorrar.disabled = marcados.length === 0;
+          btnBorrar.style.opacity = marcados.length === 0 ? '0.5' : '1';
+        }
+      }
+
+      window.seleccionarTodasPropiedades = function() {
+        document.querySelectorAll('.checkbox-seleccion-propiedad').forEach(cb => { cb.checked = true; });
+        actualizarContadorSeleccionadas();
+      }
+
+      window.deseleccionarTodasPropiedades = function() {
+        document.querySelectorAll('.checkbox-seleccion-propiedad').forEach(cb => { cb.checked = false; });
+        actualizarContadorSeleccionadas();
+      }
+
+      window.borrarSeleccionadas = async function() {
+        const marcados = Array.from(document.querySelectorAll('.checkbox-seleccion-propiedad:checked'));
+        if (marcados.length === 0) return;
+
+        const ids = marcados.map(cb => cb.getAttribute('data-id'));
+
+        // Verifica permisos antes de borrar nada
+        const sinPermiso = ids.some(id => {
+          const prop = cachePropiedadesActuales[id];
+          return prop && !puedeGestionar(prop);
+        });
+        if (sinPermiso) {
+          alert("No tienes permiso para borrar una o más de las propiedades seleccionadas.");
+          return;
+        }
+
+        if (!confirm(`¿Estás seguro de eliminar permanentemente ${ids.length} propiedad(es) seleccionada(s)? Esto también borrará sus fotos y videos.`)) return;
+
+        const btnBorrar = document.getElementById('btnBorrarSeleccionadas');
+        if (btnBorrar) { btnBorrar.disabled = true; btnBorrar.textContent = 'Borrando...'; }
+
+        let exitos = 0;
+        let fallos = 0;
+        for (const id of ids) {
+          try {
+            const prop = cachePropiedadesActuales[id];
+            await borrarArchivosDeStorage(prop);
+            await deleteDoc(doc(db, "propiedades", id));
+            exitos++;
+          } catch (error) {
+            console.error("Error al borrar la propiedad", id, error);
+            fallos++;
+          }
+        }
+
+        alert(`Listo: ${exitos} propiedad(es) borradas correctamente${fallos > 0 ? `, ${fallos} fallaron` : ''}.`);
+        renderizarPublicaciones(obtenerFiltroActual(), true);
       }
 
       window.editarPublicacionPorId = function(id) {
@@ -2806,6 +2910,7 @@
         }
         if (!confirm("¿Estás seguro de eliminar permanentemente esta propiedad de la base de datos?")) return;
         try {
+          await borrarArchivosDeStorage(prop);
           await deleteDoc(doc(db, "propiedades", id));
           alert("¡Propiedad eliminada con éxito!");
           renderizarPublicaciones(obtenerFiltroActual(), true);
@@ -2823,6 +2928,7 @@
         }
         if (!confirm("¿Estás seguro de eliminar permanentemente esta propiedad archivada?")) return;
         try {
+          await borrarArchivosDeStorage(prop);
           await deleteDoc(doc(db, "propiedades", id));
           alert("¡Propiedad eliminada permanentemente!");
           renderizarPublicaciones(obtenerFiltroActual(), true);
