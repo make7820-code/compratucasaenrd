@@ -877,72 +877,7 @@
         white-space: nowrap;
       }
 
-      /* ===== Barra de selección múltiple para borrado masivo ===== */
-      .bulk-select-bar {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        flex-wrap: wrap;
-        gap: 12px;
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid var(--card-border);
-        border-radius: 14px;
-        padding: 12px 18px;
-      }
-      body.light-mode .bulk-select-bar { background: rgba(0,0,0,0.02); }
-      .bulk-select-left {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-      }
-      .bulk-select-toggle {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        cursor: pointer;
-        user-select: none;
-        font-size: 14px;
-        font-weight: 600;
-        color: var(--text-main);
-      }
-      .bulk-select-toggle input[type="checkbox"] {
-        width: 18px;
-        height: 18px;
-        accent-color: #f59e0b;
-        cursor: pointer;
-        margin: 0;
-      }
-      .bulk-select-count {
-        font-size: 13px;
-        color: var(--text-muted);
-        border-left: 1px solid var(--card-border);
-        padding-left: 12px;
-      }
-      .bulk-select-count strong { color: var(--text-main); }
-      .btn-bulk-delete {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        background: rgba(239, 68, 68, 0.12);
-        color: #ef4444;
-        border: 1px solid rgba(239, 68, 68, 0.3);
-        padding: 9px 18px;
-        border-radius: 10px;
-        font-weight: 700;
-        font-size: 13px;
-        cursor: pointer;
-        transition: background 0.2s, opacity 0.2s;
-        white-space: nowrap;
-      }
-      .btn-bulk-delete:hover:not(:disabled) {
-        background: rgba(239, 68, 68, 0.22);
-      }
-      .btn-bulk-delete:disabled {
-        opacity: 0.4;
-        cursor: not-allowed;
-      }
-
-      /* Checkbox de selección sobre cada tarjeta */
+      /* Checkbox de selección sobre cada tarjeta: solo visible en modo selección */
       .card-select-checkbox-wrap {
         position: absolute;
         top: 10px;
@@ -952,10 +887,11 @@
         backdrop-filter: blur(2px);
         border-radius: 8px;
         padding: 5px;
-        display: flex;
+        display: none;
         align-items: center;
         cursor: pointer;
       }
+      body.modo-seleccion-activo .card-select-checkbox-wrap { display: flex; }
       .card-select-checkbox-wrap input[type="checkbox"] {
         width: 19px;
         height: 19px;
@@ -963,6 +899,64 @@
         cursor: pointer;
         margin: 0;
         display: block;
+      }
+
+      /* Controles de selección masiva integrados en la fila de botones superior */
+      #controlesSeleccionMasiva {
+        display: none;
+        align-items: center;
+        gap: 14px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--card-border);
+        border-radius: 999px;
+        padding: 8px 10px 8px 18px;
+      }
+      body.modo-seleccion-activo #controlesSeleccionMasiva { display: inline-flex; }
+      .bulk-select-toggle {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        user-select: none;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-main);
+        white-space: nowrap;
+      }
+      .bulk-select-toggle input[type="checkbox"] {
+        width: 17px;
+        height: 17px;
+        accent-color: #f59e0b;
+        cursor: pointer;
+        margin: 0;
+      }
+      .bulk-select-count {
+        font-size: 13px;
+        color: var(--text-muted);
+        white-space: nowrap;
+      }
+      .bulk-select-count strong { color: var(--text-main); }
+      .btn-bulk-delete {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(239, 68, 68, 0.15);
+        color: #ef4444;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 999px;
+        font-weight: 700;
+        font-size: 13px;
+        cursor: pointer;
+        transition: background 0.2s, opacity 0.2s;
+        white-space: nowrap;
+      }
+      .btn-bulk-delete:hover:not(:disabled) {
+        background: rgba(239, 68, 68, 0.28);
+      }
+      .btn-bulk-delete:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
       }
       .publish-submit-btn {
         background: #f59e0b;
@@ -1195,6 +1189,19 @@
           <button type="button" class="btn-view-archived" onclick="descargarPdfPropiedades()" id="btnDescargarPdf">
             <span>📄</span> Descargar PDF
           </button>
+          <button type="button" class="btn-view-archived" onclick="alternarModoSeleccion()" id="btnToggleSeleccion">
+            <span>☑️</span> Seleccionar
+          </button>
+          <div id="controlesSeleccionMasiva">
+            <label class="bulk-select-toggle">
+              <input type="checkbox" id="checkboxSeleccionarTodas" onchange="alternarSeleccionarTodas(this)">
+              Todo
+            </label>
+            <span class="bulk-select-count"><strong id="contadorSeleccionadas">0</strong> seleccionada(s)</span>
+            <button type="button" class="btn-bulk-delete" onclick="borrarSeleccionadas()" id="btnBorrarSeleccionadas" disabled>
+              🗑️ Borrar
+            </button>
+          </div>
         </div>
       </div>
 
@@ -1204,20 +1211,6 @@
           <span class="search-icon-pos">🔍</span>
           <input type="text" id="inputFiltroBusqueda" placeholder="Buscar por título, ubicación o agente..." oninput="filtrarPropiedades()">
         </div>
-      </div>
-
-      <!-- Barra de selección múltiple para borrado masivo -->
-      <div class="bulk-select-bar" id="toolbarSeleccionMasiva">
-        <div class="bulk-select-left">
-          <label class="bulk-select-toggle">
-            <input type="checkbox" id="checkboxSeleccionarTodas" onchange="alternarSeleccionarTodas(this)">
-            Seleccionar todo
-          </label>
-          <span class="bulk-select-count"><strong id="contadorSeleccionadas">0</strong> seleccionada(s)</span>
-        </div>
-        <button type="button" class="btn-bulk-delete" onclick="borrarSeleccionadas()" id="btnBorrarSeleccionadas" disabled>
-          🗑️ Borrar seleccionadas
-        </button>
       </div>
 
       <!-- Cuadrícula de Propiedades Recientes / Archivadas -->
@@ -2952,6 +2945,19 @@
       }
 
       // ===== Selección múltiple para borrado masivo =====
+      window.alternarModoSeleccion = function() {
+        const activo = document.body.classList.toggle('modo-seleccion-activo');
+        const btn = document.getElementById('btnToggleSeleccion');
+        if (btn) btn.innerHTML = activo ? '<span>✕</span> Cancelar' : '<span>☑️</span> Seleccionar';
+        if (!activo) {
+          // Al salir del modo selección, desmarca todo para la próxima vez
+          document.querySelectorAll('.checkbox-seleccion-propiedad').forEach(cb => { cb.checked = false; });
+          const checkboxTodas = document.getElementById('checkboxSeleccionarTodas');
+          if (checkboxTodas) { checkboxTodas.checked = false; checkboxTodas.indeterminate = false; }
+          actualizarContadorSeleccionadas();
+        }
+      }
+
       window.actualizarContadorSeleccionadas = function() {
         const marcados = document.querySelectorAll('.checkbox-seleccion-propiedad:checked');
         const contador = document.getElementById('contadorSeleccionadas');
