@@ -682,6 +682,89 @@
 </head>
 <body>
 
+    <!-- ================= TRADUCTOR DE PÁGINA (Google Translate oculto) ================= -->
+    <div id="google_translate_element" style="display:none;"></div>
+    <style>
+      /* Oculta la barra superior por defecto de Google Translate */
+      .goog-te-banner-frame.skiptranslate { display: none !important; }
+      body { top: 0px !important; }
+      .goog-tooltip, .goog-tooltip:hover { display: none !important; }
+      .goog-text-highlight { background: none !important; box-shadow: none !important; }
+
+      /* Selector de idioma con banderitas */
+      .lang-switcher {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .lang-flag {
+        width: 26px;
+        height: 26px;
+        line-height: 1;
+        cursor: pointer;
+        background: none;
+        border: none;
+        padding: 0;
+        border-radius: 50%;
+        opacity: 0.55;
+        overflow: hidden;
+        transition: opacity 0.2s, box-shadow 0.2s, transform 0.15s;
+      }
+      .lang-flag img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 50%;
+        display: block;
+      }
+      .lang-flag:hover {
+        opacity: 0.9;
+        transform: translateY(-1px);
+      }
+      .lang-flag.active {
+        opacity: 1;
+        box-shadow: 0 0 0 2px #ef4444;
+      }
+    </style>
+    <script>
+      function googleTranslateElementInit() {
+        new google.translate.TranslateElement(
+          { pageLanguage: 'es', includedLanguages: 'en,es,ht', autoDisplay: false },
+          'google_translate_element'
+        );
+        const idiomaGuardado = localStorage.getItem('idiomaSitio');
+        if (idiomaGuardado && idiomaGuardado !== 'es') {
+          cambiarIdiomaPagina(idiomaGuardado, false);
+        } else {
+          marcarBanderaActiva('es');
+        }
+      }
+
+      function cambiarIdiomaPagina(lang, guardar = true) {
+        let intentos = 0;
+        const intervalo = setInterval(() => {
+          const combo = document.querySelector('.goog-te-combo');
+          intentos++;
+          if (combo) {
+            combo.value = lang;
+            combo.dispatchEvent(new Event('change'));
+            clearInterval(intervalo);
+            marcarBanderaActiva(lang);
+            if (guardar) localStorage.setItem('idiomaSitio', lang);
+          } else if (intentos > 30) {
+            clearInterval(intervalo);
+          }
+        }, 200);
+      }
+
+      function marcarBanderaActiva(lang) {
+        document.querySelectorAll('.lang-flag').forEach(btn => {
+          btn.classList.toggle('active', btn.getAttribute('data-lang') === lang);
+        });
+      }
+    </script>
+    <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
     <!-- ================= CABECERA ================= -->
     <header class="site-header">
       <div class="header-inner">
@@ -694,6 +777,13 @@
         </div>
 
         <div class="header-actions">
+          <!-- Selector de idioma (banderitas) -->
+          <div class="lang-switcher" id="langSwitcher" translate="no">
+            <button type="button" class="lang-flag active" data-lang="es" title="Español" onclick="cambiarIdiomaPagina('es')"><img src="assets/DO.png" alt="Español"></button>
+            <button type="button" class="lang-flag" data-lang="en" title="English" onclick="cambiarIdiomaPagina('en')"><img src="assets/estados-unidos.png" alt="English"></button>
+            <button type="button" class="lang-flag" data-lang="ht" title="Kreyòl Ayisyen" onclick="cambiarIdiomaPagina('ht')"><img src="assets/haiti.png" alt="Kreyòl"></button>
+          </div>
+
           <button onclick="history.back()" class="btn-volver-rojo">
             ← Volver
           </button>
