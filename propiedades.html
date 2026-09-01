@@ -1106,20 +1106,37 @@
       }
 
       function cambiarIdiomaPagina(lang, guardar = true) {
+        if (guardar) localStorage.setItem('idiomaSitio', lang);
         let intentos = 0;
         const intervalo = setInterval(() => {
           const combo = document.querySelector('.goog-te-combo');
           intentos++;
           if (combo) {
             combo.value = lang;
-            combo.dispatchEvent(new Event('change'));
+            combo.dispatchEvent(new Event('change', { bubbles: true }));
             clearInterval(intervalo);
             marcarBanderaActiva(lang);
-            if (guardar) localStorage.setItem('idiomaSitio', lang);
-          } else if (intentos > 30) {
+          } else if (intentos > 15) {
             clearInterval(intervalo);
+            /* Respaldo para Safari/iOS: cuando el widget de Google Translate
+               no carga el combo (bloqueado por ITP u otras restricciones),
+               se usa la cookie googtrans + recarga, que es el método que
+               sí funciona de forma consistente en iPhone. */
+            aplicarTraduccionPorCookie(lang);
           }
         }, 200);
+      }
+
+      function aplicarTraduccionPorCookie(lang) {
+        const host = location.hostname;
+        if (lang === 'es') {
+          document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+          document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=' + host + ';';
+        } else {
+          document.cookie = 'googtrans=/es/' + lang + '; path=/;';
+          document.cookie = 'googtrans=/es/' + lang + '; path=/; domain=' + host + ';';
+        }
+        location.reload();
       }
 
       function marcarBanderaActiva(lang) {
