@@ -1398,8 +1398,31 @@
       import { 
         ref as storageRefFn, 
         uploadBytes, 
-        getDownloadURL 
+        getDownloadURL,
+        deleteObject
       } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
+
+      // Borra de Firebase Storage todas las fotos y el video de una propiedad,
+      // a partir de sus URLs guardadas en Firestore (prop.imagenes y prop.videoArchivo).
+      // Se usa antes de eliminar el documento para no dejar archivos huérfanos
+      // que sigan generando costo en Cloud Storage.
+      async function borrarArchivosDeStorage(prop) {
+        const urls = [];
+        if (prop && Array.isArray(prop.imagenes)) urls.push(...prop.imagenes);
+        if (prop && prop.videoArchivo) urls.push(prop.videoArchivo);
+
+        for (const url of urls) {
+          if (!url) continue;
+          try {
+            const archivoRef = storageRefFn(storage, url);
+            await deleteObject(archivoRef);
+          } catch (error) {
+            // Si el archivo ya no existe o la URL no es de nuestro Storage,
+            // no interrumpimos el borrado del resto.
+            console.warn("No se pudo borrar un archivo de Storage:", url, error);
+          }
+        }
+      }
 
       let mostrandoArchivadas = false;
       let imagenesEditandoActuales = []; 
@@ -2806,6 +2829,7 @@
         }
         if (!confirm("¿Estás seguro de eliminar permanentemente esta propiedad de la base de datos?")) return;
         try {
+          await borrarArchivosDeStorage(prop);
           await deleteDoc(doc(db, "propiedades", id));
           alert("¡Propiedad eliminada con éxito!");
           renderizarPublicaciones(obtenerFiltroActual(), true);
@@ -2823,6 +2847,7 @@
         }
         if (!confirm("¿Estás seguro de eliminar permanentemente esta propiedad archivada?")) return;
         try {
+          await borrarArchivosDeStorage(prop);
           await deleteDoc(doc(db, "propiedades", id));
           alert("¡Propiedad eliminada permanentemente!");
           renderizarPublicaciones(obtenerFiltroActual(), true);
