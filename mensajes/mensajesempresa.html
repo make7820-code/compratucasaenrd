@@ -337,18 +337,27 @@
         background: var(--accent-red);
         color: #fff;
         border: none;
-        width: 32px;
-        height: 32px;
+        width: 34px;
+        height: 34px;
+        min-width: 34px;
         border-radius: 10px;
-        font-size: 18px;
+        font-size: 20px;
         font-weight: 700;
         cursor: pointer;
         flex-shrink: 0;
         line-height: 1;
-        transition: background 0.2s;
+        padding: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s, transform 0.15s;
       }
       .btn-nueva-conv-interna:hover {
         background: #dc2626;
+        transform: translateY(-1px);
+      }
+      .btn-nueva-conv-interna:active {
+        transform: translateY(0);
       }
 
       /* Modal para elegir con qué agente/admin iniciar una conversación interna */
