@@ -753,6 +753,19 @@
 
       const ALLOWED_ROLES = ["agente", "agentepro", "admin", "superadmin"];
 
+      // Mismos colores por rol que se usan en perfil.html, para que el nombre
+      // de cada agente/admin se vea siempre con el color de su rol.
+      const COLORES_ROL = {
+        cliente: '#9ca3af',
+        agente: '#22c55e',
+        agentepro: '#3b82f6',
+        admin: '#a855f7',
+        superadmin: '#eab308'
+      };
+      function colorPorRol(rol) {
+        return COLORES_ROL[(rol || '').toLowerCase()] || '#ffffff';
+      }
+
       let miUid = null;
       let miRol = '';
       let miNombre = '';
@@ -850,7 +863,7 @@
               <div style="position: relative; display: inline-block;">
                 <button id="profileBtn" style="background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 12px; padding: 4px 8px 4px 4px; border-radius: 999px;">
                   <img src="${avatarSrc}" alt="Avatar" style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 2px solid #ef4444;" onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=${user.uid}'">
-                  <span style="color: #fff; font-weight: 600; font-size: 15px;">${displayName} (${miRol.charAt(0).toUpperCase() + miRol.slice(1)})</span>
+                  <span style="color: #fff; font-weight: 600; font-size: 15px;">${displayName} <span style="color:${colorPorRol(miRol)};">(${miRol.charAt(0).toUpperCase() + miRol.slice(1)})</span></span>
                 </button>
                 <div id="profileMenu" style="display:none; position: absolute; right: 0; top: 50px; background: #18181b; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 10px; width: 180px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 1000;">
                   <button class="profile-menu-item" onclick="window.location.href='../perfil.html'" style="width:100%; background:none; border:none; color:#fff; text-align:left; padding:8px; cursor:pointer; border-radius:6px;">Ir al Perfil</button>
@@ -1106,6 +1119,7 @@
 
         function openCompanyChatWindow(clientId, propertyId, propertyTitle, propertyImage, propertyPrice, finalizada = false, clientName = '', clientPhoto = '../assets/onlybladi-avatar.png') {
           marcarMensajesComoLeidos(clientId, propertyId);
+          if (typeof unsubscribeChatActual === 'function') { unsubscribeChatActual(); unsubscribeChatActual = null; }
           chatMainArea.innerHTML = `
             <div class="chat-header">
               <div class="chat-property-meta">
@@ -1139,6 +1153,7 @@
           const closeBtn = document.getElementById('chatCloseBtn');
 
           closeBtn.addEventListener('click', () => {
+            if (typeof unsubscribeChatActual === 'function') { unsubscribeChatActual(); unsubscribeChatActual = null; }
             document.querySelectorAll('.conversation-item').forEach(el => el.classList.remove('active'));
             chatMainArea.innerHTML = `
               <div class="chat-empty-state">
@@ -1156,7 +1171,7 @@
             orderBy("timestamp", "asc")
           );
 
-          onSnapshot(qMsgs, (snapshot) => {
+          unsubscribeChatActual = onSnapshot(qMsgs, (snapshot) => {
             messagesBox.innerHTML = '';
             if (snapshot.empty) {
               messagesBox.innerHTML = `<div style="text-align: center; color: #71717a; font-size: 13px; margin: auto;">No hay mensajes en este hilo.</div>`;
@@ -1218,6 +1233,8 @@
           const enviarRespuesta = async () => {
             const texto = messageInput.value.trim();
             if (!texto) return;
+            messageInput.value = '';
+            messageInput.focus();
             try {
               await addDoc(collection(db, "mensajes"), {
                 userId: clientId,
@@ -1229,10 +1246,12 @@
                 sender: 'agent',
                 timestamp: serverTimestamp()
               });
-              window.location.href = `mensajesempresa.html?cliente=${encodeURIComponent(clientId)}&propiedad=${encodeURIComponent(propertyId)}`;
+              // No hace falta recargar la página: el listener en tiempo real
+              // de abajo (onSnapshot) agrega el mensaje nuevo automáticamente.
             } catch (error) {
               console.error("Error al enviar respuesta:", error);
               alert("No se pudo enviar el mensaje: " + error.message);
+              messageInput.value = texto; // devolver el texto si falló el envío
             }
           };
 
@@ -1371,7 +1390,7 @@
               item.innerHTML = `
                 <img src="${agente.foto}" alt="${agente.nombre}" onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=${agente.uid}'">
                 <div>
-                  <div class="agente-disponible-nombre">${agente.nombre}</div>
+                  <div class="agente-disponible-nombre" style="color:${colorPorRol(agente.rol)};">${agente.nombre}</div>
                   <div class="agente-disponible-rol">${agente.rol}</div>
                 </div>
               `;
@@ -1379,7 +1398,7 @@
                 document.getElementById('modalNuevaConvInterna').style.display = 'none';
                 cambiarVistaMensajes('equipo');
                 document.querySelectorAll('.conversation-item').forEach(el => el.classList.remove('active'));
-                openInternalChatWindow(agente.uid, agente.nombre, agente.foto);
+                openInternalChatWindow(agente.uid, agente.nombre, agente.foto, agente.rol);
               });
               contenedor.appendChild(item);
             });
@@ -1430,6 +1449,7 @@
               if (mapaAgentesEquipo[c.otroUid]) {
                 c.nombre = mapaAgentesEquipo[c.otroUid].nombre;
                 c.foto = mapaAgentesEquipo[c.otroUid].foto;
+                c.rol = mapaAgentesEquipo[c.otroUid].rol;
                 return;
               }
               try {
@@ -1438,13 +1458,16 @@
                   const uData = snapU.data();
                   c.nombre = uData.nombres || uData.nombre || 'Agente';
                   c.foto = uData.fotoPerfil || uData.foto || '../assets/onlybladi-avatar.png';
+                  c.rol = uData.rol || 'agente';
                 } else {
                   c.nombre = 'Agente';
                   c.foto = '../assets/onlybladi-avatar.png';
+                  c.rol = 'agente';
                 }
               } catch (e) {
                 c.nombre = 'Agente';
                 c.foto = '../assets/onlybladi-avatar.png';
+                c.rol = 'agente';
               }
             }));
 
@@ -1464,14 +1487,14 @@
                 ${conv.noLeido ? '<span class="conv-unread-dot"></span>' : ''}
               </div>
               <div class="conv-info">
-                <div class="conv-client-name">${conv.nombre}</div>
+                <div class="conv-client-name" style="color:${colorPorRol(conv.rol)};">${conv.nombre}</div>
                 <div class="conv-last-msg">${conv.lastMsg || 'Sin mensajes todavía'}</div>
               </div>
             `;
             item.addEventListener('click', () => {
               document.querySelectorAll('.conversation-item').forEach(el => el.classList.remove('active'));
               item.classList.add('active');
-              openInternalChatWindow(conv.otroUid, conv.nombre, conv.foto);
+              openInternalChatWindow(conv.otroUid, conv.nombre, conv.foto, conv.rol);
             });
             conversationsList.appendChild(item);
           });
@@ -1493,7 +1516,7 @@
           }
         }
 
-        function openInternalChatWindow(otroUid, otroNombre, otroFoto) {
+        function openInternalChatWindow(otroUid, otroNombre, otroFoto, otroRol) {
           const conversationId = idConversacionInterna(miUid, otroUid);
           marcarMensajesInternosComoLeidos(conversationId);
 
@@ -1504,7 +1527,7 @@
               <div class="chat-property-meta">
                 <img src="${otroFoto}" alt="${otroNombre}" class="chat-prop-img" onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=${otroUid}'">
                 <div>
-                  <div class="chat-prop-name">${otroNombre}</div>
+                  <div class="chat-prop-name" style="color:${colorPorRol(otroRol)};">${otroNombre}</div>
                   <div class="chat-prop-price">Conversación interna del equipo</div>
                 </div>
               </div>
