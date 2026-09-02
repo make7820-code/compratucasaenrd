@@ -941,7 +941,7 @@
             await limpiarConversacionesViejas();
 
             const q = query(collection(db, "mensajes"));
-            onSnapshot(q, async (snapshot) => {
+            unsubscribeConversacionesActual = onSnapshot(q, async (snapshot) => {
               if (snapshot.empty) {
                 conversationsList.innerHTML = `<div style="padding: 30px 20px; text-align: center; color: #a1a1aa; font-size: 13px;">No hay mensajes registrados.</div>`;
                 return;
