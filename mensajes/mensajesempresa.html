@@ -308,6 +308,108 @@
         text-overflow: ellipsis;
       }
 
+      /* Pestañas Clientes / Equipo en el sidebar de mensajes */
+      .tab-mensajes-btn {
+        flex: 1;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        color: var(--text-muted);
+        padding: 8px 10px;
+        border-radius: 10px;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+      }
+      .tab-mensajes-btn:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: #fff;
+      }
+      .tab-mensajes-btn.active {
+        background: rgba(239, 68, 68, 0.18);
+        border-color: rgba(239, 68, 68, 0.4);
+        color: #fff;
+      }
+
+      .btn-nueva-conv-interna {
+        background: var(--accent-red);
+        color: #fff;
+        border: none;
+        width: 32px;
+        height: 32px;
+        border-radius: 10px;
+        font-size: 18px;
+        font-weight: 700;
+        cursor: pointer;
+        flex-shrink: 0;
+        line-height: 1;
+        transition: background 0.2s;
+      }
+      .btn-nueva-conv-interna:hover {
+        background: #dc2626;
+      }
+
+      /* Modal para elegir con qué agente/admin iniciar una conversación interna */
+      .modal-nueva-conv-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.65);
+        z-index: 2000;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+      .modal-nueva-conv-box {
+        background: #18181b;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        padding: 24px;
+        width: 100%;
+        max-width: 380px;
+        max-height: 75vh;
+        overflow-y: auto;
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6);
+      }
+      .modal-nueva-conv-box h3 {
+        margin: 0 0 16px 0;
+        color: #fff;
+        font-family: 'Poppins', sans-serif;
+        font-size: 18px;
+      }
+      .agente-disponible-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 12px;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: background 0.2s;
+        margin-bottom: 6px;
+      }
+      .agente-disponible-item:hover {
+        background: rgba(255, 255, 255, 0.06);
+      }
+      .agente-disponible-item img {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        object-fit: cover;
+        flex-shrink: 0;
+      }
+      .agente-disponible-nombre {
+        font-size: 14px;
+        font-weight: 600;
+        color: #fff;
+      }
+      .agente-disponible-rol {
+        font-size: 11px;
+        color: var(--text-muted);
+        text-transform: capitalize;
+      }
+
       .chat-main-area {
         display: flex;
         flex-direction: column;
@@ -549,7 +651,14 @@
       <div class="messaging-container">
         <div class="conversations-sidebar">
           <div class="sidebar-header">
-            <h2 class="sidebar-title">CLIENTES / CHATS</h2>
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:14px;">
+              <h2 class="sidebar-title" style="margin:0;">MENSAJES</h2>
+              <button id="btnNuevaConversacionInterna" class="btn-nueva-conv-interna" title="Iniciar conversación con un agente" style="display:none;">+</button>
+            </div>
+            <div style="display:flex; gap:6px; margin-bottom:14px;">
+              <button id="tabClientes" class="tab-mensajes-btn active" data-tab="clientes">Clientes</button>
+              <button id="tabEquipo" class="tab-mensajes-btn" data-tab="equipo" style="display:none;">Equipo</button>
+            </div>
             <div class="search-box-wrap">
               <span>🔍</span>
               <input type="text" id="searchClientInput" placeholder="Buscar por cliente o propiedad...">
@@ -569,6 +678,17 @@
             <p style="margin: 0; font-size: 14px; color: #a1a1aa;">Selecciona una conversación de la izquierda para responder al cliente.</p>
           </div>
         </div>
+      </div>
+    </div>
+
+    <!-- Modal: iniciar conversación con un agente/admin del equipo -->
+    <div class="modal-nueva-conv-overlay" id="modalNuevaConvInterna">
+      <div class="modal-nueva-conv-box">
+        <h3>Iniciar conversación con...</h3>
+        <div id="listaAgentesDisponibles">
+          <div style="color:#71717a; font-size:13px; text-align:center; padding:20px 0;">Cargando agentes...</div>
+        </div>
+        <button id="btnCerrarModalNuevaConv" style="margin-top:16px; width:100%; background:rgba(255,255,255,0.08); color:#fff; border:none; padding:10px; border-radius:10px; cursor:pointer; font-weight:600;">Cancelar</button>
       </div>
     </div>
 
@@ -620,13 +740,25 @@
     <script type="module">
       import { auth, db } from '../firebase-config.js';
       import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-      import { doc, getDoc, setDoc, deleteDoc, collection, query, getDocs, addDoc, onSnapshot, orderBy, serverTimestamp, where, updateDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+      import { doc, getDoc, setDoc, deleteDoc, collection, query, getDocs, addDoc, onSnapshot, orderBy, serverTimestamp, where, updateDoc, writeBatch, arrayUnion } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
       const ALLOWED_ROLES = ["agente", "agentepro", "admin", "superadmin"];
 
       let miUid = null;
       let miRol = '';
+      let miNombre = '';
+      let miFoto = '../assets/onlybladi-avatar.png';
+      let vistaActualMensajes = 'clientes'; // 'clientes' | 'equipo'
+      let mapaAgentesEquipo = {}; // uid -> { uid, nombre, foto, rol }
+      let unsubscribeConversacionesActual = null; // para dejar de escuchar la lista anterior al cambiar de pestaña
+      let unsubscribeChatActual = null; // para dejar de escuchar el chat abierto al cambiar de conversación
       const cacheCreadorPropiedad = {};
+
+      // Genera un id de conversación interna estable entre dos agentes, sin importar
+      // quién le escribió a quién primero (siempre el mismo orden alfabético de UIDs).
+      function idConversacionInterna(uidA, uidB) {
+        return `interno_${[uidA, uidB].sort().join('_')}`;
+      }
 
       // Devuelve quién creó la propiedad (uid y rol) usando una caché para no repetir consultas.
       async function obtenerCreadorPropiedad(propId) {
@@ -691,7 +823,18 @@
             console.error("Error al obtener usuario:", error);
           }
 
+          miNombre = displayName;
+          miFoto = avatarSrc;
+
           if (navMensajesEmpresa) navMensajesEmpresa.style.display = 'inline-flex';
+
+          // Todo agente/agentepro/admin/superadmin que llega aquí ya pasó el
+          // control de acceso (ALLOWED_ROLES), así que puede iniciar
+          // conversaciones internas con el resto del equipo.
+          const btnNuevaConvInternaEl = document.getElementById('btnNuevaConversacionInterna');
+          const tabEquipoEl = document.getElementById('tabEquipo');
+          if (btnNuevaConvInternaEl) btnNuevaConvInternaEl.style.display = 'inline-flex';
+          if (tabEquipoEl) tabEquipoEl.style.display = '';
 
           if (authContainer) {
             authContainer.innerHTML = `
@@ -728,6 +871,7 @@
           }
 
           loadCompanyConversations();
+          inicializarMensajeriaInterna();
         });
 
         // Borra conversaciones finalizadas hace más de 7 días (junto con sus mensajes)
@@ -1125,6 +1269,316 @@
               }
             });
           }
+        }
+
+        /* =========================================================
+           MENSAJERÍA INTERNA ENTRE AGENTES / ADMINS / SUPERADMIN
+           Colección separada "mensajesInternos" para no mezclar con
+           los chats de clientes (colección "mensajes").
+        ========================================================= */
+
+        function inicializarMensajeriaInterna() {
+          const tabClientesBtn = document.getElementById('tabClientes');
+          const tabEquipoBtn = document.getElementById('tabEquipo');
+          const btnNuevaConvInterna = document.getElementById('btnNuevaConversacionInterna');
+          const modalNuevaConv = document.getElementById('modalNuevaConvInterna');
+          const btnCerrarModal = document.getElementById('btnCerrarModalNuevaConv');
+
+          if (tabClientesBtn) {
+            tabClientesBtn.addEventListener('click', () => cambiarVistaMensajes('clientes'));
+          }
+          if (tabEquipoBtn) {
+            tabEquipoBtn.addEventListener('click', () => cambiarVistaMensajes('equipo'));
+          }
+          if (btnNuevaConvInterna) {
+            btnNuevaConvInterna.addEventListener('click', abrirModalNuevaConversacion);
+          }
+          if (btnCerrarModal) {
+            btnCerrarModal.addEventListener('click', () => { modalNuevaConv.style.display = 'none'; });
+          }
+          if (modalNuevaConv) {
+            modalNuevaConv.addEventListener('click', (e) => {
+              if (e.target === modalNuevaConv) modalNuevaConv.style.display = 'none';
+            });
+          }
+        }
+
+        function cambiarVistaMensajes(vista) {
+          vistaActualMensajes = vista;
+          document.getElementById('tabClientes').classList.toggle('active', vista === 'clientes');
+          document.getElementById('tabEquipo').classList.toggle('active', vista === 'equipo');
+
+          // Deja de escuchar la lista/chat anterior para no acumular listeners de Firestore
+          if (typeof unsubscribeConversacionesActual === 'function') { unsubscribeConversacionesActual(); unsubscribeConversacionesActual = null; }
+          if (typeof unsubscribeChatActual === 'function') { unsubscribeChatActual(); unsubscribeChatActual = null; }
+
+          chatMainArea.innerHTML = `
+            <div class="chat-empty-state">
+              <div class="chat-empty-icon">${vista === 'equipo' ? '👥' : '🛡️'}</div>
+              <div class="chat-empty-title">${vista === 'equipo' ? 'MENSAJES DEL EQUIPO' : 'PANEL DE GESTIÓN INMOBILIARIA'}</div>
+              <p style="margin: 0; font-size: 14px; color: #a1a1aa;">Selecciona una conversación de la izquierda para continuar.</p>
+            </div>
+          `;
+
+          if (vista === 'clientes') {
+            loadCompanyConversations();
+          } else {
+            loadTeamConversations();
+          }
+        }
+
+        // Carga la lista de agentes/admins disponibles (excluyéndome a mí mismo)
+        // y la pinta dentro del modal para elegir con quién iniciar el chat.
+        async function cargarAgentesDisponiblesModal() {
+          const contenedor = document.getElementById('listaAgentesDisponibles');
+          contenedor.innerHTML = `<div style="color:#71717a; font-size:13px; text-align:center; padding:20px 0;">Cargando agentes...</div>`;
+          try {
+            const consulta = query(collection(db, "usuarios"), where("rol", "in", ALLOWED_ROLES));
+            const snap = await getDocs(consulta);
+
+            mapaAgentesEquipo = {};
+            snap.forEach(docSnap => {
+              if (docSnap.id === miUid) return; // no aparezco yo mismo en la lista
+              const data = docSnap.data();
+              mapaAgentesEquipo[docSnap.id] = {
+                uid: docSnap.id,
+                nombre: data.nombres || data.nombre || 'Agente sin nombre',
+                foto: data.fotoPerfil || data.foto || '../assets/onlybladi-avatar.png',
+                rol: data.rol || 'agente'
+              };
+            });
+
+            const agentes = Object.values(mapaAgentesEquipo).sort((a, b) => a.nombre.localeCompare(b.nombre));
+
+            if (agentes.length === 0) {
+              contenedor.innerHTML = `<div style="color:#71717a; font-size:13px; text-align:center; padding:20px 0;">No hay otros agentes registrados todavía.</div>`;
+              return;
+            }
+
+            contenedor.innerHTML = '';
+            agentes.forEach(agente => {
+              const item = document.createElement('div');
+              item.className = 'agente-disponible-item';
+              item.innerHTML = `
+                <img src="${agente.foto}" alt="${agente.nombre}" onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=${agente.uid}'">
+                <div>
+                  <div class="agente-disponible-nombre">${agente.nombre}</div>
+                  <div class="agente-disponible-rol">${agente.rol}</div>
+                </div>
+              `;
+              item.addEventListener('click', () => {
+                document.getElementById('modalNuevaConvInterna').style.display = 'none';
+                cambiarVistaMensajes('equipo');
+                document.querySelectorAll('.conversation-item').forEach(el => el.classList.remove('active'));
+                openInternalChatWindow(agente.uid, agente.nombre, agente.foto);
+              });
+              contenedor.appendChild(item);
+            });
+          } catch (error) {
+            console.error("Error al cargar agentes disponibles:", error);
+            contenedor.innerHTML = `<div style="color:#ef4444; font-size:13px; text-align:center; padding:20px 0;">No se pudo cargar la lista de agentes.</div>`;
+          }
+        }
+
+        function abrirModalNuevaConversacion() {
+          document.getElementById('modalNuevaConvInterna').style.display = 'flex';
+          cargarAgentesDisponiblesModal();
+        }
+
+        // Carga y escucha en tiempo real todas mis conversaciones internas con otros agentes.
+        function loadTeamConversations() {
+          const consulta = query(collection(db, "mensajesInternos"), where("participantes", "array-contains", miUid));
+
+          unsubscribeConversacionesActual = onSnapshot(consulta, async (snapshot) => {
+            if (snapshot.empty) {
+              conversationsList.innerHTML = `<div style="padding: 30px 20px; text-align: center; color: #a1a1aa; font-size: 13px;">Aún no tienes conversaciones con el equipo. Usa el botón "+" para iniciar una.</div>`;
+              return;
+            }
+
+            const conversationsMap = new Map();
+            snapshot.forEach(docSnap => {
+              const data = docSnap.data();
+              const otroUid = (data.participantes || []).find(uid => uid !== miUid);
+              if (!otroUid) return;
+
+              const existente = conversationsMap.get(otroUid) || { otroUid, lastActivity: 0, lastMsg: '', noLeido: false };
+
+              const msgMillis = data.timestamp?.toMillis ? data.timestamp.toMillis() : 0;
+              if (msgMillis >= existente.lastActivity) {
+                existente.lastActivity = msgMillis;
+                existente.lastMsg = data.mensaje || '';
+              }
+              if (data.senderUid !== miUid && !(data.leidoPor || []).includes(miUid)) {
+                existente.noLeido = true;
+              }
+
+              conversationsMap.set(otroUid, existente);
+            });
+
+            // Trae el nombre/foto de cada agente con quien tengo conversación
+            const convs = Array.from(conversationsMap.values());
+            await Promise.all(convs.map(async (c) => {
+              if (mapaAgentesEquipo[c.otroUid]) {
+                c.nombre = mapaAgentesEquipo[c.otroUid].nombre;
+                c.foto = mapaAgentesEquipo[c.otroUid].foto;
+                return;
+              }
+              try {
+                const snapU = await getDoc(doc(db, "usuarios", c.otroUid));
+                if (snapU.exists()) {
+                  const uData = snapU.data();
+                  c.nombre = uData.nombres || uData.nombre || 'Agente';
+                  c.foto = uData.fotoPerfil || uData.foto || '../assets/onlybladi-avatar.png';
+                } else {
+                  c.nombre = 'Agente';
+                  c.foto = '../assets/onlybladi-avatar.png';
+                }
+              } catch (e) {
+                c.nombre = 'Agente';
+                c.foto = '../assets/onlybladi-avatar.png';
+              }
+            }));
+
+            convs.sort((a, b) => b.lastActivity - a.lastActivity);
+            renderTeamConversations(convs);
+          });
+        }
+
+        function renderTeamConversations(convs) {
+          conversationsList.innerHTML = '';
+          convs.forEach(conv => {
+            const item = document.createElement('div');
+            item.className = 'conversation-item';
+            item.innerHTML = `
+              <div class="conv-thumb-wrap">
+                <img src="${conv.foto}" alt="${conv.nombre}" class="conv-thumb" onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=${conv.otroUid}'">
+                ${conv.noLeido ? '<span class="conv-unread-dot"></span>' : ''}
+              </div>
+              <div class="conv-info">
+                <div class="conv-client-name">${conv.nombre}</div>
+                <div class="conv-last-msg">${conv.lastMsg || 'Sin mensajes todavía'}</div>
+              </div>
+            `;
+            item.addEventListener('click', () => {
+              document.querySelectorAll('.conversation-item').forEach(el => el.classList.remove('active'));
+              item.classList.add('active');
+              openInternalChatWindow(conv.otroUid, conv.nombre, conv.foto);
+            });
+            conversationsList.appendChild(item);
+          });
+        }
+
+        // Marca como leídos (por mí) los mensajes internos que me envió el otro agente
+        async function marcarMensajesInternosComoLeidos(conversationId) {
+          try {
+            const qNoLeidos = query(collection(db, "mensajesInternos"), where("conversationId", "==", conversationId));
+            const snap = await getDocs(qNoLeidos);
+            const pendientes = snap.docs.filter(d => d.data().senderUid !== miUid && !(d.data().leidoPor || []).includes(miUid));
+            if (pendientes.length === 0) return;
+
+            const batch = writeBatch(db);
+            pendientes.forEach(d => batch.update(d.ref, { leidoPor: arrayUnion(miUid) }));
+            await batch.commit();
+          } catch (error) {
+            console.error("Error al marcar mensajes internos como leídos:", error);
+          }
+        }
+
+        function openInternalChatWindow(otroUid, otroNombre, otroFoto) {
+          const conversationId = idConversacionInterna(miUid, otroUid);
+          marcarMensajesInternosComoLeidos(conversationId);
+
+          if (typeof unsubscribeChatActual === 'function') { unsubscribeChatActual(); unsubscribeChatActual = null; }
+
+          chatMainArea.innerHTML = `
+            <div class="chat-header">
+              <div class="chat-property-meta">
+                <img src="${otroFoto}" alt="${otroNombre}" class="chat-prop-img" onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=${otroUid}'">
+                <div>
+                  <div class="chat-prop-name">${otroNombre}</div>
+                  <div class="chat-prop-price">Conversación interna del equipo</div>
+                </div>
+              </div>
+              <button class="chat-close-btn" id="chatCloseBtnInterno" title="Minimizar chat">×</button>
+            </div>
+            <div class="chat-messages-box" id="chatMessagesBoxInterno">
+              <div style="text-align: center; color: #71717a; padding: 20px;">Cargando chat...</div>
+            </div>
+            <div class="chat-input-area">
+              <input type="text" id="chatMessageInputInterno" placeholder="Escribe un mensaje a ${otroNombre}...">
+              <button class="chat-send-btn" id="chatSendBtnInterno">Enviar</button>
+            </div>
+          `;
+
+          const messagesBox = document.getElementById('chatMessagesBoxInterno');
+          const closeBtn = document.getElementById('chatCloseBtnInterno');
+
+          closeBtn.addEventListener('click', () => {
+            if (typeof unsubscribeChatActual === 'function') { unsubscribeChatActual(); unsubscribeChatActual = null; }
+            document.querySelectorAll('.conversation-item').forEach(el => el.classList.remove('active'));
+            chatMainArea.innerHTML = `
+              <div class="chat-empty-state">
+                <div class="chat-empty-icon">👥</div>
+                <div class="chat-empty-title">MENSAJES DEL EQUIPO</div>
+                <p style="margin: 0; font-size: 14px; color: #a1a1aa;">Selecciona una conversación para responder.</p>
+              </div>
+            `;
+          });
+
+          const qMsgs = query(
+            collection(db, "mensajesInternos"),
+            where("conversationId", "==", conversationId),
+            orderBy("timestamp", "asc")
+          );
+
+          unsubscribeChatActual = onSnapshot(qMsgs, (snapshot) => {
+            messagesBox.innerHTML = '';
+            if (snapshot.empty) {
+              messagesBox.innerHTML = `<div style="text-align: center; color: #71717a; font-size: 13px; margin: auto;">Aún no hay mensajes. ¡Escribe el primero!</div>`;
+              return;
+            }
+
+            snapshot.forEach(docSnap => {
+              const msgData = docSnap.data();
+              const isOutgoing = msgData.senderUid === miUid;
+              const bubble = document.createElement('div');
+              bubble.className = `message-bubble ${isOutgoing ? 'outgoing' : 'incoming'}`;
+              bubble.innerHTML = `
+                <div>${msgData.mensaje || ''}</div>
+                <div class="message-time">${msgData.timestamp?.toDate ? new Date(msgData.timestamp.toDate()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'Hace un momento'}</div>
+              `;
+              messagesBox.appendChild(bubble);
+            });
+            messagesBox.scrollTop = messagesBox.scrollHeight;
+          });
+
+          const messageInput = document.getElementById('chatMessageInputInterno');
+          const sendBtn = document.getElementById('chatSendBtnInterno');
+
+          const enviarMensajeInterno = async () => {
+            const texto = messageInput.value.trim();
+            if (!texto) return;
+            messageInput.value = '';
+            try {
+              await addDoc(collection(db, "mensajesInternos"), {
+                conversationId: conversationId,
+                participantes: [miUid, otroUid],
+                senderUid: miUid,
+                senderNombre: miNombre,
+                mensaje: texto,
+                leidoPor: [miUid],
+                timestamp: serverTimestamp()
+              });
+            } catch (error) {
+              console.error("Error al enviar mensaje interno:", error);
+              alert("No se pudo enviar el mensaje: " + error.message);
+            }
+          };
+
+          sendBtn.addEventListener('click', enviarMensajeInterno);
+          messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') enviarMensajeInterno();
+          });
         }
       });
     </script>
