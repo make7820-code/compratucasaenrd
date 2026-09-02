@@ -1413,8 +1413,32 @@
           cargarAgentesDisponiblesModal();
         }
 
+        // Borra conversaciones internas finalizadas hace más de 7 días (junto con sus mensajes)
+        async function limpiarConversacionesInternasViejas() {
+          try {
+            const q = query(collection(db, "conversacionesInternas"), where("estado", "==", "finalizada"));
+            const snap = await getDocs(q);
+            const ahora = Date.now();
+            const unaSemanaMs = 7 * 24 * 60 * 60 * 1000;
+
+            for (const docSnap of snap.docs) {
+              const data = docSnap.data();
+              const finalizadaEn = data.finalizadaEn?.toMillis ? data.finalizadaEn.toMillis() : 0;
+              if (finalizadaEn && (ahora - finalizadaEn) > unaSemanaMs) {
+                const qMsgs = query(collection(db, "mensajesInternos"), where("conversationId", "==", docSnap.id));
+                const msgsSnap = await getDocs(qMsgs);
+                await Promise.all(msgsSnap.docs.map(m => deleteDoc(m.ref)));
+                await deleteDoc(docSnap.ref);
+              }
+            }
+          } catch (error) {
+            console.error("Error limpiando conversaciones internas viejas:", error);
+          }
+        }
+
         // Carga y escucha en tiempo real todas mis conversaciones internas con otros agentes.
         function loadTeamConversations() {
+          limpiarConversacionesInternasViejas();
           const consulta = query(collection(db, "mensajesInternos"), where("participantes", "array-contains", miUid));
 
           unsubscribeConversacionesActual = onSnapshot(consulta, async (snapshot) => {
@@ -1446,58 +1470,84 @@
             // Trae el nombre/foto de cada agente con quien tengo conversación
             const convs = Array.from(conversationsMap.values());
             await Promise.all(convs.map(async (c) => {
+              c.conversationId = idConversacionInterna(miUid, c.otroUid);
               if (mapaAgentesEquipo[c.otroUid]) {
                 c.nombre = mapaAgentesEquipo[c.otroUid].nombre;
                 c.foto = mapaAgentesEquipo[c.otroUid].foto;
                 c.rol = mapaAgentesEquipo[c.otroUid].rol;
-                return;
-              }
-              try {
-                const snapU = await getDoc(doc(db, "usuarios", c.otroUid));
-                if (snapU.exists()) {
-                  const uData = snapU.data();
-                  c.nombre = uData.nombres || uData.nombre || 'Agente';
-                  c.foto = uData.fotoPerfil || uData.foto || '../assets/onlybladi-avatar.png';
-                  c.rol = uData.rol || 'agente';
-                } else {
+              } else {
+                try {
+                  const snapU = await getDoc(doc(db, "usuarios", c.otroUid));
+                  if (snapU.exists()) {
+                    const uData = snapU.data();
+                    c.nombre = uData.nombres || uData.nombre || 'Agente';
+                    c.foto = uData.fotoPerfil || uData.foto || '../assets/onlybladi-avatar.png';
+                    c.rol = uData.rol || 'agente';
+                  } else {
+                    c.nombre = 'Agente';
+                    c.foto = '../assets/onlybladi-avatar.png';
+                    c.rol = 'agente';
+                  }
+                } catch (e) {
                   c.nombre = 'Agente';
                   c.foto = '../assets/onlybladi-avatar.png';
                   c.rol = 'agente';
                 }
+              }
+              try {
+                const snapConv = await getDoc(doc(db, "conversacionesInternas", c.conversationId));
+                c.estado = snapConv.exists() ? (snapConv.data().estado || 'activa') : 'activa';
               } catch (e) {
-                c.nombre = 'Agente';
-                c.foto = '../assets/onlybladi-avatar.png';
-                c.rol = 'agente';
+                c.estado = 'activa';
               }
             }));
 
-            convs.sort((a, b) => b.lastActivity - a.lastActivity);
-            renderTeamConversations(convs);
+            const porMasReciente = (a, b) => b.lastActivity - a.lastActivity;
+            const activas = convs.filter(c => c.estado !== 'finalizada').sort(porMasReciente);
+            const finalizadas = convs.filter(c => c.estado === 'finalizada').sort(porMasReciente);
+
+            renderTeamConversations(activas, finalizadas);
           });
         }
 
-        function renderTeamConversations(convs) {
+        function renderTeamConversations(activas, finalizadas) {
+          if (activas.length === 0 && finalizadas.length === 0) {
+            conversationsList.innerHTML = `<div style="padding: 30px 20px; text-align: center; color: #a1a1aa; font-size: 13px;">Aún no tienes conversaciones con el equipo. Usa el botón "+" para iniciar una.</div>`;
+            return;
+          }
           conversationsList.innerHTML = '';
-          convs.forEach(conv => {
+
+          const crearItem = (conv, finalizada) => {
             const item = document.createElement('div');
             item.className = 'conversation-item';
+            item.style.opacity = finalizada ? '0.6' : '1';
             item.innerHTML = `
               <div class="conv-thumb-wrap">
                 <img src="${conv.foto}" alt="${conv.nombre}" class="conv-thumb" onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=${conv.otroUid}'">
-                ${conv.noLeido ? '<span class="conv-unread-dot"></span>' : ''}
+                ${(!finalizada && conv.noLeido) ? '<span class="conv-unread-dot"></span>' : ''}
               </div>
               <div class="conv-info">
                 <div class="conv-client-name" style="color:${colorPorRol(conv.rol)};">${conv.nombre}</div>
-                <div class="conv-last-msg">${conv.lastMsg || 'Sin mensajes todavía'}</div>
+                <div class="conv-last-msg">${finalizada ? '✅ Conversación finalizada' : (conv.lastMsg || 'Sin mensajes todavía')}</div>
               </div>
             `;
             item.addEventListener('click', () => {
               document.querySelectorAll('.conversation-item').forEach(el => el.classList.remove('active'));
               item.classList.add('active');
-              openInternalChatWindow(conv.otroUid, conv.nombre, conv.foto, conv.rol);
+              openInternalChatWindow(conv.otroUid, conv.nombre, conv.foto, conv.rol, finalizada);
             });
-            conversationsList.appendChild(item);
-          });
+            return item;
+          };
+
+          activas.forEach(conv => conversationsList.appendChild(crearItem(conv, false)));
+
+          if (finalizadas.length > 0) {
+            const divider = document.createElement('div');
+            divider.style.cssText = 'padding: 10px 16px; font-size: 11px; font-weight: 700; color: #71717a; text-transform: uppercase; letter-spacing: 0.5px; border-top: 1px solid rgba(255,255,255,0.08); margin-top: 8px;';
+            divider.textContent = 'Conversaciones finalizadas';
+            conversationsList.appendChild(divider);
+            finalizadas.forEach(conv => conversationsList.appendChild(crearItem(conv, true)));
+          }
         }
 
         // Marca como leídos (por mí) los mensajes internos que me envió el otro agente
@@ -1516,7 +1566,7 @@
           }
         }
 
-        function openInternalChatWindow(otroUid, otroNombre, otroFoto, otroRol) {
+        function openInternalChatWindow(otroUid, otroNombre, otroFoto, otroRol, finalizada = false) {
           const conversationId = idConversacionInterna(miUid, otroUid);
           marcarMensajesInternosComoLeidos(conversationId);
 
@@ -1531,15 +1581,24 @@
                   <div class="chat-prop-price">Conversación interna del equipo</div>
                 </div>
               </div>
-              <button class="chat-close-btn" id="chatCloseBtnInterno" title="Minimizar chat">×</button>
+              <div style="display:flex; align-items:center; gap:8px;">
+                ${!finalizada ? `<button id="chatFinalizarBtnInterno" style="background:rgba(239,68,68,0.15); color:#ef4444; border:1px solid rgba(239,68,68,0.3); border-radius:8px; padding:6px 12px; font-size:12px; font-weight:600; cursor:pointer; white-space:nowrap;">Finalizar conversación</button>` : ''}
+                <button class="chat-close-btn" id="chatCloseBtnInterno" title="Minimizar chat">×</button>
+              </div>
             </div>
             <div class="chat-messages-box" id="chatMessagesBoxInterno">
               <div style="text-align: center; color: #71717a; padding: 20px;">Cargando chat...</div>
             </div>
-            <div class="chat-input-area">
-              <input type="text" id="chatMessageInputInterno" placeholder="Escribe un mensaje a ${otroNombre}...">
-              <button class="chat-send-btn" id="chatSendBtnInterno">Enviar</button>
-            </div>
+            ${finalizada
+              ? `<div style="padding: 14px; text-align: center; border-top: 1px solid rgba(255,255,255,0.08);">
+                  <div style="color: #71717a; font-size: 13px; margin-bottom: 8px;">✅ Conversación finalizada — ya no se pueden enviar mensajes. Se eliminará automáticamente en unos días.</div>
+                  <button id="chatEliminarBtnInterno" style="background: #ef4444; color: #fff; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 13px;">Eliminar conversación ahora</button>
+                </div>`
+              : `<div class="chat-input-area">
+                  <input type="text" id="chatMessageInputInterno" placeholder="Escribe un mensaje a ${otroNombre}...">
+                  <button class="chat-send-btn" id="chatSendBtnInterno">Enviar</button>
+                </div>`
+            }
           `;
 
           const messagesBox = document.getElementById('chatMessagesBoxInterno');
@@ -1572,6 +1631,15 @@
 
             snapshot.forEach(docSnap => {
               const msgData = docSnap.data();
+
+              if (msgData.tipo === 'sistema') {
+                const aviso = document.createElement('div');
+                aviso.style.cssText = 'text-align:center; color:#a1a1aa; font-size:12px; margin:14px auto; padding:6px 14px; background:rgba(255,255,255,0.05); border-radius:999px; display:table;';
+                aviso.textContent = msgData.mensaje;
+                messagesBox.appendChild(aviso);
+                return;
+              }
+
               const isOutgoing = msgData.senderUid === miUid;
               const bubble = document.createElement('div');
               bubble.className = `message-bubble ${isOutgoing ? 'outgoing' : 'incoming'}`;
@@ -1583,6 +1651,30 @@
             });
             messagesBox.scrollTop = messagesBox.scrollHeight;
           });
+
+          if (finalizada) {
+            const eliminarBtn = document.getElementById('chatEliminarBtnInterno');
+            if (eliminarBtn) {
+              eliminarBtn.addEventListener('click', async () => {
+                const confirmar = confirm('¿Eliminar esta conversación por completo ahora? Esta acción no se puede deshacer.');
+                if (!confirmar) return;
+                try {
+                  const msgsSnap = await getDocs(query(
+                    collection(db, "mensajesInternos"),
+                    where("conversationId", "==", conversationId)
+                  ));
+                  await Promise.all(msgsSnap.docs.map(m => deleteDoc(m.ref)));
+                  await deleteDoc(doc(db, "conversacionesInternas", conversationId));
+                  closeBtn.click();
+                  loadTeamConversations();
+                } catch (error) {
+                  console.error('Error al eliminar la conversación interna:', error);
+                  alert('No se pudo eliminar la conversación: ' + error.message);
+                }
+              });
+            }
+            return; // No se puede responder ni finalizar de nuevo
+          }
 
           const messageInput = document.getElementById('chatMessageInputInterno');
           const sendBtn = document.getElementById('chatSendBtnInterno');
@@ -1611,6 +1703,39 @@
           messageInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') enviarMensajeInterno();
           });
+
+          const finalizarBtn = document.getElementById('chatFinalizarBtnInterno');
+          if (finalizarBtn) {
+            finalizarBtn.addEventListener('click', async () => {
+              const confirmar = confirm(`¿Finalizar esta conversación con ${otroNombre}? Ambos podrán seguir viéndola, pero no se podrán enviar más mensajes. Se eliminará automáticamente en 7 días.`);
+              if (!confirmar) return;
+              try {
+                await addDoc(collection(db, "mensajesInternos"), {
+                  conversationId: conversationId,
+                  participantes: [miUid, otroUid],
+                  senderUid: miUid,
+                  senderNombre: miNombre,
+                  mensaje: "🔒 Esta conversación ha sido finalizada.",
+                  tipo: "sistema",
+                  leidoPor: [miUid],
+                  timestamp: serverTimestamp()
+                });
+
+                await setDoc(doc(db, "conversacionesInternas", conversationId), {
+                  participantes: [miUid, otroUid],
+                  estado: 'finalizada',
+                  finalizadaEn: serverTimestamp()
+                });
+
+                alert('Conversación finalizada.');
+                closeBtn.click();
+                loadTeamConversations();
+              } catch (error) {
+                console.error('Error al finalizar conversación interna:', error);
+                alert('No se pudo finalizar la conversación: ' + error.message);
+              }
+            });
+          }
         }
       });
     </script>
