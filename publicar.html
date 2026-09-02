@@ -1291,6 +1291,15 @@
             </div>
           </div>
 
+          <div class="form-grid-2" id="grupoPublicarComo" style="display:none;">
+            <div class="publish-form-group" style="grid-column: 1 / -1;">
+              <label>Publicar como (solo admin/superadmin)</label>
+              <select id="propPublicarComo" class="publish-control" onchange="window.alPublicarComoCambiar()">
+                <option value="empresa">Compra tu casa en RD (Empresa)</option>
+              </select>
+            </div>
+          </div>
+
           <div class="form-grid-2">
             <div class="publish-form-group">
               <label>Tipo de Operación</label>
@@ -1627,6 +1636,79 @@
       let esModoAdmin = false;       // true = ve y gestiona TODAS las publicaciones
       let rolUsuarioActual = '';     // 'agente' | 'admin' | 'superadmin'
       let perfilUsuarioActual = { nombre: '', foto: null, whatsapp: '' };
+
+      // Mapa de agentes disponibles para que un admin/superadmin pueda publicar
+      // una propiedad "a nombre de" otro agente (uid -> {nombre, whatsapp, foto, rol}).
+      let mapaAgentesDisponibles = {};
+
+      // Carga la lista de agentes/admins registrados en Firestore y llena el
+      // selector "Publicar como" del formulario. Solo se llama si esModoAdmin.
+      async function cargarListaAgentesParaAdmin() {
+        try {
+          const selector = document.getElementById('propPublicarComo');
+          const grupo = document.getElementById('grupoPublicarComo');
+          if (!selector) return;
+
+          const consultaAgentes = query(
+            collection(db, "usuarios"),
+            where("rol", "in", ["agente", "agentepro", "admin", "superadmin"])
+          );
+          const snap = await getDocs(consultaAgentes);
+
+          mapaAgentesDisponibles = {};
+          snap.forEach(docSnap => {
+            const data = docSnap.data();
+            mapaAgentesDisponibles[docSnap.id] = {
+              uid: docSnap.id,
+              nombre: data.nombres || data.nombre || 'Agente sin nombre',
+              whatsapp: data.whatsapp || '',
+              foto: data.fotoPerfil || data.foto || '',
+              rol: data.rol || 'agente'
+            };
+          });
+
+          // Reconstruye las opciones del selector: la empresa siempre primero.
+          selector.innerHTML = '<option value="empresa">Compra tu casa en RD (Empresa)</option>';
+          Object.values(mapaAgentesDisponibles)
+            .sort((a, b) => a.nombre.localeCompare(b.nombre))
+            .forEach(agente => {
+              const opt = document.createElement('option');
+              opt.value = agente.uid;
+              opt.textContent = `${agente.nombre}${agente.uid === usuarioActualUid ? ' (Tú)' : ''}`;
+              selector.appendChild(opt);
+            });
+
+          if (grupo) grupo.style.display = '';
+        } catch (error) {
+          console.error("Error al cargar la lista de agentes:", error);
+        }
+      }
+
+      // Se ejecuta al cambiar el selector "Publicar como": si se elige un agente
+      // específico, precarga su nombre y WhatsApp en los campos del formulario
+      // (solo para publicaciones nuevas, no al editar una ya existente).
+      window.alPublicarComoCambiar = function() {
+        const editId = document.getElementById('propEditId').value;
+        if (editId) return; // no sobreescribir datos al editar
+
+        const selector = document.getElementById('propPublicarComo');
+        if (!selector) return;
+        const valor = selector.value;
+
+        const campoAgente = document.getElementById('propAgente');
+        const campoWhatsapp = document.getElementById('propAgenteWhatsapp');
+
+        if (valor === 'empresa') {
+          campoAgente.value = 'Compra tu casa en RD';
+          campoWhatsapp.value = '';
+        } else {
+          const agente = mapaAgentesDisponibles[valor];
+          if (agente) {
+            campoAgente.value = agente.nombre;
+            campoWhatsapp.value = agente.whatsapp || '';
+          }
+        }
+      }
 
       /* =========================================================
          DATOS GEOGRÁFICOS: Provincia -> Municipio -> Distritos
@@ -2080,6 +2162,13 @@
               whatsapp: userData.whatsapp || ''
             };
 
+            // Si es admin/superadmin, carga la lista de agentes para poder
+            // publicar propiedades "a nombre de" otro agente (o de sí mismo
+            // como agente, aunque su rol en el sistema sea superadmin).
+            if (esModoAdmin) {
+              cargarListaAgentesParaAdmin();
+            }
+
             const authContainer = document.getElementById('authContainer');
             
             if (authContainer) {
@@ -2377,10 +2466,13 @@
 
         document.querySelectorAll('.extra-checkbox').forEach(chk => { chk.checked = false; });
 
-        // Publicación nueva: precargamos nombre y WhatsApp del agente con los datos de su perfil.
+        // Publicación nueva: precargamos nombre y WhatsApp del agente con los datos de su perfil,
+        // y reseteamos el selector "Publicar como" a "Empresa" por defecto.
+        const selectorPublicarComoModal = document.getElementById('propPublicarComo');
         if (!editarObj) {
           document.getElementById('propAgente').value = perfilUsuarioActual.nombre || '';
           document.getElementById('propAgenteWhatsapp').value = perfilUsuarioActual.whatsapp || '';
+          if (selectorPublicarComoModal) selectorPublicarComoModal.value = 'empresa';
         }
 
         document.getElementById('propMunicipio').innerHTML = '<option value="">Selecciona</option>';
@@ -2396,6 +2488,13 @@
           document.getElementById('propOperacion').value = editarObj.operacion || 'Venta';
           document.getElementById('propAgente').value = editarObj.agente || '';
           document.getElementById('propAgenteWhatsapp').value = editarObj.agenteWhatsapp || '';
+          // Refleja en el selector a nombre de quién está publicada actualmente,
+          // para que un admin vea y pueda cambiar la asignación al editar.
+          if (selectorPublicarComoModal) {
+            selectorPublicarComoModal.value = (editarObj.creadoPorUid && mapaAgentesDisponibles[editarObj.creadoPorUid])
+              ? editarObj.creadoPorUid
+              : 'empresa';
+          }
           document.getElementById('propDueno').value = editarObj.dueno || '';
           document.getElementById('propDeposito').value = editarObj.deposito || '';
           document.getElementById('propComision').value = editarObj.comision || '';
@@ -2596,10 +2695,38 @@
           const monedaVal = document.getElementById('propMoneda').value;
           const precioFmt = `${monedaVal === 'USD' ? '$' : 'RD$'} ${Number(precioVal).toLocaleString()}`;
 
-          // Si quien publica es admin o superadmin, el perfil de contacto se muestra
-          // como la empresa (Compra tu casa en RD) en vez del agente individual.
-          const esAdminOSuperadmin = rolUsuarioActual === 'admin' || rolUsuarioActual === 'superadmin';
-          const nombreAgenteFinal = esAdminOSuperadmin ? 'Compra tu casa en RD' : document.getElementById('propAgente').value;
+          // Determina a nombre de quién queda publicada la propiedad:
+          // - Agente normal: siempre a nombre de sí mismo.
+          // - Admin/superadmin: por defecto a nombre de la empresa, PERO puede elegir
+          //   en el selector "Publicar como" un agente específico (o a sí mismo como
+          //   agente, aunque su rol de sistema sea admin/superadmin) para que la
+          //   propiedad muestre el perfil, foto y WhatsApp de esa persona.
+          const selectorPublicarComo = document.getElementById('propPublicarComo');
+          const valorPublicarComo = (esModoAdmin && selectorPublicarComo) ? selectorPublicarComo.value : '';
+          const agenteSeleccionado = (valorPublicarComo && valorPublicarComo !== 'empresa')
+            ? mapaAgentesDisponibles[valorPublicarComo]
+            : null;
+
+          let nombreAgenteFinal;
+          let uidCreadorFinal = usuarioActualUid;
+          let fotoCreadorFinal;
+          let rolCreadorFinal = rolUsuarioActual;
+
+          if (agenteSeleccionado) {
+            // Publicando explícitamente a nombre de un agente elegido por el admin.
+            nombreAgenteFinal = document.getElementById('propAgente').value || agenteSeleccionado.nombre;
+            uidCreadorFinal = agenteSeleccionado.uid;
+            fotoCreadorFinal = agenteSeleccionado.foto || '';
+            rolCreadorFinal = agenteSeleccionado.rol || 'agente';
+          } else if (esModoAdmin) {
+            // Comportamiento por defecto para admin/superadmin: a nombre de la empresa.
+            nombreAgenteFinal = 'Compra tu casa en RD';
+            fotoCreadorFinal = 'assets/mi-logo.png';
+          } else {
+            // Agente normal publicando sus propias propiedades.
+            nombreAgenteFinal = document.getElementById('propAgente').value;
+            fotoCreadorFinal = perfilUsuarioActual.foto || '';
+          }
 
           const datosPropiedad = {
             titulo: document.getElementById('propTitulo').value,
@@ -2609,7 +2736,7 @@
             moneda: monedaVal,
             agente: nombreAgenteFinal,
             agenteWhatsapp: (document.getElementById('propAgenteWhatsapp').value || '').replace(/[^0-9]/g, '') || '18498572321',
-            creadorRol: rolUsuarioActual,
+            creadorRol: rolCreadorFinal,
             dueno: document.getElementById('propDueno').value || '',
             deposito: document.getElementById('propDeposito').value || '',
             comision: document.getElementById('propComision').value || '',
@@ -2636,18 +2763,22 @@
           };
 
           if (editId) {
-            if (esAdminOSuperadmin) {
-              datosPropiedad.agenteFotoCreador = 'assets/mi-logo.png';
+            datosPropiedad.agenteFotoCreador = fotoCreadorFinal;
+            // Solo un admin/superadmin puede reasignar a nombre de quién queda
+            // la propiedad al editarla; un agente normal no toca este campo.
+            if (esModoAdmin) {
+              datosPropiedad.creadoPorUid = uidCreadorFinal;
             }
             const docRef = doc(db, "propiedades", editId);
             await updateDoc(docRef, datosPropiedad);
             alert("¡Propiedad actualizada con éxito en la nube!");
           } else {
             datosPropiedad.fechaCreacion = new Date().toISOString();
-            // Se registra quién publicó la propiedad: solo el dueño (o un admin) podrá editarla/borrarla después,
+            // Se registra quién publicó la propiedad (el agente elegido, o quien la
+            // creó): solo el dueño (o un admin) podrá editarla/borrarla después,
             // y detalle.html usará estos datos para dirigir los contactos al agente correcto.
-            datosPropiedad.creadoPorUid = usuarioActualUid;
-            datosPropiedad.agenteFotoCreador = esAdminOSuperadmin ? 'assets/mi-logo.png' : (perfilUsuarioActual.foto || '');
+            datosPropiedad.creadoPorUid = uidCreadorFinal;
+            datosPropiedad.agenteFotoCreador = fotoCreadorFinal;
             datosPropiedad.archivada = false;
             await addDoc(collection(db, "propiedades"), datosPropiedad);
             alert("¡Propiedad publicada con éxito en la nube!");
