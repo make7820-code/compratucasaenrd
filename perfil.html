@@ -1177,12 +1177,27 @@
 
         if (archivoInput.files && archivoInput.files[0]) {
           const archivo = archivoInput.files[0];
+          // Guardamos la URL de la foto actual ANTES de sobreescribirla, para
+          // poder borrarla de Storage una vez que la nueva se guarde con éxito.
+          const fotoAnteriorUrl = usuarioActualData.fotoPerfil || null;
           try {
             const storageRef = firebase.storage().ref();
             const rutaArchivo = storageRef.child(`fotosperfil/${Date.now()}_${archivo.name}`);
             const snapshot = await rutaArchivo.put(archivo);
             const downloadURL = await snapshot.ref.getDownloadURL();
             await finalizarGuardado(downloadURL);
+
+            // Borra la foto de perfil anterior de Firebase Storage para no dejar
+            // archivos huérfanos acumulando espacio y costo en Cloud Storage.
+            // Solo se intenta borrar si la URL anterior es realmente de nuestro
+            // Storage (evita errores con avatares externos tipo dicebear/assets).
+            if (fotoAnteriorUrl && fotoAnteriorUrl.includes('firebasestorage')) {
+              try {
+                await firebase.storage().refFromURL(fotoAnteriorUrl).delete();
+              } catch (errorBorrado) {
+                console.warn("No se pudo borrar la foto de perfil anterior:", errorBorrado);
+              }
+            }
           } catch (error) {
             console.error("Fallo al subir a Storage:", error);
             alert("Error al subir la imagen.");
