@@ -3215,8 +3215,10 @@
           // así queda visible para admin/superadmin y se puede restaurar desde cualquier lugar.
           await updateDoc(doc(db, "propiedades", prop.id), { archivada: true });
 
-          alert("¡Propiedad archivada correctamente!");
-          renderizarPublicaciones(obtenerFiltroActual(), true);
+          // Se actualiza la lista y el contador de "Ver Archivadas" al instante,
+          // sin ventana emergente que haya que cerrar primero.
+          await renderizarPublicaciones(obtenerFiltroActual(), true);
+          actualizarContadorArchivadas();
         } catch (error) {
           console.error("Error al archivar:", error);
           alert("Hubo un error al archivar la propiedad.");
