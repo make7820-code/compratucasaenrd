@@ -786,6 +786,25 @@
         return COLORES_ROL[(rol || '').toLowerCase()] || '#ffffff';
       }
 
+      // Escapa HTML para que nadie pueda inyectar código dentro de un mensaje.
+      function escaparHtml(texto) {
+        const div = document.createElement('div');
+        div.textContent = texto || '';
+        return div.innerHTML;
+      }
+
+      // Convierte el texto de un mensaje en HTML seguro y, además, transforma
+      // cualquier link (http://, https:// o que empiece con www.) en un enlace
+      // clicable que abre en una pestaña nueva. Así se pueden mandar links por el chat.
+      function formatearMensajeConLinks(texto) {
+        const seguro = escaparHtml(texto);
+        const regexLinks = /((https?:\/\/|www\.)[^\s<]+)/gi;
+        return seguro.replace(regexLinks, (match) => {
+          const href = match.startsWith('http') ? match : `https://${match}`;
+          return `<a href="${href}" target="_blank" rel="noopener noreferrer" style="color:#3b82f6; text-decoration:underline; word-break:break-all;">${match}</a>`;
+        });
+      }
+
       let miUid = null;
       let miRol = '';
       let miNombre = '';
@@ -1256,7 +1275,7 @@
               const bubble = document.createElement('div');
               bubble.className = `message-bubble ${isOutgoing ? 'outgoing' : 'incoming'}`;
               bubble.innerHTML = `
-                <div>${msgData.mensaje || msgData.text || ''}</div>
+                <div>${formatearMensajeConLinks(msgData.mensaje || msgData.text || '')}</div>
                 <div class="message-time">${msgData.timestamp?.toDate ? new Date(msgData.timestamp.toDate()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'Hace un momento'}</div>
               `;
               messagesBox.appendChild(bubble);
@@ -1701,7 +1720,7 @@
 
           if (nombreAgenteEl) {
             nombreAgenteEl.addEventListener('click', () => {
-              window.location.href = `agente.html?uid=${otroUid}`;
+              window.location.href = `../agente.html?uid=${otroUid}`;
             });
           }
 
@@ -1745,7 +1764,7 @@
               const bubble = document.createElement('div');
               bubble.className = `message-bubble ${isOutgoing ? 'outgoing' : 'incoming'}`;
               bubble.innerHTML = `
-                <div>${msgData.mensaje || ''}</div>
+                <div>${formatearMensajeConLinks(msgData.mensaje || '')}</div>
                 <div class="message-time">${msgData.timestamp?.toDate ? new Date(msgData.timestamp.toDate()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'Hace un momento'}</div>
               `;
               messagesBox.appendChild(bubble);
