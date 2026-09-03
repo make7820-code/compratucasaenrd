@@ -1048,6 +1048,8 @@
                     propertyImage: data.propertyImage || '../assets/puerto-marina.png',
                     propertyPrice: data.propertyPrice || '',
                     propertyLink: propertyLink,
+                    agentId: data.agentId || null,
+                    esSolicitudBusqueda: propId.startsWith('solicitud_'),
                     noLeido: false,
                     lastActivity: 0
                   });
@@ -1074,7 +1076,15 @@
               const esAdminOSuperadmin = miRol === 'admin' || miRol === 'superadmin';
               if (!esAdminOSuperadmin) {
                 const propietarios = await Promise.all(convs.map(c => obtenerCreadorPropiedad(c.propertyId)));
-                convs = convs.filter((c, i) => propietarios[i].creadoPorUid === miUid);
+                convs = convs.filter((c, i) => {
+                  // Conversación normal de una propiedad: solo el agente que la publicó la ve.
+                  if (propietarios[i].creadoPorUid === miUid) return true;
+                  // Solicitud de Búsqueda (no está ligada a una propiedad real):
+                  // se muestra si el cliente eligió a este agente específico,
+                  // o a cualquier agente disponible (agentId nulo).
+                  if (c.esSolicitudBusqueda && (c.agentId === miUid || !c.agentId)) return true;
+                  return false;
+                });
               }
 
               const datosAdicionales = await cargarDatosAdicionalesConvs(convs);
