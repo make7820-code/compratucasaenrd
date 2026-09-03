@@ -984,18 +984,20 @@
       }
 
       // Lista de agentes: ya no es fija. Se llena automáticamente con TODOS los
-      // usuarios que tengan rol "agente" o "agentepro" en Firestore, para que
-      // cualquiera que se registre como agente aparezca aquí sin tocar el código.
+      // usuarios que tengan rol "agente", "agentepro", "admin" o "superadmin" en
+      // Firestore. Un admin/superadmin que publica propiedades es, de cara al
+      // público, un agente más (igual que en agente.html), así que también debe
+      // poder aparecer y ser seguido aquí.
       let agentsList = [];
 
-      // Trae de Firestore a todos los usuarios con rol agente/agentepro y arma
-      // agentsList con sus datos reales (nombre, foto). Se llama al cargar la
-      // página; luego escucharSeguidoresAgentes() mantiene los contadores en vivo.
+      // Trae de Firestore a todos los usuarios con esos roles y arma agentsList
+      // con sus datos reales (nombre, foto). Se llama al cargar la página; luego
+      // escucharSeguidoresAgentes() mantiene los contadores en vivo.
       async function cargarAgentesDesdeFirestore() {
         try {
           const consultaAgentes = query(
             collection(db, "usuarios"),
-            where("rol", "in", ["agente", "agentepro"])
+            where("rol", "in", ["agente", "agentepro", "admin", "superadmin"])
           );
           const snap = await getDocs(consultaAgentes);
 
