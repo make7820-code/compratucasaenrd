@@ -995,8 +995,10 @@
             avatarInner = `<div class="user-avatar-small">+</div>`;
           }
 
+          const esAgenteReal = !agent.uid.startsWith('user_');
+
           htmlContent += `
-            <div class="recommended-user-item" data-agent-original-id="${agent.id}">
+            <div class="recommended-user-item" data-agent-original-id="${agent.id}" ${esAgenteReal ? `onclick="window.irAlPerfilAgente('${agent.uid}')" style="cursor:pointer;"` : ''}>
               <div class="user-info-left">
                 <div class="avatar-wrapper">
                   ${avatarInner}
@@ -1007,7 +1009,7 @@
                   <span id="counter-agent-${agent.id}">${followerText}</span>
                 </div>
               </div>
-              <button class="follow-btn ${agent.isFollowing ? 'following' : ''}" onclick="toggleFollow(${agent.id}, this)">
+              <button class="follow-btn ${agent.isFollowing ? 'following' : ''}" onclick="event.stopPropagation(); toggleFollow(${agent.id}, this)">
                 ${agent.isFollowing ? 'Siguiendo' : 'Seguir'}
               </button>
             </div>
@@ -1015,6 +1017,13 @@
         });
 
         container.innerHTML = htmlContent;
+      }
+
+      // Lleva al perfil público del agente (agente.html) al hacer clic en su
+      // tarjeta dentro de "Agentes Recomendados". Los usuarios de relleno
+      // ("Nuevo usuario", sin UID real todavía) no son clicables.
+      window.irAlPerfilAgente = function(uid) {
+        window.location.href = `agente.html?uid=${uid}`;
       }
 
       window.toggleFollow = async function(agentId, btnElement) {
