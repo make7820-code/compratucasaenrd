@@ -1670,9 +1670,11 @@
         const nombreAgentePagina = agentData.nombres || agentData.nombreUsuario || 'Agente';
         const fotoAgentePagina = agentData.fotoPerfil || 'assets/onlybladi-avatar.png';
         const rolAgentePagina = (agentData.rol || 'agente').toLowerCase();
-        const rolTextoPagina = rolAgentePagina === 'agentepro' ? 'Agente Pro' :
-                                rolAgentePagina === 'admin' ? 'Administrador' :
-                                rolAgentePagina === 'superadmin' ? 'Superadmin' : 'Agente Inmobiliario';
+        // De cara al público, un admin/superadmin que publica propiedades se ve
+        // igual que cualquier agente (no se revela su rol interno de gestión):
+        // solo "Agente Pro" queda visible como distinción real, todo lo demás
+        // (agente, admin, superadmin) se muestra como "Agente Inmobiliario".
+        const rolTextoPagina = rolAgentePagina === 'agentepro' ? 'Agente Pro' : 'Agente Inmobiliario';
         const whatsappAgentePagina = (agentData.whatsapp || agentData.telefono || '').replace(/[^0-9]/g, '') || '18498572321';
 
         document.title = `${nombreAgentePagina} | Compra tu casa en RD`;
