@@ -652,41 +652,73 @@
         transform: none;
       }
 
-      @media(max-width: 560px) {
+      @media(max-width: 640px) {
         .solicitud-modal-overlay {
-          padding: 12px;
+          padding: 0;
+          align-items: stretch;
+          justify-content: stretch;
         }
 
         .solicitud-modal-box {
           max-width: 100%;
           width: 100%;
-          max-height: 94vh;
-          border-radius: 18px;
-          padding: 22px 16px 18px;
+          height: 100dvh;
+          max-height: 100dvh;
+          border-radius: 0;
+          padding: 20px 18px 24px;
+          display: flex;
+          flex-direction: column;
+        }
+
+        .solicitud-modal-header {
+          flex-shrink: 0;
         }
 
         .solicitud-modal-header h3 {
-          font-size: 17px;
+          font-size: 18px;
+        }
+
+        form#solicitudForm {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          min-height: 0;
+          overflow-y: auto;
+          -webkit-overflow-scrolling: touch;
         }
 
         .solicitud-form-grid {
           grid-template-columns: 1fr;
-          gap: 14px;
+          gap: 16px;
         }
 
         .solicitud-field label {
-          font-size: 12.5px;
+          font-size: 13.5px;
+        }
+
+        .solicitud-field input,
+        .solicitud-field select,
+        .solicitud-field textarea {
+          padding: 14px 16px;
+          font-size: 16px;
+        }
+
+        .solicitud-field textarea {
+          min-height: 110px;
         }
 
         .solicitud-modal-actions {
           gap: 10px;
+          flex-shrink: 0;
+          padding-top: 14px;
         }
 
         .solicitud-btn-submit,
         .solicitud-btn-cancel {
           flex: 1;
           text-align: center;
-          padding: 14px 16px;
+          padding: 15px 16px;
+          font-size: 15px;
         }
       }
     </style>
