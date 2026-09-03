@@ -1617,11 +1617,18 @@
                 ${(!finalizada && conv.noLeido) ? '<span class="conv-unread-dot"></span>' : ''}
               </div>
               <div class="conv-info">
-                <div class="conv-client-name" style="color:${colorPorRol(conv.rol)};">${conv.nombre}</div>
+                <div class="conv-client-name" style="color:${colorPorRol(conv.rol)}; cursor:pointer;" title="Ver perfil de ${conv.nombre}">${conv.nombre}</div>
                 <div class="conv-last-msg">${finalizada ? '✅ Conversación finalizada' : (conv.lastMsg || 'Sin mensajes todavía')}</div>
               </div>
               ${finalizada ? `<button class="conv-delete-btn" title="Eliminar conversación">🗑️</button>` : ''}
             `;
+            const nombreListaEl = item.querySelector('.conv-client-name');
+            if (nombreListaEl) {
+              nombreListaEl.addEventListener('click', (e) => {
+                e.stopPropagation(); // que no abra el chat, solo lleve al perfil
+                window.location.href = `../agente.html?uid=${conv.otroUid}`;
+              });
+            }
             if (finalizada) {
               const delBtn = item.querySelector('.conv-delete-btn');
               delBtn.addEventListener('click', async (e) => {
