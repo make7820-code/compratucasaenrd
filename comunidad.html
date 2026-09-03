@@ -215,6 +215,38 @@
         border-color: #3b82f6;
       }
 
+      .agent-search-box-container {
+        margin-top: 20px;
+        padding-top: 16px;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+      }
+      .agent-search-box-container input {
+        width: 100%;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        padding: 10px 14px;
+        color: #fff;
+        font-size: 13px;
+        outline: none;
+        transition: border-color 0.2s;
+        box-sizing: border-box;
+      }
+      .agent-search-box-container input:focus {
+        border-color: #3b82f6;
+      }
+      #resultadosBusquedaAgentes {
+        margin-top: 16px;
+        max-height: 320px;
+        overflow-y: auto;
+      }
+      #resultadosBusquedaAgentes .recommended-user-item {
+        margin-bottom: 14px;
+      }
+      #resultadosBusquedaAgentes p {
+        margin: 0;
+      }
+
       .community-tabs {
         display: flex;
         gap: 16px;
@@ -748,8 +780,18 @@
           </h3>
           
           <div id="recommendedAgentsContainer">
-            <!-- Los agentes se renderizarán dinámicamente aquí ordenados por seguidores -->
+            <!-- Los agentes se renderizarán dinámicamente aquí ordenados por seguidores (Top 5) -->
           </div>
+
+          <div class="agent-search-box-container">
+            <input
+              type="text"
+              id="inputBuscarAgentes"
+              placeholder="🔍 Buscar otro agente para seguir..."
+              oninput="window.buscarAgentes()"
+            >
+          </div>
+          <div id="resultadosBusquedaAgentes" style="display:none;"></div>
         </aside>
 
       </div>
@@ -920,7 +962,7 @@
     <script type="module">
       import { auth, db } from './firebase-config.js';
       import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-      import { doc, getDoc, setDoc, deleteDoc, addDoc, collection, query, where, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+      import { doc, getDoc, getDocs, setDoc, deleteDoc, addDoc, collection, query, where, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
       window.cambiarPestana = function(pestana) {
         const btnPub = document.getElementById('btnPublicaciones');
@@ -941,16 +983,41 @@
         }
       }
 
-      const AGENT_FIXED_UID = "2E7tIaEfdGeVERzDtWvaXQEmPG02";
-      const AGENT_FIXED_UID_2 = "6pJApysgZfQu9Z59W7nUDryS37w2";
+      // Lista de agentes: ya no es fija. Se llena automáticamente con TODOS los
+      // usuarios que tengan rol "agente" o "agentepro" en Firestore, para que
+      // cualquiera que se registre como agente aparezca aquí sin tocar el código.
+      let agentsList = [];
 
-      let agentsList = [
-        { id: 0, uid: AGENT_FIXED_UID, name: "Cargando...", avatar: "assets/onlybladi-avatar.png", isFixed: true, followers: 0, followerUids: [], isFollowing: false },
-        { id: 1, uid: AGENT_FIXED_UID_2, name: "Cargando...", avatar: null, isFixed: true, followers: 0, followerUids: [], isFollowing: false },
-        { id: 2, uid: "user_1", name: "Nuevo usuario", avatar: null, isFixed: false, followers: 0, followerUids: [], isFollowing: false },
-        { id: 3, uid: "user_2", name: "Nuevo usuario", avatar: null, isFixed: false, followers: 0, followerUids: [], isFollowing: false },
-        { id: 4, uid: "user_3", name: "Nuevo usuario", avatar: null, isFixed: false, followers: 0, followerUids: [], isFollowing: false }
-      ];
+      // Trae de Firestore a todos los usuarios con rol agente/agentepro y arma
+      // agentsList con sus datos reales (nombre, foto). Se llama al cargar la
+      // página; luego escucharSeguidoresAgentes() mantiene los contadores en vivo.
+      async function cargarAgentesDesdeFirestore() {
+        try {
+          const consultaAgentes = query(
+            collection(db, "usuarios"),
+            where("rol", "in", ["agente", "agentepro"])
+          );
+          const snap = await getDocs(consultaAgentes);
+
+          agentsList = [];
+          snap.forEach(docSnap => {
+            const data = docSnap.data();
+            agentsList.push({
+              uid: docSnap.id,
+              name: data.nombres || data.nombre || 'Agente sin nombre',
+              avatar: data.fotoPerfil || data.foto || null,
+              followers: 0,
+              followerUids: [],
+              isFollowing: false
+            });
+          });
+
+          renderAgents(auth.currentUser);
+          escucharSeguidoresAgentes();
+        } catch (error) {
+          console.error("Error al cargar la lista de agentes:", error);
+        }
+      }
 
       // ===== SEGUIDORES EN TIEMPO REAL (FIRESTORE, ya no localStorage) =====
       // Cada "seguir" se guarda como un documento en la colección "agentesSeguidores"
@@ -959,7 +1026,6 @@
       // entre a la página, no solo para quien dio clic.
       function escucharSeguidoresAgentes() {
         agentsList.forEach(agent => {
-          if (agent.uid.startsWith('user_')) return; // agentes de relleno, aún no reales
           const q = query(collection(db, "agentesSeguidores"), where("agentUid", "==", agent.uid));
           onSnapshot(q, (snapshot) => {
             agent.followers = snapshot.size;
@@ -977,46 +1043,96 @@
           agent.isFollowing = currentUser ? agent.followerUids.includes(currentUser.uid) : false;
         });
 
-        agentsList.sort((a, b) => b.followers - a.followers);
+        // Solo se muestran los 5 agentes con más seguidores en el panel principal.
+        const top5 = [...agentsList].sort((a, b) => b.followers - a.followers).slice(0, 5);
+
+        if (top5.length === 0) {
+          container.innerHTML = `<p style="color:#a1a1aa; font-size:13px;">Todavía no hay agentes registrados.</p>`;
+          return;
+        }
 
         let htmlContent = '';
-        agentsList.forEach((agent, index) => {
+        top5.forEach((agent, index) => {
           let medalEmoji = '';
           if (index === 0) medalEmoji = '⭐';
           else if (index === 1) medalEmoji = '🥈';
           else if (index === 2) medalEmoji = '🥉';
 
-          const followerText = `${agent.followers} ${agent.followers === 1 ? 'seguidor' : 'seguidores'}`;
-          
-          let avatarInner = '';
-          if (agent.avatar) {
-            avatarInner = `<img src="${agent.avatar}" alt="Avatar" class="user-avatar-small" onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=${agent.uid}'">`;
-          } else {
-            avatarInner = `<div class="user-avatar-small">+</div>`;
-          }
-
-          const esAgenteReal = !agent.uid.startsWith('user_');
-
-          htmlContent += `
-            <div class="recommended-user-item" data-agent-original-id="${agent.id}" ${esAgenteReal ? `onclick="window.irAlPerfilAgente('${agent.uid}')" style="cursor:pointer;"` : ''}>
-              <div class="user-info-left">
-                <div class="avatar-wrapper">
-                  ${avatarInner}
-                  ${medalEmoji ? `<span class="rank-badge">${medalEmoji}</span>` : ''}
-                </div>
-                <div class="user-details">
-                  <h4>${agent.name}</h4>
-                  <span id="counter-agent-${agent.id}">${followerText}</span>
-                </div>
-              </div>
-              <button class="follow-btn ${agent.isFollowing ? 'following' : ''}" onclick="event.stopPropagation(); toggleFollow(${agent.id}, this)">
-                ${agent.isFollowing ? 'Siguiendo' : 'Seguir'}
-              </button>
-            </div>
-          `;
+          htmlContent += construirTarjetaAgente(agent, medalEmoji);
         });
 
         container.innerHTML = htmlContent;
+
+        // Si el usuario tiene una búsqueda activa, la refrescamos también
+        // (por si cambiaron los seguidores o alguien subió/bajó del Top 5).
+        const inputBusqueda = document.getElementById('inputBuscarAgentes');
+        if (inputBusqueda && inputBusqueda.value.trim() !== '') {
+          window.buscarAgentes();
+        }
+      }
+
+      // Genera el HTML de una tarjeta de agente (reutilizado por el Top 5 y por
+      // los resultados del buscador) con avatar, nombre, seguidores y botón Seguir.
+      function construirTarjetaAgente(agent, medalEmoji = '') {
+        const followerText = `${agent.followers} ${agent.followers === 1 ? 'seguidor' : 'seguidores'}`;
+
+        let avatarInner = '';
+        if (agent.avatar) {
+          avatarInner = `<img src="${agent.avatar}" alt="Avatar" class="user-avatar-small" onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=${agent.uid}'">`;
+        } else {
+          avatarInner = `<div class="user-avatar-small">+</div>`;
+        }
+
+        return `
+          <div class="recommended-user-item" onclick="window.irAlPerfilAgente('${agent.uid}')" style="cursor:pointer;">
+            <div class="user-info-left">
+              <div class="avatar-wrapper">
+                ${avatarInner}
+                ${medalEmoji ? `<span class="rank-badge">${medalEmoji}</span>` : ''}
+              </div>
+              <div class="user-details">
+                <h4>${agent.name}</h4>
+                <span>${followerText}</span>
+              </div>
+            </div>
+            <button class="follow-btn ${agent.isFollowing ? 'following' : ''}" onclick="event.stopPropagation(); toggleFollow('${agent.uid}', this)">
+              ${agent.isFollowing ? 'Siguiendo' : 'Seguir'}
+            </button>
+          </div>
+        `;
+      }
+
+      // Buscador: muestra agentes que coincidan con el texto y que NO estén ya
+      // en el Top 5 (esos ya se ven arriba), para que el usuario pueda seguir a
+      // cualquier agente y ayudarlo a subir posiciones.
+      window.buscarAgentes = function() {
+        const inputBusqueda = document.getElementById('inputBuscarAgentes');
+        const resultados = document.getElementById('resultadosBusquedaAgentes');
+        if (!inputBusqueda || !resultados) return;
+
+        const textoBusqueda = inputBusqueda.value.trim().toLowerCase();
+
+        if (textoBusqueda === '') {
+          resultados.style.display = 'none';
+          resultados.innerHTML = '';
+          return;
+        }
+
+        resultados.style.display = 'block';
+
+        const top5Uids = [...agentsList].sort((a, b) => b.followers - a.followers).slice(0, 5).map(a => a.uid);
+
+        const coincidencias = agentsList
+          .filter(agent => !top5Uids.includes(agent.uid))
+          .filter(agent => agent.name.toLowerCase().includes(textoBusqueda))
+          .sort((a, b) => b.followers - a.followers);
+
+        if (coincidencias.length === 0) {
+          resultados.innerHTML = `<p style="color:#a1a1aa; font-size:13px;">No se encontraron agentes con ese nombre (o ya está en el Top 5).</p>`;
+          return;
+        }
+
+        resultados.innerHTML = coincidencias.map(agent => construirTarjetaAgente(agent)).join('');
       }
 
       // Lleva al perfil público del agente (agente.html) al hacer clic en su
@@ -1026,7 +1142,7 @@
         window.location.href = `agente.html?uid=${uid}`;
       }
 
-      window.toggleFollow = async function(agentId, btnElement) {
+      window.toggleFollow = async function(agentUid, btnElement) {
         const currentUser = auth.currentUser;
         if (!currentUser) {
           alert("Debes iniciar sesión para seguir a un agente.");
@@ -1034,8 +1150,8 @@
           return;
         }
 
-        const agent = agentsList.find(a => a.id === agentId);
-        if (!agent || agent.uid.startsWith('user_')) {
+        const agent = agentsList.find(a => a.uid === agentUid);
+        if (!agent) {
           alert("Este agente todavía no está disponible para seguir.");
           return;
         }
@@ -1247,33 +1363,7 @@
 
       window.addEventListener('DOMContentLoaded', () => {
         onAuthStateChanged(auth, async (user) => {
-          try {
-            await Promise.all([AGENT_FIXED_UID, AGENT_FIXED_UID_2].map(async (uid) => {
-              const docRef = doc(db, "usuarios", uid);
-              const docSnap = await getDoc(docRef);
-              if (docSnap.exists()) {
-                const data = docSnap.data();
-                let agentDisplayName = "Agente";
-                if (data.nombres) {
-                  agentDisplayName = data.nombres;
-                } else if (data.nombre) {
-                  agentDisplayName = data.nombre;
-                }
-                let agentAvatarSrc = data.fotoPerfil || 'assets/onlybladi-avatar.png';
-
-                const fixedAgent = agentsList.find(a => a.uid === uid);
-                if (fixedAgent) {
-                  fixedAgent.name = agentDisplayName;
-                  fixedAgent.avatar = agentAvatarSrc;
-                }
-              }
-            }));
-          } catch (error) {
-            console.error("Error al obtener datos de los agentes en Firestore:", error);
-          }
-
-          renderAgents(user);
-          escucharSeguidoresAgentes();
+          await cargarAgentesDesdeFirestore();
 
           if (user) {
             escucharSolicitudesUsuario(user.uid);
