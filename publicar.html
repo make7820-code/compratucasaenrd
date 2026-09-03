@@ -1621,15 +1621,12 @@
       let videoArchivoActualUrl = '';   // URL del video ya subido a Storage (si existe) al editar
       let videoArchivoEliminado = false; // true si el usuario borró el video actual sin subir uno nuevo
 
-      // UIDs con control TOTAL fija de fábrica (superadmin / admins de confianza).
-      // Estos usuarios siempre pueden ver, editar y borrar TODAS las publicaciones,
-      // sin importar lo que diga su documento en Firestore.
-      const UIDS_AUTORIZADOS = [
-        "2E7tIaEfdGeVERzDtWvaXQEmPG02", 
-        "aO0EbKwTRFUupWq73OCTI83FaZ92",
-        "6pJApysgZfQu9Z59W7nUDryS37w2",
-          
-      ];
+      // NOTA: antes existía aquí una lista "UIDS_AUTORIZADOS" que daba acceso total
+      // (ver/editar/borrar TODO) a ciertos UIDs fijos, sin importar su rol real en
+      // Firestore. Eso causaba que cuentas con rol "agente"/"agentepro" vieran y
+      // pudieran gestionar las publicaciones de otros agentes y de la empresa.
+      // Se eliminó: ahora el único criterio de acceso total es el campo "rol"
+      // real del usuario en Firestore (admin / superadmin).
 
       // Estado de sesión y permisos del usuario actual, se rellena en onAuthStateChanged.
       let usuarioActualUid = null;
@@ -2146,7 +2143,7 @@
             // esModoAdmin = true  -> ve/gestiona TODAS las publicaciones de TODOS los agentes.
             // rol 'agente'        -> solo ve/gestiona SUS PROPIAS publicaciones.
             rolUsuarioActual = userData.rol || '';
-            esModoAdmin = UIDS_AUTORIZADOS.includes(user.uid) || rolUsuarioActual === 'admin' || rolUsuarioActual === 'superadmin';
+            esModoAdmin = rolUsuarioActual === 'admin' || rolUsuarioActual === 'superadmin';
             const esAgenteAutorizado = esModoAdmin || rolUsuarioActual === 'agente' || rolUsuarioActual === 'agentepro';
 
             if (!esAgenteAutorizado) {
@@ -2167,6 +2164,20 @@
             // como agente, aunque su rol en el sistema sea superadmin).
             if (esModoAdmin) {
               cargarListaAgentesParaAdmin();
+            } else {
+              // Un agente/agentepro normal NUNCA debe poder escribir el nombre o el
+              // WhatsApp de otra persona: se bloquean estos campos y siempre se
+              // fuerza a que muestren los datos de su propio perfil.
+              const campoAgenteBloqueo = document.getElementById('propAgente');
+              const campoWhatsappBloqueo = document.getElementById('propAgenteWhatsapp');
+              if (campoAgenteBloqueo) {
+                campoAgenteBloqueo.readOnly = true;
+                campoAgenteBloqueo.title = 'Se usa automáticamente tu nombre de perfil';
+              }
+              if (campoWhatsappBloqueo) {
+                campoWhatsappBloqueo.readOnly = true;
+                campoWhatsappBloqueo.title = 'Se usa automáticamente tu WhatsApp de perfil';
+              }
             }
 
             const authContainer = document.getElementById('authContainer');
@@ -2486,8 +2497,15 @@
           document.getElementById('propTitulo').value = editarObj.titulo || '';
           document.getElementById('propTipoPropiedad').value = editarObj.tipo || 'Casa';
           document.getElementById('propOperacion').value = editarObj.operacion || 'Venta';
-          document.getElementById('propAgente').value = editarObj.agente || '';
-          document.getElementById('propAgenteWhatsapp').value = editarObj.agenteWhatsapp || '';
+          if (esModoAdmin) {
+            document.getElementById('propAgente').value = editarObj.agente || '';
+            document.getElementById('propAgenteWhatsapp').value = editarObj.agenteWhatsapp || '';
+          } else {
+            // Un agente/agentepro normal siempre edita con su propio nombre y
+            // WhatsApp de perfil, nunca con un valor arbitrario guardado antes.
+            document.getElementById('propAgente').value = perfilUsuarioActual.nombre || '';
+            document.getElementById('propAgenteWhatsapp').value = perfilUsuarioActual.whatsapp || '';
+          }
           // Refleja en el selector a nombre de quién está publicada actualmente,
           // para que un admin vea y pueda cambiar la asignación al editar.
           if (selectorPublicarComoModal) {
