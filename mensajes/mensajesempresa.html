@@ -1671,7 +1671,7 @@
               <div class="chat-property-meta">
                 <img src="${otroFoto}" alt="${otroNombre}" class="chat-prop-img" onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=${otroUid}'">
                 <div>
-                  <div class="chat-prop-name" style="color:${colorPorRol(otroRol)};">${otroNombre}</div>
+                  <div class="chat-prop-name" id="chatNombreAgenteInterno" style="color:${colorPorRol(otroRol)}; cursor:pointer;" title="Ver perfil de ${otroNombre}">${otroNombre}</div>
                   <div class="chat-prop-price">Conversación interna del equipo</div>
                 </div>
               </div>
@@ -1697,6 +1697,13 @@
 
           const messagesBox = document.getElementById('chatMessagesBoxInterno');
           const closeBtn = document.getElementById('chatCloseBtnInterno');
+          const nombreAgenteEl = document.getElementById('chatNombreAgenteInterno');
+
+          if (nombreAgenteEl) {
+            nombreAgenteEl.addEventListener('click', () => {
+              window.location.href = `agente.html?uid=${otroUid}`;
+            });
+          }
 
           closeBtn.addEventListener('click', () => {
             if (typeof unsubscribeChatActual === 'function') { unsubscribeChatActual(); unsubscribeChatActual = null; }
