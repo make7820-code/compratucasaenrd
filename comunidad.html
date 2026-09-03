@@ -517,7 +517,10 @@
         width: 100%;
         max-width: 550px;
         max-height: 90vh;
+        max-height: 90dvh;
         overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain;
         box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7);
         animation: fadeInUp 0.3s ease;
       }
@@ -582,12 +585,14 @@
         border: 1px solid rgba(255, 255, 255, 0.1);
         border-radius: 10px;
         padding: 12px 14px;
-        font-size: 14px;
+        font-size: 16px;
         font-family: 'Inter', sans-serif;
         outline: none;
         box-sizing: border-box;
         width: 100%;
         transition: box-shadow 0.2s ease;
+        -webkit-appearance: none;
+        appearance: none;
       }
 
       .solicitud-field input:focus,
@@ -649,8 +654,43 @@
       }
 
       @media(max-width: 560px) {
+        .solicitud-modal-overlay {
+          padding: 0;
+          align-items: flex-end;
+        }
+
+        .solicitud-modal-box {
+          max-width: 100%;
+          width: 100%;
+          max-height: 92dvh;
+          max-height: 92vh;
+          border-radius: 20px 20px 0 0;
+          padding: 22px 18px 20px;
+          animation: fadeInUp 0.25s ease;
+        }
+
+        .solicitud-modal-header h3 {
+          font-size: 17px;
+        }
+
         .solicitud-form-grid {
           grid-template-columns: 1fr;
+          gap: 14px;
+        }
+
+        .solicitud-field label {
+          font-size: 12.5px;
+        }
+
+        .solicitud-modal-actions {
+          gap: 10px;
+        }
+
+        .solicitud-btn-submit,
+        .solicitud-btn-cancel {
+          flex: 1;
+          text-align: center;
+          padding: 14px 16px;
         }
       }
     </style>
@@ -872,12 +912,21 @@
 
             <div class="solicitud-field">
               <label for="solTelefono">Número de Teléfono *</label>
-              <input type="tel" id="solTelefono" placeholder="Ej. 809-555-1234" required>
+              <input type="tel" id="solTelefono" inputmode="tel" placeholder="Ej. 809-555-1234" required>
             </div>
 
             <div class="solicitud-field">
               <label for="solNacionalidad">Nacionalidad *</label>
               <input type="text" id="solNacionalidad" placeholder="Ej. Dominicana" required>
+            </div>
+
+            <div class="solicitud-field">
+              <label for="solUrgencia">¿Buscas con calma o de inmediato? *</label>
+              <select id="solUrgencia" required>
+                <option value="" disabled selected>Selecciona una opción...</option>
+                <option value="Con calma">Con calma</option>
+                <option value="De inmediato">De inmediato</option>
+              </select>
             </div>
 
             <div class="solicitud-field full-width">
@@ -1324,10 +1373,14 @@
           return;
         }
         document.getElementById('solicitudModalOverlay').classList.add('active');
+        // Bloquea el scroll del fondo mientras el modal está abierto,
+        // para evitar conflictos de toque/scroll en móvil.
+        document.body.style.overflow = 'hidden';
       }
 
       window.cerrarModalSolicitud = function() {
         document.getElementById('solicitudModalOverlay').classList.remove('active');
+        document.body.style.overflow = '';
       }
 
       document.getElementById('solicitudModalOverlay').addEventListener('click', (e) => {
@@ -1354,9 +1407,10 @@
         const banos = document.getElementById('solBanos').value;
         const telefono = document.getElementById('solTelefono').value.trim();
         const nacionalidad = document.getElementById('solNacionalidad').value.trim();
+        const urgencia = document.getElementById('solUrgencia').value;
         const descripcion = document.getElementById('solDescripcion').value.trim();
 
-        if (!zona || !nombre || !agenteSeleccionado || !presupuesto || !telefono || !nacionalidad || !descripcion) {
+        if (!zona || !nombre || !agenteSeleccionado || !presupuesto || !telefono || !nacionalidad || !urgencia || !descripcion) {
           alert("Por favor completa todos los campos obligatorios, incluyendo el agente al que quieres enviar tu solicitud.");
           return;
         }
@@ -1385,7 +1439,8 @@
             `🛏️ Habitaciones: ${habitaciones}\n` +
             `🛁 Baños: ${banos}\n` +
             `📞 Teléfono: ${telefono}\n` +
-            `🌎 Nacionalidad: ${nacionalidad}\n\n` +
+            `🌎 Nacionalidad: ${nacionalidad}\n` +
+            `⏱️ Urgencia: ${urgencia}\n\n` +
             `📝 Descripción:\n${descripcion}`;
 
           // 1) "Perfil de Búsqueda": documento con TODOS los detalles de la
@@ -1404,6 +1459,7 @@
             moneda: moneda,
             habitaciones: habitaciones,
             banos: banos,
+            urgencia: urgencia,
             descripcion: descripcion,
             agentId: agentIdElegido,
             agentNombre: agentNombreElegido,
@@ -1423,6 +1479,7 @@
             nombreSolicitante: nombre,
             telefono: telefono,
             nacionalidad: nacionalidad,
+            urgencia: urgencia,
             agentId: agentIdElegido,
             agentNombre: agentNombreElegido,
             perfilBusquedaId: solicitudId,
