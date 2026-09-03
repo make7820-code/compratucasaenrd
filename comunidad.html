@@ -990,6 +990,11 @@
       // poder aparecer y ser seguido aquí.
       let agentsList = [];
 
+      // Cuentas de uso personal/pruebas del dueño del sitio: nunca deben
+      // aparecer en la comunidad pública, aunque tengan rol admin/superadmin.
+      // Se comparan por nombre (en minúsculas, sin espacios extra).
+      const NOMBRES_EXCLUIDOS_COMUNIDAD = ['onlybladi', 'prueba'];
+
       // Trae de Firestore a todos los usuarios con esos roles y arma agentsList
       // con sus datos reales (nombre, foto). Se llama al cargar la página; luego
       // escucharSeguidoresAgentes() mantiene los contadores en vivo.
@@ -1004,9 +1009,15 @@
           agentsList = [];
           snap.forEach(docSnap => {
             const data = docSnap.data();
+            const nombreAgente = data.nombres || data.nombre || 'Agente sin nombre';
+
+            if (NOMBRES_EXCLUIDOS_COMUNIDAD.includes(nombreAgente.trim().toLowerCase())) {
+              return; // cuenta personal/de prueba: no se agrega a la lista pública
+            }
+
             agentsList.push({
               uid: docSnap.id,
-              name: data.nombres || data.nombre || 'Agente sin nombre',
+              name: nombreAgente,
               avatar: data.fotoPerfil || data.foto || null,
               followers: 0,
               followerUids: [],
