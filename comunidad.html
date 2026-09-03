@@ -818,6 +818,14 @@
               <input type="text" id="solNombre" placeholder="Ej. Juan Pérez" required>
             </div>
 
+            <div class="solicitud-field full-width">
+              <label for="solAgente">¿A qué agente quieres enviarle esta solicitud? *</label>
+              <select id="solAgente" required>
+                <option value="" disabled selected>Selecciona un agente...</option>
+                <option value="cualquiera">Cualquier agente disponible</option>
+              </select>
+            </div>
+
             <div class="solicitud-field">
               <label for="solTipoOferta">Tipo de Oferta *</label>
               <select id="solTipoOferta" required>
@@ -1026,9 +1034,33 @@
           });
 
           renderAgents(auth.currentUser);
+          renderSelectorAgentesSolicitud();
           escucharSeguidoresAgentes();
         } catch (error) {
           console.error("Error al cargar la lista de agentes:", error);
+        }
+      }
+
+      // Llena el <select> del modal de solicitud con la lista real de agentes
+      // (misma fuente que "Agentes Recomendados"), para que el usuario elija a
+      // quién le quiere enviar su solicitud. Se conserva la selección previa
+      // del usuario si ya había elegido un agente antes de que la lista se
+      // actualizara (ej. cambios en vivo de seguidores).
+      function renderSelectorAgentesSolicitud() {
+        const select = document.getElementById('solAgente');
+        if (!select) return;
+
+        const valorPrevio = select.value;
+        const agentesOrdenados = [...agentsList].sort((a, b) => a.name.localeCompare(b.name));
+
+        select.innerHTML = `
+          <option value="" disabled ${!valorPrevio ? 'selected' : ''}>Selecciona un agente...</option>
+          <option value="cualquiera">Cualquier agente disponible</option>
+          ${agentesOrdenados.map(agent => `<option value="${agent.uid}">${agent.name}</option>`).join('')}
+        `;
+
+        if (valorPrevio && [...select.options].some(o => o.value === valorPrevio)) {
+          select.value = valorPrevio;
         }
       }
 
@@ -1314,6 +1346,7 @@
 
         const zona = document.getElementById('solZona').value.trim();
         const nombre = document.getElementById('solNombre').value.trim();
+        const agenteSeleccionado = document.getElementById('solAgente').value;
         const tipoOferta = document.getElementById('solTipoOferta').value;
         const presupuesto = document.getElementById('solPresupuesto').value.trim();
         const moneda = document.getElementById('solMoneda').value;
@@ -1323,10 +1356,18 @@
         const nacionalidad = document.getElementById('solNacionalidad').value.trim();
         const descripcion = document.getElementById('solDescripcion').value.trim();
 
-        if (!zona || !nombre || !presupuesto || !telefono || !nacionalidad || !descripcion) {
-          alert("Por favor completa todos los campos obligatorios.");
+        if (!zona || !nombre || !agenteSeleccionado || !presupuesto || !telefono || !nacionalidad || !descripcion) {
+          alert("Por favor completa todos los campos obligatorios, incluyendo el agente al que quieres enviar tu solicitud.");
           return;
         }
+
+        // Si eligió "Cualquier agente disponible" no hay un uid específico;
+        // en caso contrario buscamos su nombre para guardarlo junto al perfil.
+        const esCualquierAgente = agenteSeleccionado === 'cualquiera';
+        const agentIdElegido = esCualquierAgente ? null : agenteSeleccionado;
+        const agentNombreElegido = esCualquierAgente
+          ? 'Cualquier agente disponible'
+          : (agentsList.find(a => a.uid === agenteSeleccionado)?.name || 'Agente');
 
         const btnCrear = document.getElementById('btnCrearSolicitud');
         btnCrear.disabled = true;
@@ -1337,6 +1378,7 @@
           const mensajeCompleto =
             `📋 Nueva Solicitud de Búsqueda\n\n` +
             `👤 Nombre y Apellido: ${nombre}\n` +
+            `🎯 Agente elegido: ${agentNombreElegido}\n` +
             `📍 Ubicación/Zona: ${zona}\n` +
             `🏷️ Tipo de Oferta: ${tipoOferta}\n` +
             `💰 Presupuesto Máximo: ${presupuesto} ${moneda}\n` +
@@ -1346,6 +1388,32 @@
             `🌎 Nacionalidad: ${nacionalidad}\n\n` +
             `📝 Descripción:\n${descripcion}`;
 
+          // 1) "Perfil de Búsqueda": documento con TODOS los detalles de la
+          // solicitud, estructurados (no solo texto), para que el agente
+          // asignado pueda abrir el perfil completo del cliente y ayudarlo a
+          // buscar la propiedad, en vez de tener que leerlo todo del chat.
+          await setDoc(doc(db, "perfilesBusqueda", solicitudId), {
+            solicitudId: solicitudId,
+            userId: user.uid,
+            nombreSolicitante: nombre,
+            telefono: telefono,
+            nacionalidad: nacionalidad,
+            zona: zona,
+            tipoOferta: tipoOferta,
+            presupuesto: presupuesto,
+            moneda: moneda,
+            habitaciones: habitaciones,
+            banos: banos,
+            descripcion: descripcion,
+            agentId: agentIdElegido,
+            agentNombre: agentNombreElegido,
+            estado: 'pendiente',
+            createdAt: serverTimestamp()
+          });
+
+          // 2) Mensaje en el chat, ahora enlazado al agente elegido y al
+          // perfil de búsqueda completo (perfilBusquedaId) para que, desde el
+          // panel de mensajes, se pueda abrir el perfil con un clic.
           await addDoc(collection(db, "mensajes"), {
             userId: user.uid,
             propertyId: solicitudId,
@@ -1355,6 +1423,9 @@
             nombreSolicitante: nombre,
             telefono: telefono,
             nacionalidad: nacionalidad,
+            agentId: agentIdElegido,
+            agentNombre: agentNombreElegido,
+            perfilBusquedaId: solicitudId,
             mensaje: mensajeCompleto,
             sender: 'user',
             leidoPorUsuario: true,
@@ -1363,7 +1434,7 @@
 
           cerrarModalSolicitud();
           document.getElementById('solicitudForm').reset();
-          alert("¡Tu solicitud fue enviada! Podrás ver la conversación en tus Mensajes.");
+          alert(`¡Tu solicitud fue enviada a ${agentNombreElegido}! Podrás ver la conversación en tus Mensajes.`);
           window.location.href = `mensajes.html?propiedadId=${encodeURIComponent(solicitudId)}`;
         } catch (error) {
           console.error("Error al crear la solicitud:", error);
