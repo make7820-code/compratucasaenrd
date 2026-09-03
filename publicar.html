@@ -2166,8 +2166,10 @@
               cargarListaAgentesParaAdmin();
             } else {
               // Un agente/agentepro normal NUNCA debe poder escribir el nombre o el
-              // WhatsApp de otra persona: se bloquean estos campos y siempre se
-              // fuerza a que muestren los datos de su propio perfil.
+              // WhatsApp de otra persona, pero SÍ puede corregir/editar su PROPIO
+              // número de WhatsApp para esta publicación (por si su perfil no lo
+              // tiene guardado o quiere usar uno distinto). El nombre se mantiene
+              // bloqueado para evitar que se haga pasar por otro agente.
               const campoAgenteBloqueo = document.getElementById('propAgente');
               const campoWhatsappBloqueo = document.getElementById('propAgenteWhatsapp');
               if (campoAgenteBloqueo) {
@@ -2175,8 +2177,8 @@
                 campoAgenteBloqueo.title = 'Se usa automáticamente tu nombre de perfil';
               }
               if (campoWhatsappBloqueo) {
-                campoWhatsappBloqueo.readOnly = true;
-                campoWhatsappBloqueo.title = 'Se usa automáticamente tu WhatsApp de perfil';
+                campoWhatsappBloqueo.readOnly = false;
+                campoWhatsappBloqueo.title = 'Puedes editar el WhatsApp que se mostrará en esta propiedad';
               }
             }
 
@@ -2501,10 +2503,12 @@
             document.getElementById('propAgente').value = editarObj.agente || '';
             document.getElementById('propAgenteWhatsapp').value = editarObj.agenteWhatsapp || '';
           } else {
-            // Un agente/agentepro normal siempre edita con su propio nombre y
-            // WhatsApp de perfil, nunca con un valor arbitrario guardado antes.
+            // Un agente/agentepro normal siempre edita con su propio nombre (no puede
+            // hacerse pasar por otro), pero el WhatsApp sí puede ser el que ya tenía
+            // guardado en esta propiedad (o el de su perfil si no había ninguno), y
+            // queda editable por si quiere corregirlo.
             document.getElementById('propAgente').value = perfilUsuarioActual.nombre || '';
-            document.getElementById('propAgenteWhatsapp').value = perfilUsuarioActual.whatsapp || '';
+            document.getElementById('propAgenteWhatsapp').value = editarObj.agenteWhatsapp || perfilUsuarioActual.whatsapp || '';
           }
           // Refleja en el selector a nombre de quién está publicada actualmente,
           // para que un admin vea y pueda cambiar la asignación al editar.
