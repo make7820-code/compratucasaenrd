@@ -328,6 +328,96 @@
         box-shadow: 0 15px 35px rgba(0,0,0,0.3);
       }
 
+      /* ================= TARJETA DE "AGENTE" (resultado de búsqueda por nombre) ================= */
+      .agent-result-card {
+        grid-column: 1 / -1;
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(239, 68, 68, 0.08));
+        border: 1px solid rgba(59, 130, 246, 0.35);
+        border-radius: 20px;
+        padding: 20px 24px;
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        flex-wrap: wrap;
+        position: relative;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      }
+
+      .agent-result-badge {
+        position: absolute;
+        top: -10px;
+        left: 20px;
+        background: #3b82f6;
+        color: #fff;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        padding: 4px 12px;
+        border-radius: 999px;
+      }
+
+      .agent-result-photo {
+        width: 72px;
+        height: 72px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid #3b82f6;
+        background-color: #27272a;
+        flex-shrink: 0;
+      }
+
+      .agent-result-info {
+        flex-grow: 1;
+        min-width: 180px;
+      }
+
+      .agent-result-name {
+        font-size: 19px;
+        font-weight: 700;
+        color: var(--text-main);
+      }
+
+      .agent-result-role {
+        font-size: 13px;
+        color: var(--text-muted);
+        margin-top: 2px;
+      }
+
+      .agent-result-count {
+        font-size: 13px;
+        color: var(--text-muted);
+        margin-top: 4px;
+      }
+
+      .agent-result-btn {
+        background: #3b82f6;
+        color: #fff;
+        border: none;
+        padding: 12px 22px;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 14px;
+        text-decoration: none;
+        white-space: nowrap;
+        transition: background 0.2s;
+        flex-shrink: 0;
+      }
+
+      .agent-result-btn:hover {
+        background: #2563eb;
+      }
+
+      @media (max-width: 600px) {
+        .agent-result-card {
+          flex-direction: column;
+          text-align: center;
+        }
+        .agent-result-btn {
+          width: 100%;
+          text-align: center;
+        }
+      }
+
       /* ================= ESTILOS DEL CARRUSEL DE LA TARJETA ================= */
       .property-img-container {
         position: relative;
@@ -1485,6 +1575,10 @@
         }
 
         let favoritos = JSON.parse(localStorage.getItem('mis_favoritos') || '[]');
+        // uid -> { uid, nombre, foto, rol, count } — se llena mientras se recorren
+        // las propiedades, para poder mostrar una tarjeta de "Agente" cuando la
+        // búsqueda coincida con su nombre.
+        const agentesMap = {};
 
         querySnapshot.forEach((docSnap) => {
           const prop = docSnap.data();
@@ -1546,6 +1640,30 @@
           const propNivel = nivelInvalido ? '' : rawNivel;
           const propParqueos = prop.parqueos || prop.parking || prop.parqueo || '0';
           const propDescripcion = prop.descripcion || prop.description || '';
+
+          // Datos del agente que publicó esta propiedad, para poder buscar por su
+          // nombre y armar la tarjeta especial de "Agente" cuando coincide la búsqueda.
+          const propAgenteNombre = prop.agente || '';
+          const propAgenteUid = prop.creadoPorUid || '';
+          const propAgenteFoto = prop.agenteFotoCreador || '';
+          const propAgenteRol = prop.creadorRol || '';
+          // Se excluyen las publicaciones genéricas "a nombre de la empresa" (sin agente
+          // individual asignado) para que no aparezca una tarjeta de "agente" para la empresa.
+          if (propAgenteUid && propAgenteNombre && propAgenteNombre !== 'Compra tu casa en RD') {
+            if (!agentesMap[propAgenteUid]) {
+              agentesMap[propAgenteUid] = {
+                uid: propAgenteUid,
+                nombre: propAgenteNombre,
+                foto: propAgenteFoto,
+                rol: propAgenteRol,
+                count: 0
+              };
+            }
+            agentesMap[propAgenteUid].count++;
+            // Por si la foto/rol se actualizó en una publicación más reciente del mismo agente
+            if (propAgenteFoto) agentesMap[propAgenteUid].foto = propAgenteFoto;
+            if (propAgenteRol) agentesMap[propAgenteUid].rol = propAgenteRol;
+          }
 
           /* Cada estadística (Hab, Baños, Parq) solo se muestra si su valor
              numérico es 1 o más; si es 0 o no está definida, se oculta */
@@ -1662,8 +1780,9 @@
                  data-extranjeros="${aceptaExtranjero ? '1' : '0'}"
                  data-amueblado="${esAmueblado ? '1' : '0'}"
                  data-premium="${esPremium ? '1' : '0'}"
-                 data-negociable="${esNegociable ? '1' : '0'}">
-              
+                 data-negociable="${esNegociable ? '1' : '0'}"
+                 data-agent="${propAgenteNombre.toLowerCase()}">
+
               <div class="property-img-container" data-current-slide="0" data-total-slides="${totalSlidesTarjeta}">
                 <span class="property-badge-top" style="background: ${badgeBg}; ${propOffer === 'Alquiler' ? 'color:#1a1a1a;' : ''}">${propOffer}</span>
                 ${esAmueblado ? `<span class="property-badge-top" style="background: #8b5cf6; left: auto; top: 44px;">🛋️ Amueblado</span>` : ''}
@@ -1709,6 +1828,25 @@
           `;
           propertiesGrid.insertAdjacentHTML('beforeend', cardHtml);
         });
+
+        // ================= TARJETAS DE "AGENTE" (para la búsqueda por nombre) =================
+        // Se agregan al inicio del listado, ocultas por defecto. ejecutarFiltros()
+        // las muestra solo cuando el texto buscado coincide con el nombre de un agente.
+        const agentesHtml = Object.values(agentesMap).map(ag => `
+          <div class="agent-result-card" data-agent-name="${ag.nombre.toLowerCase()}" style="display:none;">
+            <div class="agent-result-badge">👤 AGENTE</div>
+            <img src="${ag.foto || 'assets/onlybladi-avatar.png'}" alt="${ag.nombre}" class="agent-result-photo" onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(ag.uid)}'">
+            <div class="agent-result-info">
+              <div class="agent-result-name">${ag.nombre}</div>
+              <div class="agent-result-role">${ag.rol === 'agentepro' ? 'Agente Pro' : ag.rol === 'admin' ? 'Administrador' : ag.rol === 'superadmin' ? 'Superadmin' : 'Agente Inmobiliario'}</div>
+              <div class="agent-result-count">🏠 ${ag.count} ${ag.count === 1 ? 'propiedad publicada' : 'propiedades publicadas'}</div>
+            </div>
+            <a href="agente.html?uid=${encodeURIComponent(ag.uid)}" class="agent-result-btn">Ver perfil y catálogo →</a>
+          </div>
+        `).join('');
+        if (agentesHtml) {
+          propertiesGrid.insertAdjacentHTML('afterbegin', agentesHtml);
+        }
 
         const propCounterNum = document.getElementById('propCounterNum');
         if (propCounterNum) {
@@ -2068,11 +2206,12 @@
             const extranjeros = card.getAttribute('data-extranjeros') === '1';
             const amueblado = card.getAttribute('data-amueblado') === '1';
             const premium = card.getAttribute('data-premium') === '1';
+            const agentName = card.getAttribute('data-agent') || '';
 
             let cumpleFavoritos = !soloFavoritosActivo || favoritos.includes(cardId);
             let cumplePremium = !soloPremiumActivo || premium;
             let cumpleTexto = cumpleBusquedaInteligente(tokensBusqueda, {
-              haystack: `${title} ${location} ${(type || '').toLowerCase()} ${(offer || '').toLowerCase()} ${nivel} ${desc}`,
+              haystack: `${title} ${location} ${(type || '').toLowerCase()} ${(offer || '').toLowerCase()} ${nivel} ${desc} ${agentName}`,
               type: (type || '').toLowerCase(),
               offer: (offer || '').toLowerCase(),
               habs,
@@ -2114,6 +2253,14 @@
           }
 
           renderizarControlesPaginacionPropiedades(coincidentes.length, totalPaginas);
+
+          // Muestra la(s) tarjeta(s) de "Agente" solo cuando el texto buscado
+          // (2+ caracteres) coincide con el nombre de algún agente.
+          document.querySelectorAll('.agent-result-card').forEach(card => {
+            const nombreAgente = card.getAttribute('data-agent-name') || '';
+            const coincide = texto.length >= 2 && nombreAgente.includes(texto);
+            card.style.display = coincide ? 'flex' : 'none';
+          });
         }
 
         /* Pinta los controles de paginación: Primera página, Anterior, números
