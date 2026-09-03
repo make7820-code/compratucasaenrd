@@ -1634,6 +1634,16 @@
       let rolUsuarioActual = '';     // 'agente' | 'admin' | 'superadmin'
       let perfilUsuarioActual = { nombre: '', foto: null, whatsapp: '' };
 
+      // Obtiene el WhatsApp de un documento de usuario: usa el campo "whatsapp"
+      // si existe, y si no (cuentas que aún no han vuelto a guardar su perfil
+      // desde perfil.html), usa el campo "telefono" como respaldo, dejando solo
+      // los dígitos (formato que necesita el enlace de wa.me).
+      function obtenerWhatsappDeUsuario(data) {
+        if (data && data.whatsapp) return data.whatsapp;
+        if (data && data.telefono) return String(data.telefono).replace(/[^0-9]/g, '');
+        return '';
+      }
+
       // Mapa de agentes disponibles para que un admin/superadmin pueda publicar
       // una propiedad "a nombre de" otro agente (uid -> {nombre, whatsapp, foto, rol}).
       let mapaAgentesDisponibles = {};
@@ -1658,7 +1668,7 @@
             mapaAgentesDisponibles[docSnap.id] = {
               uid: docSnap.id,
               nombre: data.nombres || data.nombre || 'Agente sin nombre',
-              whatsapp: data.whatsapp || '',
+              whatsapp: obtenerWhatsappDeUsuario(data),
               foto: data.fotoPerfil || data.foto || '',
               rol: data.rol || 'agente'
             };
@@ -2156,7 +2166,7 @@
             perfilUsuarioActual = {
               nombre: nombreCompleto,
               foto: fotoGuardada,
-              whatsapp: userData.whatsapp || ''
+              whatsapp: obtenerWhatsappDeUsuario(userData)
             };
 
             // Si es admin/superadmin, carga la lista de agentes para poder
