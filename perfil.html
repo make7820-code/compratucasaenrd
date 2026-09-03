@@ -813,7 +813,26 @@
             </div>
             <div class="form-group">
               <label>Teléfono</label>
-              <input type="tel" id="editTelefono" class="form-control" placeholder="+1 (809) 000-0000">
+              <div style="display: flex; gap: 8px;">
+                <select id="editTelefonoCodigo" class="form-control" style="flex: 0 0 110px;">
+                  <option value="+1">+1 (RD/US)</option>
+                  <option value="+52">+52 (MX)</option>
+                  <option value="+57">+57 (CO)</option>
+                  <option value="+58">+58 (VE)</option>
+                  <option value="+34">+34 (ES)</option>
+                  <option value="+51">+51 (PE)</option>
+                  <option value="+54">+54 (AR)</option>
+                  <option value="+56">+56 (CL)</option>
+                  <option value="+593">+593 (EC)</option>
+                  <option value="+502">+502 (GT)</option>
+                  <option value="+503">+503 (SV)</option>
+                  <option value="+504">+504 (HN)</option>
+                  <option value="+505">+505 (NI)</option>
+                  <option value="+506">+506 (CR)</option>
+                  <option value="+507">+507 (PA)</option>
+                </select>
+                <input type="tel" id="editTelefono" class="form-control" placeholder="809 000 0000" style="flex: 1;">
+              </div>
             </div>
             <div class="form-group">
               <label>Correo Electrónico</label>
@@ -1075,12 +1094,30 @@
         }
       }
 
+      // Códigos de país soportados por el selector de teléfono, ordenados del
+      // más largo al más corto para que la detección del prefijo sea correcta
+      // (ej. "+593" no se confunda con "+5").
+      const CODIGOS_PAIS_TELEFONO = ['+593', '+502', '+503', '+504', '+505', '+506', '+507', '+52', '+57', '+58', '+34', '+51', '+54', '+56', '+1'];
+
+      function separarCodigoYNumero(telefonoCompleto) {
+        const valor = (telefonoCompleto || '').trim();
+        if (!valor) return { codigo: '+1', numero: '' };
+        const codigoEncontrado = CODIGOS_PAIS_TELEFONO.find(c => valor.startsWith(c));
+        if (codigoEncontrado) {
+          return { codigo: codigoEncontrado, numero: valor.slice(codigoEncontrado.length).trim() };
+        }
+        // Si no trae código explícito, se asume +1 y se deja el número tal cual.
+        return { codigo: '+1', numero: valor.replace(/^\+/, '') };
+      }
+
       function abrirModalEdicion() {
         document.getElementById('editUsername').value = usuarioActualData.nombreUsuario || '';
         document.getElementById('editNombreCompleto').value = usuarioActualData.nombres || '';
         document.getElementById('editGenero').value = usuarioActualData.genero || 'No especificado';
         document.getElementById('editNacimiento').value = usuarioActualData.nacimiento || '';
-        document.getElementById('editTelefono').value = usuarioActualData.telefono || '';
+        const partesTelefono = separarCodigoYNumero(usuarioActualData.telefono);
+        document.getElementById('editTelefonoCodigo').value = partesTelefono.codigo;
+        document.getElementById('editTelefono').value = partesTelefono.numero;
         document.getElementById('editEmail').value = usuarioActualData.email || '';
         document.getElementById('editBiografia').value = usuarioActualData.biografia || '';
         document.getElementById('editPais').value = usuarioActualData.provincia || '';
@@ -1100,7 +1137,14 @@
         const nuevoUsername = document.getElementById('editUsername').value.trim() || 'onlybladi';
         const nombreCompleto = document.getElementById('editNombreCompleto').value.trim();
         const email = document.getElementById('editEmail').value.trim();
-        const telefono = document.getElementById('editTelefono').value.trim();
+        const codigoTelefono = document.getElementById('editTelefonoCodigo').value;
+        const numeroTelefono = document.getElementById('editTelefono').value.trim();
+        const telefono = numeroTelefono ? `${codigoTelefono} ${numeroTelefono}` : '';
+        // El WhatsApp necesita el código de país + número, solo dígitos (sin +,
+        // espacios ni guiones), que es el formato que espera el enlace wa.me.
+        const whatsappSoloDigitos = numeroTelefono
+          ? (codigoTelefono + numeroTelefono).replace(/[^0-9]/g, '')
+          : '';
         const provincia = document.getElementById('editPais').value.trim();
         const sector = document.getElementById('editDireccion').value.trim();
 
@@ -1131,6 +1175,11 @@
                 nombres: nombreCompleto,
                 email: email,
                 telefono: telefono,
+                // El WhatsApp que se muestra en las propiedades publicadas (publicar.html
+                // / detalle.html) se toma de este mismo número de teléfono del perfil,
+                // ya combinado con el código de país y en solo dígitos, para que quede
+                // siempre vinculado a lo que el usuario ponga aquí sin problemas de formato.
+                whatsapp: whatsappSoloDigitos,
                 provincia: provincia,
                 sector: sector,
                 genero: usuarioActualData.genero,
