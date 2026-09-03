@@ -1180,6 +1180,15 @@
         opacity: 1;
         box-shadow: 0 0 0 2px #ef4444;
       }
+
+      /* En teléfono el selector de idioma se ve mal (se amontona junto al
+         botón de menú), así que se quita del todo en móvil y solo se
+         muestra en pantallas de escritorio/tablet. */
+      @media (max-width: 768px) {
+        .lang-switcher {
+          display: none !important;
+        }
+      }
     </style>
     <script>
       function googleTranslateElementInit() {
