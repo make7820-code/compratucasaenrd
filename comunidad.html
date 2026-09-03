@@ -1583,7 +1583,11 @@
           }, 1200);
         } catch (error) {
           console.error("Error al crear la solicitud:", error);
-          mostrarAviso("No se pudo enviar la solicitud. Inténtalo de nuevo.", "error");
+          // Se muestra el código/motivo real que da Firebase (ej. "permission-denied"
+          // si las reglas de seguridad de Firestore no dejan escribir en la colección),
+          // para poder diagnosticar la causa exacta en vez de adivinar.
+          const motivo = error && error.code ? ` (${error.code})` : '';
+          mostrarAviso(`No se pudo enviar la solicitud${motivo}. Inténtalo de nuevo.`, "error");
         } finally {
           btnCrear.disabled = false;
           btnCrear.textContent = 'Crear Solicitud';
