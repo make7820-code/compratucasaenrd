@@ -725,9 +725,44 @@
           font-size: 15px;
         }
       }
+
+      /* ===== AVISO PROPIO (reemplaza alert() nativo) =====
+         Algunas apps que muestran esta página dentro de un WebView no
+         despliegan los alert() de JavaScript, así que este aviso se dibuja
+         directamente en la página para garantizar que siempre se vea. */
+      #avisoPropioToast {
+        position: fixed;
+        left: 50%;
+        bottom: 30px;
+        transform: translateX(-50%) translateY(20px);
+        max-width: min(90vw, 420px);
+        background: #18181b;
+        color: #fff;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 14px;
+        padding: 16px 20px;
+        font-size: 14.5px;
+        line-height: 1.4;
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
+        z-index: 5000;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.25s ease, transform 0.25s ease;
+      }
+      #avisoPropioToast.mostrar {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+        pointer-events: auto;
+      }
+      #avisoPropioToast.exito { border-color: rgba(16, 185, 129, 0.5); }
+      #avisoPropioToast.error { border-color: rgba(239, 68, 68, 0.5); }
     </style>
 </head>
 <body>
+
+    <!-- Aviso propio en pantalla (reemplaza alert() nativo, que algunas apps
+         que envuelven esta página en un WebView no llegan a mostrar) -->
+    <div id="avisoPropioToast"></div>
 
     <!-- ================= HEADER ================= -->
     <header class="site-header">
@@ -1049,6 +1084,25 @@
 
     <!-- SCRIPT DE FIREBASE, SESIÓN Y SEGUIDORES -->
     <script type="module">
+      // Muestra un aviso en pantalla propio de la página en vez de alert()
+      // nativo, para que se vea siempre aunque el WebView de la app no
+      // soporte los diálogos de JavaScript.
+      let avisoPropioTimeout = null;
+      function mostrarAviso(mensaje, tipo = 'info') {
+        const toast = document.getElementById('avisoPropioToast');
+        if (!toast) { window.alert(mensaje); return; }
+        toast.textContent = mensaje;
+        toast.classList.remove('exito', 'error');
+        if (tipo === 'exito') toast.classList.add('exito');
+        if (tipo === 'error') toast.classList.add('error');
+        toast.classList.add('mostrar');
+        if (avisoPropioTimeout) clearTimeout(avisoPropioTimeout);
+        avisoPropioTimeout = setTimeout(() => {
+          toast.classList.remove('mostrar');
+        }, 4000);
+      }
+      window.mostrarAviso = mostrarAviso;
+
       import { auth, db } from './firebase-config.js';
       import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
       import { doc, getDoc, getDocs, setDoc, deleteDoc, addDoc, collection, query, where, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -1271,19 +1325,19 @@
       window.toggleFollow = async function(agentUid, btnElement) {
         const currentUser = auth.currentUser;
         if (!currentUser) {
-          alert("Debes iniciar sesión para seguir a un agente.");
+          mostrarAviso("Debes iniciar sesión para seguir a un agente.", "error");
           window.location.href = 'login.html';
           return;
         }
 
         const agent = agentsList.find(a => a.uid === agentUid);
         if (!agent) {
-          alert("Este agente todavía no está disponible para seguir.");
+          mostrarAviso("Este agente todavía no está disponible para seguir.", "error");
           return;
         }
 
         if (agent.uid === currentUser.uid) {
-          alert("No puedes seguirte a ti mismo.");
+          mostrarAviso("No puedes seguirte a ti mismo.", "error");
           return;
         }
 
@@ -1307,7 +1361,7 @@
           // y el botón de todos los que tengan la página abierta, no solo el tuyo.
         } catch (error) {
           console.error("Error al actualizar el seguimiento:", error);
-          alert("No se pudo actualizar el seguimiento. Inténtalo de nuevo.");
+          mostrarAviso("No se pudo actualizar el seguimiento. Inténtalo de nuevo.", "error");
         } finally {
           btnElement.disabled = false;
         }
@@ -1400,8 +1454,8 @@
       // ===== MODAL: NUEVA SOLICITUD DE BÚSQUEDA =====
       window.abrirModalSolicitud = function() {
         if (!auth.currentUser) {
-          alert("Debes iniciar sesión para crear una solicitud de búsqueda.");
-          window.location.href = 'login.html';
+          mostrarAviso("Debes iniciar sesión para crear una solicitud de búsqueda.", "error");
+          setTimeout(() => { window.location.href = 'login.html'; }, 1200);
           return;
         }
         document.getElementById('solicitudModalOverlay').classList.add('active');
@@ -1424,8 +1478,8 @@
       window.enviarSolicitudBusqueda = async function() {
         const user = auth.currentUser;
         if (!user) {
-          alert("Debes iniciar sesión para crear una solicitud de búsqueda.");
-          window.location.href = 'login.html';
+          mostrarAviso("Debes iniciar sesión para crear una solicitud de búsqueda.", "error");
+          setTimeout(() => { window.location.href = 'login.html'; }, 1200);
           return;
         }
 
@@ -1443,7 +1497,7 @@
         const descripcion = document.getElementById('solDescripcion').value.trim();
 
         if (!zona || !nombre || !agenteSeleccionado || !presupuesto || !telefono || !nacionalidad || !urgencia || !descripcion) {
-          alert("Por favor completa todos los campos obligatorios, incluyendo el agente al que quieres enviar tu solicitud.");
+          mostrarAviso("Por favor completa todos los campos obligatorios, incluyendo el agente al que quieres enviar tu solicitud.", "error");
           return;
         }
 
@@ -1523,11 +1577,13 @@
 
           cerrarModalSolicitud();
           document.getElementById('solicitudForm').reset();
-          alert(`¡Tu solicitud fue enviada a ${agentNombreElegido}! Podrás ver la conversación en tus Mensajes.`);
-          window.location.href = `mensajes.html?propiedadId=${encodeURIComponent(solicitudId)}`;
+          mostrarAviso(`¡Tu solicitud fue enviada a ${agentNombreElegido}! Podrás ver la conversación en tus Mensajes.`, "exito");
+          setTimeout(() => {
+            window.location.href = `mensajes.html?propiedadId=${encodeURIComponent(solicitudId)}`;
+          }, 1200);
         } catch (error) {
           console.error("Error al crear la solicitud:", error);
-          alert("No se pudo enviar la solicitud. Inténtalo de nuevo.");
+          mostrarAviso("No se pudo enviar la solicitud. Inténtalo de nuevo.", "error");
         } finally {
           btnCrear.disabled = false;
           btnCrear.textContent = 'Crear Solicitud';
