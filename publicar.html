@@ -669,26 +669,25 @@
         .modal-overlay {
           padding: 0;
           align-items: stretch;
+          justify-content: stretch;
         }
         .modal-container {
           max-width: 100%;
           width: 100%;
+          /* Se usa % en vez de dvh: el overlay padre ya cubre toda la pantalla
+             con position:fixed + width/height:100%, y % es compatible con
+             cualquier WebView (a diferencia de dvh, que algunas apps/WebView
+             no reconocen y terminan dejando la caja del modal sin altura). */
           height: 100%;
-          max-height: 100vh;
-          max-height: 100dvh;
+          max-height: 100%;
           border-radius: 0;
-          padding: 20px 16px 30px 16px;
+          padding: 20px 16px 24px;
+          display: flex;
+          flex-direction: column;
+          box-sizing: border-box;
         }
         .modal-header {
-          position: sticky;
-          top: -20px;
-          background: #0d0d0d;
-          margin: -20px -16px 20px -16px;
-          padding: 15px 16px;
-          z-index: 5;
-        }
-        body.light-mode .modal-header {
-          background: #ffffff;
+          flex-shrink: 0;
         }
         .modal-title {
           font-size: 18px;
@@ -696,6 +695,14 @@
         .modal-close-btn {
           font-size: 32px;
           padding: 4px 8px;
+        }
+        #formPublicarPropiedad {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          min-height: 0;
+          overflow-y: auto;
+          -webkit-overflow-scrolling: touch;
         }
       }
 
