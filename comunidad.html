@@ -830,7 +830,7 @@
           
           <!-- Pestañas de Navegación -->
           <div class="community-tabs">
-            <button class="tab-btn active" id="btnPublicaciones" onclick="cambiarPestana('publicaciones')">Publicaciones</button>
+            <button class="tab-btn active" id="btnPublicaciones" onclick="cambiarPestana('publicaciones')">Solicitud de Alquiler</button>
             <button class="tab-btn" id="btnSolicitudes" onclick="cambiarPestana('solicitudes')">Solicitud de Compra</button>
           </div>
 
@@ -847,8 +847,8 @@
                     Publica tu solicitud con las características que buscas, presupuesto y ubicación. ¡Nuestros agentes te contactarán directamente con las mejores opciones de forma personalizada!
                   </p>
                 </div>
-                <button type="button" onclick="abrirModalSolicitud()" style="background: #3b82f6; color: #fff; padding: 12px 20px; border-radius: 12px; font-weight: 600; font-size: 14px; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4); white-space: nowrap; transition: all 0.3s ease; border: none; cursor: pointer; font-family: 'Inter', sans-serif;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 12px 30px rgba(59, 130, 246, 0.6)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 20px rgba(59, 130, 246, 0.4)';">
-                  <span>+</span> Hacer Solicitud de Búsqueda
+                <button type="button" onclick="abrirModalSolicitud('Alquiler')" style="background: #3b82f6; color: #fff; padding: 12px 20px; border-radius: 12px; font-weight: 600; font-size: 14px; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4); white-space: nowrap; transition: all 0.3s ease; border: none; cursor: pointer; font-family: 'Inter', sans-serif;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 12px 30px rgba(59, 130, 246, 0.6)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 20px rgba(59, 130, 246, 0.4)';">
+                  <span>+</span> Hacer Solicitud de Alquiler
                 </button>
               </div>
             </div>
@@ -863,7 +863,7 @@
                     Publica tus criterios para que nuestros agentes te recomienden propiedades personalizadas.
                   </p>
                 </div>
-                <button type="button" onclick="abrirModalSolicitud()" style="background: #3b82f6; color: #fff; padding: 12px 20px; border-radius: 12px; font-weight: 600; font-size: 14px; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4); white-space: nowrap; transition: all 0.3s ease; border: none; cursor: pointer; font-family: 'Inter', sans-serif;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 12px 30px rgba(59, 130, 246, 0.6)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 20px rgba(59, 130, 246, 0.4)';">
+                <button type="button" onclick="abrirModalSolicitud('Venta')" style="background: #3b82f6; color: #fff; padding: 12px 20px; border-radius: 12px; font-weight: 600; font-size: 14px; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4); white-space: nowrap; transition: all 0.3s ease; border: none; cursor: pointer; font-family: 'Inter', sans-serif;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 12px 30px rgba(59, 130, 246, 0.6)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 20px rgba(59, 130, 246, 0.4)';">
                   <span>+</span> Crear Solicitud
                 </button>
               </div>
@@ -909,7 +909,7 @@
     <div class="solicitud-modal-overlay" id="solicitudModalOverlay">
       <div class="solicitud-modal-box">
         <div class="solicitud-modal-header">
-          <h3>Nueva Solicitud de Búsqueda</h3>
+          <h3 id="solicitudModalTitulo">Nueva Solicitud de Búsqueda</h3>
           <button type="button" class="solicitud-modal-close" onclick="cerrarModalSolicitud()">×</button>
         </div>
 
@@ -930,15 +930,6 @@
               <select id="solAgente" required>
                 <option value="" disabled selected>Selecciona un agente...</option>
                 <option value="cualquiera">Cualquier agente disponible</option>
-              </select>
-            </div>
-
-            <div class="solicitud-field">
-              <label for="solTipoOferta">Tipo de Oferta *</label>
-              <select id="solTipoOferta" required>
-                <option value="Cualquiera">Cualquiera</option>
-                <option value="Venta">Venta</option>
-                <option value="Alquiler">Alquiler</option>
               </select>
             </div>
 
@@ -1472,12 +1463,20 @@
       }
 
       // ===== MODAL: NUEVA SOLICITUD DE BÚSQUEDA =====
-      window.abrirModalSolicitud = function() {
+      // Guarda con qué tipo de oferta se abrió el modal (Alquiler o Venta),
+      // ya que ese campo se quitó del formulario: ahora queda fijo según el
+      // botón/pestaña desde donde el usuario lo abrió.
+      let tipoOfertaFijo = 'Alquiler';
+
+      window.abrirModalSolicitud = function(tipo) {
         if (!auth.currentUser) {
           mostrarAviso("Debes iniciar sesión para crear una solicitud de búsqueda.", "error");
           setTimeout(() => { window.location.href = 'login.html'; }, 1200);
           return;
         }
+        tipoOfertaFijo = tipo === 'Venta' ? 'Venta' : 'Alquiler';
+        document.getElementById('solicitudModalTitulo').textContent =
+          tipoOfertaFijo === 'Venta' ? 'Nueva Solicitud de Compra' : 'Nueva Solicitud de Alquiler';
         document.getElementById('solicitudModalOverlay').classList.add('active');
         // Bloquea el scroll del fondo mientras el modal está abierto,
         // para evitar conflictos de toque/scroll en móvil.
@@ -1506,7 +1505,7 @@
         const zona = document.getElementById('solZona').value.trim();
         const nombre = document.getElementById('solNombre').value.trim();
         const agenteSeleccionado = document.getElementById('solAgente').value;
-        const tipoOferta = document.getElementById('solTipoOferta').value;
+        const tipoOferta = tipoOfertaFijo;
         const tipoInmueble = document.getElementById('solTipoInmueble').value;
         const presupuesto = document.getElementById('solPresupuesto').value.trim();
         const moneda = document.getElementById('solMoneda').value;
