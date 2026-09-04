@@ -309,6 +309,7 @@
         font-size: 14px;
         line-height: 1.5;
         word-break: break-word;
+        white-space: pre-line;
       }
 
       .message-bubble.incoming {
@@ -330,6 +331,55 @@
         opacity: 0.7;
         margin-top: 4px;
         text-align: right;
+      }
+
+      /* ===== TARJETA DE PERFIL DE BÚSQUEDA =====
+         Se muestra arriba del chat cuando la conversación viene de una
+         Solicitud de Búsqueda (comunidad.html), con todos los datos que
+         llenó el cliente organizados en campos, en vez de tener que leerlos
+         de un mensaje de texto plano. */
+      .perfil-busqueda-card {
+        margin: 20px 24px 0;
+        background: #18181b;
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        border-radius: 14px;
+        padding: 18px 20px;
+        flex-shrink: 0;
+      }
+      .perfil-busqueda-card-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 700;
+        font-size: 14px;
+        color: #ef4444;
+        margin-bottom: 14px;
+      }
+      .perfil-busqueda-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 12px 20px;
+      }
+      .perfil-busqueda-field label {
+        display: block;
+        font-size: 10.5px;
+        font-weight: 700;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+        color: #71717a;
+        margin-bottom: 3px;
+      }
+      .perfil-busqueda-field div {
+        font-size: 13.5px;
+        color: #e4e4e7;
+        font-weight: 600;
+      }
+      .perfil-busqueda-field.full-width {
+        grid-column: 1 / -1;
+      }
+      .perfil-busqueda-field.full-width div {
+        font-weight: 400;
+        line-height: 1.5;
       }
 
       .chat-input-area {
@@ -421,6 +471,14 @@
         }
         .conversations-sidebar {
           max-height: 250px;
+        }
+        /* En móvil el contenedor pasa a height:auto, así que el área del
+           chat ya no puede depender de un "height:100%" del padre (queda
+           indefinido y en algunos WebView de apps colapsa a 0 de altura,
+           dejando los mensajes invisibles aunque estén ahí). Se le da una
+           altura fija con vh (compatible en cualquier motor). */
+        .chat-main-area {
+          height: 65vh;
         }
       }
     </style>
@@ -881,19 +939,72 @@
           }
         }
 
+        // Trae el documento completo de la solicitud (perfilesBusqueda) y
+        // arma la tarjeta con todos los datos que llenó el cliente, en vez
+        // de dejarlos solo como texto suelto dentro del chat.
+        async function cargarPerfilBusqueda(solicitudId) {
+          const contenedor = document.getElementById('perfilBusquedaContainer');
+          if (!contenedor) return;
+          try {
+            const snap = await getDoc(doc(db, "perfilesBusqueda", solicitudId));
+            if (!snap.exists()) return;
+            const d = snap.data();
+
+            const campo = (label, valor) => `
+              <div class="perfil-busqueda-field">
+                <label>${label}</label>
+                <div>${valor || '—'}</div>
+              </div>
+            `;
+
+            contenedor.innerHTML = `
+              <div class="perfil-busqueda-card">
+                <div class="perfil-busqueda-card-header">📋 Perfil de Búsqueda</div>
+                <div class="perfil-busqueda-grid">
+                  ${campo('Nombre', d.nombreSolicitante)}
+                  ${campo('Teléfono', d.telefono)}
+                  ${campo('Nacionalidad', d.nacionalidad)}
+                  ${campo('Zona', d.zona)}
+                  ${campo('Tipo de oferta', d.tipoOferta)}
+                  ${campo('Presupuesto', d.presupuesto ? `${d.presupuesto} ${d.moneda || ''}` : '')}
+                  ${campo('Habitaciones', d.habitaciones)}
+                  ${campo('Baños', d.banos)}
+                  ${campo('Urgencia', d.urgencia)}
+                  <div class="perfil-busqueda-field full-width">
+                    <label>Descripción</label>
+                    <div>${d.descripcion || '—'}</div>
+                  </div>
+                </div>
+              </div>
+            `;
+          } catch (error) {
+            console.error("Error al cargar el perfil de búsqueda:", error);
+          }
+        }
+
         async function openChatWindow(propertyId, propertyTitle, propertyImage, propertyPrice, userId) {
+          // Las conversaciones creadas desde una Solicitud de Búsqueda
+          // (comunidad.html) usan un id "solicitud_..." que no corresponde a
+          // ninguna propiedad real, así que no debe enlazar a detalle.html.
+          const esSolicitud = (propertyId || '').startsWith('solicitud_');
+          const tituloHtml = esSolicitud
+            ? `<span class="chat-prop-name" style="cursor:default;">${propertyTitle}</span>`
+            : `<a href="detalle.html?id=${propertyId}" class="chat-prop-name">${propertyTitle}</a>`;
+
           chatMainArea.innerHTML = `
             <div class="chat-header">
               <div class="chat-property-meta">
                 <img src="${propertyImage}" alt="Propiedad" class="chat-prop-img" onerror="this.src='assets/puerto-marina.png'">
                 <div>
-                  <a href="detalle.html?id=${propertyId}" class="chat-prop-name">${propertyTitle}</a>
+                  ${tituloHtml}
                   <div class="chat-prop-price">${propertyPrice}</div>
                 </div>
               </div>
               <button class="chat-close-btn" id="chatCloseBtn" title="Minimizar / Cerrar chat">×</button>
             </div>
-            
+
+            ${esSolicitud ? `<div id="perfilBusquedaContainer"></div>` : ''}
+
             <div class="chat-messages-box" id="chatMessagesBox">
               <div style="text-align: center; color: #71717a; padding: 20px;">Cargando chat...</div>
             </div>
@@ -903,6 +1014,10 @@
               <button class="chat-send-btn" id="chatSendBtn">Enviar</button>
             </div>
           `;
+
+          if (esSolicitud) {
+            cargarPerfilBusqueda(propertyId);
+          }
 
           const messagesBox = document.getElementById('chatMessagesBox');
           const chatInputArea = document.getElementById('chatInputArea');
