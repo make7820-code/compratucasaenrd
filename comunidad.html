@@ -851,6 +851,13 @@
                   <span>+</span> Hacer Solicitud de Alquiler
                 </button>
               </div>
+
+              <!-- CONTENEDOR DINÁMICO DE SOLICITUDES DE ALQUILER ACTIVAS / ESTADO VACÍO -->
+              <div id="contenedorSolicitudesActivasAlquiler" style="margin-top: 24px;">
+                <div class="empty-state-card">
+                  Aún no tienes solicitudes de alquiler activas. ¡Crea una hoy!
+                </div>
+              </div>
             </div>
 
             <!-- VISTA 2: SOLICITUDES DE CASAS -->
@@ -868,10 +875,10 @@
                 </button>
               </div>
 
-              <!-- CONTENEDOR DINÁMICO DE SOLICITUDES ACTIVAS / ESTADO VACÍO -->
-              <div id="contenedorSolicitudesActivas">
-                <div class="empty-state-card" id="emptyStateSolicitudes">
-                  Aún no tienes solicitudes de búsqueda activas. ¡Crea una hoy!
+              <!-- CONTENEDOR DINÁMICO DE SOLICITUDES DE COMPRA ACTIVAS / ESTADO VACÍO -->
+              <div id="contenedorSolicitudesActivasCompra">
+                <div class="empty-state-card">
+                  Aún no tienes solicitudes de compra activas. ¡Crea una hoy!
                 </div>
               </div>
             </div>
@@ -1379,17 +1386,20 @@
       }
 
       // ===== ESCUCHADOR EN TIEMPO REAL DE SOLICITUDES ACTIVAS =====
+      // Llena dos listas separadas: alquiler y compra, según el tipoOferta
+      // guardado en el "perfil de búsqueda" de cada solicitud.
       function escucharSolicitudesUsuario(userId) {
-        const contenedor = document.getElementById('contenedorSolicitudesActivas');
-        if (!contenedor) return;
+        const contenedorAlquiler = document.getElementById('contenedorSolicitudesActivasAlquiler');
+        const contenedorCompra = document.getElementById('contenedorSolicitudesActivasCompra');
+        if (!contenedorAlquiler || !contenedorCompra) return;
+
+        const vacioHtml = (texto) => `<div class="empty-state-card">${texto}</div>`;
 
         const q = query(collection(db, "mensajes"), where("userId", "==", userId));
         onSnapshot(q, async (snapshot) => {
           if (snapshot.empty) {
-            contenedor.innerHTML = `
-              <div class="empty-state-card" id="emptyStateSolicitudes">
-                Aún no tienes solicitudes de búsqueda activas. ¡Crea una hoy!
-              </div>`;
+            contenedorAlquiler.innerHTML = vacioHtml('Aún no tienes solicitudes de alquiler activas. ¡Crea una hoy!');
+            contenedorCompra.innerHTML = vacioHtml('Aún no tienes solicitudes de compra activas. ¡Crea una hoy!');
             return;
           }
 
@@ -1407,30 +1417,37 @@
           });
 
           if (solicitudesMap.size === 0) {
-            contenedor.innerHTML = `
-              <div class="empty-state-card" id="emptyStateSolicitudes">
-                Aún no tienes solicitudes de búsqueda activas. ¡Crea una hoy!
-              </div>`;
+            contenedorAlquiler.innerHTML = vacioHtml('Aún no tienes solicitudes de alquiler activas. ¡Crea una hoy!');
+            contenedorCompra.innerHTML = vacioHtml('Aún no tienes solicitudes de compra activas. ¡Crea una hoy!');
             return;
           }
 
-          let htmlMiniaturas = '';
+          let htmlAlquiler = '';
+          let htmlCompra = '';
+
           for (let [propId, sol] of solicitudesMap.entries()) {
             let estadoConversacion = 'activa';
+            let tipoOfertaSolicitud = 'Alquiler'; // valor por defecto para solicitudes creadas antes de separar los tipos
             try {
-              const convDoc = await getDoc(doc(db, "conversaciones", `${userId}_${propId}`));
+              const [convDoc, perfilDoc] = await Promise.all([
+                getDoc(doc(db, "conversaciones", `${userId}_${propId}`)),
+                getDoc(doc(db, "perfilesBusqueda", propId))
+              ]);
               if (convDoc.exists()) {
                 estadoConversacion = convDoc.data().estado || 'activa';
               }
+              if (perfilDoc.exists() && perfilDoc.data().tipoOferta) {
+                tipoOfertaSolicitud = perfilDoc.data().tipoOferta;
+              }
             } catch (e) {
-              console.error("Error al consultar estado de conversación:", e);
+              console.error("Error al consultar datos de la solicitud:", e);
             }
 
             if (estadoConversacion === 'finalizada') {
-              continue; 
+              continue;
             }
 
-            htmlMiniaturas += `
+            const tarjetaHtml = `
               <div class="solicitud-activa-card">
                 <div style="display: flex; align-items: center; gap: 16px;">
                   <div style="background: rgba(59, 130, 246, 0.15); color: #60a5fa; width: 45px; height: 45px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; border: 1px solid rgba(59, 130, 246, 0.3);">
@@ -1449,16 +1466,16 @@
                 </button>
               </div>
             `;
+
+            if (tipoOfertaSolicitud === 'Venta') {
+              htmlCompra += tarjetaHtml;
+            } else {
+              htmlAlquiler += tarjetaHtml;
+            }
           }
 
-          if (htmlMiniaturas === '') {
-            contenedor.innerHTML = `
-              <div class="empty-state-card" id="emptyStateSolicitudes">
-                Aún no tienes solicitudes de búsqueda activas. ¡Crea una hoy!
-              </div>`;
-          } else {
-            contenedor.innerHTML = htmlMiniaturas;
-          }
+          contenedorAlquiler.innerHTML = htmlAlquiler || vacioHtml('Aún no tienes solicitudes de alquiler activas. ¡Crea una hoy!');
+          contenedorCompra.innerHTML = htmlCompra || vacioHtml('Aún no tienes solicitudes de compra activas. ¡Crea una hoy!');
         });
       }
 
