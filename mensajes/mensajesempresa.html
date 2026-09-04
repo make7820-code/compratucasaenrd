@@ -1140,11 +1140,20 @@
                     propertyImage: data.propertyImage || '../assets/puerto-marina.png',
                     propertyPrice: data.propertyPrice || '',
                     propertyLink: propertyLink,
-                    agentId: data.agentId || null,
+                    agentId: null,
                     esSolicitudBusqueda: propId.startsWith('solicitud_'),
                     noLeido: false,
                     lastActivity: 0
                   });
+                }
+
+                // El agentId de la conversación SOLO se toma de mensajes del cliente
+                // (los mensajes del agente no traen este campo y, sin esta protección,
+                // podían pisar el valor correcto si Firestore los procesaba primero,
+                // haciendo que una solicitud ya asignada/respondida se mostrara como
+                // "disponible para cualquier agente" a todo el mundo).
+                if (data.sender === 'user' && data.agentId !== undefined) {
+                  conversationsMap.get(compositeKey).agentId = data.agentId || null;
                 }
 
                 // Un mensaje del cliente sin marcar como leído por el agente activa el punto
