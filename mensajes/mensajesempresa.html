@@ -536,6 +536,7 @@
         font-size: 14px;
         line-height: 1.5;
         word-break: break-word;
+        white-space: pre-line;
       }
 
       .message-bubble.incoming {
@@ -557,6 +558,54 @@
         opacity: 0.7;
         margin-top: 4px;
         text-align: right;
+      }
+
+      /* ===== TARJETA DE PERFIL DE BÚSQUEDA =====
+         Se muestra arriba del chat cuando la conversación viene de una
+         Solicitud de Búsqueda (comunidad.html), con todos los datos que
+         llenó el cliente organizados en campos. */
+      .perfil-busqueda-card {
+        margin: 20px 24px 0;
+        background: #18181b;
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        border-radius: 14px;
+        padding: 18px 20px;
+        flex-shrink: 0;
+      }
+      .perfil-busqueda-card-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 700;
+        font-size: 14px;
+        color: #ef4444;
+        margin-bottom: 14px;
+      }
+      .perfil-busqueda-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 12px 20px;
+      }
+      .perfil-busqueda-field label {
+        display: block;
+        font-size: 10.5px;
+        font-weight: 700;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+        color: #71717a;
+        margin-bottom: 3px;
+      }
+      .perfil-busqueda-field div {
+        font-size: 13.5px;
+        color: #e4e4e7;
+        font-weight: 600;
+      }
+      .perfil-busqueda-field.full-width {
+        grid-column: 1 / -1;
+      }
+      .perfil-busqueda-field.full-width div {
+        font-weight: 400;
+        line-height: 1.5;
       }
 
       .chat-input-area {
@@ -1216,9 +1265,56 @@
           }
         }
 
+        // Trae el documento completo de la solicitud (perfilesBusqueda) y
+        // arma la tarjeta con todos los datos que llenó el cliente, en vez
+        // de dejarlos solo como texto suelto dentro del chat.
+        async function cargarPerfilBusqueda(solicitudId) {
+          const contenedor = document.getElementById('perfilBusquedaContainer');
+          if (!contenedor) return;
+          try {
+            const snap = await getDoc(doc(db, "perfilesBusqueda", solicitudId));
+            if (!snap.exists()) return;
+            const d = snap.data();
+
+            const campo = (label, valor) => `
+              <div class="perfil-busqueda-field">
+                <label>${label}</label>
+                <div>${valor || '—'}</div>
+              </div>
+            `;
+
+            contenedor.innerHTML = `
+              <div class="perfil-busqueda-card">
+                <div class="perfil-busqueda-card-header">📋 Perfil de Búsqueda</div>
+                <div class="perfil-busqueda-grid">
+                  ${campo('Nombre', d.nombreSolicitante)}
+                  ${campo('Teléfono', d.telefono)}
+                  ${campo('Nacionalidad', d.nacionalidad)}
+                  ${campo('Zona', d.zona)}
+                  ${campo('Tipo de oferta', d.tipoOferta)}
+                  ${campo('Presupuesto', d.presupuesto ? `${d.presupuesto} ${d.moneda || ''}` : '')}
+                  ${campo('Habitaciones', d.habitaciones)}
+                  ${campo('Baños', d.banos)}
+                  ${campo('Urgencia', d.urgencia)}
+                  <div class="perfil-busqueda-field full-width">
+                    <label>Descripción</label>
+                    <div>${d.descripcion || '—'}</div>
+                  </div>
+                </div>
+              </div>
+            `;
+          } catch (error) {
+            console.error("Error al cargar el perfil de búsqueda:", error);
+          }
+        }
+
         function openCompanyChatWindow(clientId, propertyId, propertyTitle, propertyImage, propertyPrice, finalizada = false, clientName = '', clientPhoto = '../assets/onlybladi-avatar.png') {
           marcarMensajesComoLeidos(clientId, propertyId);
           if (typeof unsubscribeChatActual === 'function') { unsubscribeChatActual(); unsubscribeChatActual = null; }
+          // Las conversaciones creadas desde una Solicitud de Búsqueda
+          // (comunidad.html) usan un id "solicitud_..." que no corresponde a
+          // ninguna propiedad real, y sí tienen un perfil completo guardado.
+          const esSolicitud = (propertyId || '').startsWith('solicitud_');
           chatMainArea.innerHTML = `
             <div class="chat-header">
               <div class="chat-property-meta">
@@ -1233,6 +1329,7 @@
                 <button class="chat-close-btn" id="chatCloseBtn" title="Minimizar chat">×</button>
               </div>
             </div>
+            ${esSolicitud ? `<div id="perfilBusquedaContainer"></div>` : ''}
             <div class="chat-messages-box" id="chatMessagesBox">
               <div style="text-align: center; color: #71717a; padding: 20px;">Cargando chat...</div>
             </div>
@@ -1247,6 +1344,10 @@
                 </div>`
             }
           `;
+
+          if (esSolicitud) {
+            cargarPerfilBusqueda(propertyId);
+          }
 
           const messagesBox = document.getElementById('chatMessagesBox');
           const closeBtn = document.getElementById('chatCloseBtn');
