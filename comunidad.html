@@ -831,7 +831,7 @@
           <!-- Pestañas de Navegación -->
           <div class="community-tabs">
             <button class="tab-btn active" id="btnPublicaciones" onclick="cambiarPestana('publicaciones')">Publicaciones</button>
-            <button class="tab-btn" id="btnSolicitudes" onclick="cambiarPestana('solicitudes')">Solicitudes de Casas</button>
+            <button class="tab-btn" id="btnSolicitudes" onclick="cambiarPestana('solicitudes')">Solicitud de Compra</button>
           </div>
 
           <!-- CONTENEDOR DE VISTAS DINÁMICAS -->
@@ -939,6 +939,26 @@
                 <option value="Cualquiera">Cualquiera</option>
                 <option value="Venta">Venta</option>
                 <option value="Alquiler">Alquiler</option>
+              </select>
+            </div>
+
+            <div class="solicitud-field">
+              <label for="solTipoInmueble">Tipo de Inmueble *</label>
+              <select id="solTipoInmueble" required>
+                <option value="Cualquiera">Cualquiera</option>
+                <option value="Apartamento">Apartamento</option>
+                <option value="Casa">Casa</option>
+                <option value="Solar">Solar</option>
+                <option value="Local">Local</option>
+                <option value="Villa">Villa</option>
+                <option value="Penthouse">Penthouse</option>
+                <option value="Estudio">Estudio</option>
+                <option value="Finca">Finca</option>
+                <option value="Apartaestudio">Apartaestudio</option>
+                <option value="Terreno">Terreno</option>
+                <option value="Oficina">Oficina</option>
+                <option value="Nave Industrial">Nave Industrial</option>
+                <option value="BNB">BNB</option>
               </select>
             </div>
 
@@ -1487,6 +1507,7 @@
         const nombre = document.getElementById('solNombre').value.trim();
         const agenteSeleccionado = document.getElementById('solAgente').value;
         const tipoOferta = document.getElementById('solTipoOferta').value;
+        const tipoInmueble = document.getElementById('solTipoInmueble').value;
         const presupuesto = document.getElementById('solPresupuesto').value.trim();
         const moneda = document.getElementById('solMoneda').value;
         const habitaciones = document.getElementById('solHabitaciones').value;
@@ -1521,6 +1542,7 @@
             `🎯 Agente elegido: ${agentNombreElegido}\n` +
             `📍 Ubicación/Zona: ${zona}\n` +
             `🏷️ Tipo de Oferta: ${tipoOferta}\n` +
+            `🏠 Tipo de Inmueble: ${tipoInmueble}\n` +
             `💰 Presupuesto Máximo: ${presupuesto} ${moneda}\n` +
             `🛏️ Habitaciones: ${habitaciones}\n` +
             `🛁 Baños: ${banos}\n` +
@@ -1541,6 +1563,7 @@
             nacionalidad: nacionalidad,
             zona: zona,
             tipoOferta: tipoOferta,
+            tipoInmueble: tipoInmueble,
             presupuesto: presupuesto,
             moneda: moneda,
             habitaciones: habitaciones,
