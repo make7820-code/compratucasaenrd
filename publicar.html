@@ -2471,9 +2471,53 @@
 
           const prefijoArchivo = mostrandoArchivadas ? 'propiedades-archivadas' : 'propiedades-disponibles';
           const nombreArchivo = `${prefijoArchivo}-${new Date().toISOString().slice(0, 10)}.xlsx`;
-          XLSX.writeFile(libro, nombreArchivo);
+
+          // Generamos el archivo como bytes en memoria (en vez de usar
+          // XLSX.writeFile, que internamente simula un clic en un <a download>).
+          // Ese truco no funciona dentro de muchos WebViews de apps (Android/iOS),
+          // porque bloquean las descargas automáticas o no tienen carpeta de
+          // Descargas accesible. Por eso probamos varias formas de entregar el
+          // archivo, de la más compatible con apps a la más básica:
+          const bytes = XLSX.write(libro, { bookType: 'xlsx', type: 'array' });
+          const tipoMime = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+          const blob = new Blob([bytes], { type: tipoMime });
+          const archivo = new File([blob], nombreArchivo, { type: tipoMime });
+
+          // 1) Web Share API con archivos: es lo que mejor funciona dentro de
+          // apps envueltas en WebView, porque abre el panel nativo de
+          // "Compartir/Guardar" del sistema en vez de depender de una descarga.
+          if (navigator.canShare && navigator.canShare({ files: [archivo] })) {
+            await navigator.share({
+              files: [archivo],
+              title: nombreArchivo
+            });
+          } else if (window.Android && typeof window.Android.saveFile === 'function') {
+            // 2) Puente nativo opcional: si la app Android expone una función
+            // "saveFile(nombre, base64)" via WebView JavaScript interface, la usamos.
+            const base64 = await new Promise((resolve, reject) => {
+              const lector = new FileReader();
+              lector.onload = () => resolve(lector.result.split(',')[1]);
+              lector.onerror = reject;
+              lector.readAsDataURL(blob);
+            });
+            window.Android.saveFile(nombreArchivo, base64);
+          } else {
+            // 3) Descarga clásica por navegador (funciona en Chrome/Safari normales).
+            const url = URL.createObjectURL(blob);
+            const enlace = document.createElement('a');
+            enlace.href = url;
+            enlace.download = nombreArchivo;
+            document.body.appendChild(enlace);
+            enlace.click();
+            enlace.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 4000);
+          }
 
         } catch (error) {
+          if (error && error.name === 'AbortError') {
+            // El usuario cerró el panel de compartir sin elegir nada: no es un error real.
+            return;
+          }
           console.error("Error al generar el Excel:", error);
           alert("Hubo un error al generar el Excel. Intenta de nuevo.");
         } finally {
