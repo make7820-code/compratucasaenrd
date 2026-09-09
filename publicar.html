@@ -2492,8 +2492,8 @@
               title: nombreArchivo
             });
           } else if (window.Android && typeof window.Android.saveFile === 'function') {
-            // 2) Puente nativo opcional: si la app Android expone una función
-            // "saveFile(nombre, base64)" via WebView JavaScript interface, la usamos.
+            // 2a) Puente nativo Android: la app expone "saveFile(nombre, base64)"
+            // via WebView JavaScript interface (addJavascriptInterface).
             const base64 = await new Promise((resolve, reject) => {
               const lector = new FileReader();
               lector.onload = () => resolve(lector.result.split(',')[1]);
@@ -2501,6 +2501,16 @@
               lector.readAsDataURL(blob);
             });
             window.Android.saveFile(nombreArchivo, base64);
+          } else if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.saveFile) {
+            // 2b) Puente nativo iOS: la app expone un WKScriptMessageHandler
+            // llamado "saveFile" (agregado con addScriptMessageHandler).
+            const base64 = await new Promise((resolve, reject) => {
+              const lector = new FileReader();
+              lector.onload = () => resolve(lector.result.split(',')[1]);
+              lector.onerror = reject;
+              lector.readAsDataURL(blob);
+            });
+            window.webkit.messageHandlers.saveFile.postMessage({ nombre: nombreArchivo, base64: base64 });
           } else {
             // 3) Descarga clásica por navegador (funciona en Chrome/Safari normales).
             const url = URL.createObjectURL(blob);
