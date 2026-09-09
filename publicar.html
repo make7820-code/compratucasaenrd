@@ -1240,8 +1240,8 @@
           <button type="button" class="btn-view-archived" onclick="alternarVistaArchivadas()" id="btnAlternarArchivadas">
             <span>🗄️</span> Ver Archivadas (<span id="contadorArchivadas">0</span>)
           </button>
-          <button type="button" class="btn-view-archived" onclick="descargarPdfPropiedades()" id="btnDescargarPdf">
-            <span>📄</span> Descargar PDF
+          <button type="button" class="btn-view-archived" onclick="descargarExcelPropiedades()" id="btnDescargarExcel">
+            <span>📊</span> Descargar Excel
           </button>
           <button type="button" class="btn-view-archived" onclick="alternarModoSeleccion()" id="btnToggleSeleccion">
             <span>☑️</span> Seleccionar
@@ -2376,17 +2376,18 @@
         }
       }
 
-      // Genera y descarga un PDF con todas las propiedades DISPONIBLES (no archivadas)
-      // en este mismo momento. Como consulta Firestore justo al hacer clic (igual que
-      // el resto del panel), el PDF siempre queda actualizado automáticamente: si
-      // agregaste o borraste una propiedad hace un segundo, ya sale reflejado aquí,
-      // sin necesidad de tocar nada más.
-      window.descargarPdfPropiedades = async function() {
-        const btn = document.getElementById('btnDescargarPdf');
+      // Genera y descarga un Excel (.xlsx) con todas las propiedades DISPONIBLES
+      // (no archivadas) en este mismo momento. Como consulta Firestore justo al
+      // hacer clic (igual que el resto del panel), el Excel siempre queda
+      // actualizado automáticamente: si agregaste o borraste una propiedad hace
+      // un segundo, ya sale reflejado aquí, sin necesidad de tocar nada más.
+      // El listado se ordena por: Nombre → Sector → Habitaciones → Baños → Parqueos.
+      window.descargarExcelPropiedades = async function() {
+        const btn = document.getElementById('btnDescargarExcel');
         const textoOriginal = btn ? btn.innerHTML : '';
         if (btn) {
           btn.disabled = true;
-          btn.innerHTML = '<span>⏳</span> Generando PDF...';
+          btn.innerHTML = '<span>⏳</span> Generando Excel...';
         }
 
         try {
@@ -2395,7 +2396,7 @@
             : query(collection(db, "propiedades"), where("creadoPorUid", "==", usuarioActualUid));
           const snap = await getDocs(consultaPropiedades);
 
-          // El PDF respeta la vista actual: si tienes activado "Ver Archivadas",
+          // El Excel respeta la vista actual: si tienes activado "Ver Archivadas",
           // descarga las archivadas; si no, descarga las disponibles.
           let propiedades = [];
           snap.forEach(docSnap => {
@@ -2408,96 +2409,73 @@
 
           if (propiedades.length === 0) {
             alert(mostrandoArchivadas
-              ? "No hay propiedades archivadas para incluir en el PDF."
-              : "No hay propiedades disponibles para incluir en el PDF.");
+              ? "No hay propiedades archivadas para incluir en el Excel."
+              : "No hay propiedades disponibles para incluir en el Excel.");
             return;
           }
 
-          propiedades.sort((a, b) => new Date(b.fechaCreacion || 0) - new Date(a.fechaCreacion || 0));
+          // Orden: Nombre → Sector → Habitaciones → Baños → Parqueos
+          propiedades.sort((a, b) => {
+            const porNombre = (a.titulo || '').toString().localeCompare((b.titulo || '').toString(), 'es', { sensitivity: 'base' });
+            if (porNombre !== 0) return porNombre;
 
-          const { jsPDF } = await import("https://cdn.jsdelivr.net/npm/jspdf@2.5.2/+esm");
-          const pdf = new jsPDF({ unit: 'pt', format: 'a4' });
+            const porSector = (a.ubicacion || '').toString().localeCompare((b.ubicacion || '').toString(), 'es', { sensitivity: 'base' });
+            if (porSector !== 0) return porSector;
 
-          const margenX = 40;
-          let y = 50;
-          const anchoPagina = pdf.internal.pageSize.getWidth();
-          const altoPagina = pdf.internal.pageSize.getHeight();
-          const anchoTexto = anchoPagina - margenX * 2;
+            const porHabitaciones = (Number(a.habitaciones) || 0) - (Number(b.habitaciones) || 0);
+            if (porHabitaciones !== 0) return porHabitaciones;
 
-          function nuevaPaginaSiNecesario(alturaNecesaria) {
-            if (y + alturaNecesaria > altoPagina - 40) {
-              pdf.addPage();
-              y = 50;
-            }
-          }
+            const porBanos = (Number(a.banos) || 0) - (Number(b.banos) || 0);
+            if (porBanos !== 0) return porBanos;
 
-          const fechaGeneracion = new Date().toLocaleString('es-DO', { dateStyle: 'long', timeStyle: 'short' });
-
-          pdf.setFont('helvetica', 'bold');
-          pdf.setFontSize(18);
-          pdf.text(mostrandoArchivadas ? 'Listado de Propiedades Archivadas' : 'Listado de Propiedades Disponibles', margenX, y);
-          y += 22;
-
-          pdf.setFont('helvetica', 'normal');
-          pdf.setFontSize(10);
-          pdf.setTextColor(100);
-          pdf.text(`Generado el ${fechaGeneracion}  •  Total: ${propiedades.length} propiedad(es)`, margenX, y);
-          pdf.setTextColor(0);
-          y += 25;
-
-          propiedades.forEach((prop, index) => {
-            nuevaPaginaSiNecesario(95);
-
-            pdf.setDrawColor(230);
-            pdf.line(margenX, y, anchoPagina - margenX, y);
-            y += 16;
-
-            pdf.setFont('helvetica', 'bold');
-            pdf.setFontSize(13);
-            const tituloLineas = pdf.splitTextToSize(`${index + 1}. ${prop.titulo || 'Sin título'}`, anchoTexto);
-            pdf.text(tituloLineas, margenX, y);
-            y += tituloLineas.length * 15;
-
-            pdf.setFont('helvetica', 'normal');
-            pdf.setFontSize(11);
-            pdf.setTextColor(217, 119, 6);
-            pdf.text(`Precio: ${prop.precio || 'N/D'}`, margenX, y);
-            pdf.setTextColor(0);
-            y += 16;
-
-            pdf.text(`Ubicación: ${prop.ubicacion || 'N/D'}   |   Nivel: ${prop.nivel || 'N/D'}`, margenX, y);
-            y += 15;
-
-            pdf.text(`Habitaciones: ${prop.habitaciones ?? 'N/D'}   |   Baños: ${prop.banos ?? 'N/D'}   |   Parqueos: ${prop.parqueos ?? 'N/D'}   |   Metros: ${prop.metros || 'N/D'}`, margenX, y);
-            y += 15;
-
-            if (esModoAdmin) {
-              pdf.text(`Agente: ${prop.agente || 'N/D'}   |   Dueño: ${prop.dueno || 'N/D'}`, margenX, y);
-              y += 15;
-            }
-
-            if (prop.descripcion) {
-              pdf.setFont('helvetica', 'italic');
-              pdf.setFontSize(10);
-              const descLineas = pdf.splitTextToSize(prop.descripcion, anchoTexto);
-              descLineas.forEach(linea => {
-                nuevaPaginaSiNecesario(14);
-                pdf.text(linea, margenX, y);
-                y += 13;
-              });
-              pdf.setFont('helvetica', 'normal');
-            }
-
-            y += 12;
+            return (Number(a.parqueos) || 0) - (Number(b.parqueos) || 0);
           });
 
+          const XLSX = await import("https://cdn.jsdelivr.net/npm/xlsx@0.18.5/+esm");
+
+          const filas = propiedades.map((prop, index) => {
+            const fila = {
+              '#': index + 1,
+              'Nombre': prop.titulo || 'Sin título',
+              'Sector': prop.ubicacion || 'N/D',
+              'Habitaciones': prop.habitaciones ?? 'N/D',
+              'Baños': prop.banos ?? 'N/D',
+              'Parqueos': prop.parqueos ?? 'N/D',
+              'Precio': prop.precio || 'N/D',
+              'Operación': prop.operacion || 'N/D',
+              'Tipo': prop.tipo || 'N/D',
+              'Nivel': prop.nivel || 'N/D',
+              'Metros²': prop.metros || 'N/D',
+              'Amueblado': prop.amueblado ? 'Sí' : 'No',
+              'Negociable': prop.negociable ? 'Sí' : 'No',
+              'Acepta extranjeros': prop.extranjeros ? 'Sí' : 'No',
+              'Premium': prop.premium ? 'Sí' : 'No',
+              'Descripción': prop.descripcion || ''
+            };
+            if (esModoAdmin) {
+              fila['Agente'] = prop.agente || 'N/D';
+              fila['Dueño'] = prop.dueno || 'N/D';
+            }
+            return fila;
+          });
+
+          const hoja = XLSX.utils.json_to_sheet(filas);
+
+          // Ancho de columnas automático para que se lea bien al abrir el archivo
+          hoja['!cols'] = Object.keys(filas[0]).map(clave => ({
+            wch: clave === 'Descripción' ? 45 : Math.max(clave.length + 2, 12)
+          }));
+
+          const libro = XLSX.utils.book_new();
+          XLSX.utils.book_append_sheet(libro, hoja, mostrandoArchivadas ? 'Archivadas' : 'Disponibles');
+
           const prefijoArchivo = mostrandoArchivadas ? 'propiedades-archivadas' : 'propiedades-disponibles';
-          const nombreArchivo = `${prefijoArchivo}-${new Date().toISOString().slice(0, 10)}.pdf`;
-          pdf.save(nombreArchivo);
+          const nombreArchivo = `${prefijoArchivo}-${new Date().toISOString().slice(0, 10)}.xlsx`;
+          XLSX.writeFile(libro, nombreArchivo);
 
         } catch (error) {
-          console.error("Error al generar el PDF:", error);
-          alert("Hubo un error al generar el PDF. Intenta de nuevo.");
+          console.error("Error al generar el Excel:", error);
+          alert("Hubo un error al generar el Excel. Intenta de nuevo.");
         } finally {
           if (btn) {
             btn.disabled = false;
@@ -2512,19 +2490,19 @@
         const tituloSeccion = document.getElementById('tituloSeccionActual');
         const toolbar = document.getElementById('toolbarBusqueda');
 
-        const btnPdf = document.getElementById('btnDescargarPdf');
+        const btnExcel = document.getElementById('btnDescargarExcel');
 
         if (mostrandoArchivadas) {
           btn.innerHTML = '<span>🏠</span> Ver Activas';
           btn.style.borderColor = '#f59e0b';
           tituloSeccion.innerHTML = '<span>🗄️ Propiedades Archivadas</span>';
           if(toolbar) toolbar.style.display = 'none';
-          if (btnPdf) btnPdf.innerHTML = '<span>📄</span> Descargar PDF (Archivadas)';
+          if (btnExcel) btnExcel.innerHTML = '<span>📊</span> Descargar Excel (Archivadas)';
         } else {
           const totalArchivadas = await actualizarContadorArchivadas();
           btn.innerHTML = `<span>🗄️</span> Ver Archivadas (<span id="contadorArchivadas">${totalArchivadas}</span>)`;
           btn.style.borderColor = '';
-          if (btnPdf) btnPdf.innerHTML = '<span>📄</span> Descargar PDF';
+          if (btnExcel) btnExcel.innerHTML = '<span>📊</span> Descargar Excel';
           tituloSeccion.innerHTML = '<span>📋 Propiedades Activas</span>';
           if(toolbar) toolbar.style.display = 'flex';
         }
