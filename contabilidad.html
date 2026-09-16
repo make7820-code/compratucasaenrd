@@ -1158,12 +1158,19 @@
             mostrarAvisoDescargaCSV('CSV enviado a la app para guardarlo.', false);
           } else {
             // 3) Descarga clásica con data: URI, más compatible con WebViews
-            // que blob: (que muchos bloquean silenciosamente).
+            // que blob: (que muchos bloquean silenciosamente). Usamos
+            // "application/octet-stream" en vez de "text/csv" para este paso:
+            // con "text/csv" varios navegadores/WebViews simplemente ABREN el
+            // texto en pantalla en vez de descargarlo (el "download" del <a>
+            // se ignora), porque el navegador reconoce el CSV como texto
+            // legible. Con octet-stream lo tratan como binario desconocido y
+            // sí fuerzan la descarga.
+            const blobDescarga = new Blob(["\uFEFF" + csv], { type: 'application/octet-stream' });
             const base64 = await new Promise((resolve, reject) => {
               const lector = new FileReader();
               lector.onload = () => resolve(lector.result);
               lector.onerror = reject;
-              lector.readAsDataURL(blob);
+              lector.readAsDataURL(blobDescarga);
             });
             const enlace = document.createElement('a');
             enlace.href = base64;
