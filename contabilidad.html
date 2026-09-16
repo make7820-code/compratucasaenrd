@@ -521,7 +521,7 @@
             <button type="button" class="conta-btn conta-btn-publish" onclick="window.location.href='publicar.html'">
               <span>🏠</span> Publicar Propiedad
             </button>
-            <button type="button" class="conta-btn conta-btn-primary" onclick="exportarCSV()">
+            <button type="button" class="conta-btn conta-btn-primary" onclick="exportarCSV()" id="btnExportarCSV">
               <span>⬇️</span> Exportar CSV
             </button>
           </div>
@@ -1107,23 +1107,100 @@
       }
 
       /* ============ EXPORTAR ============ */
-      function exportarCSV() {
+      async function exportarCSV() {
         const lista = movimientosFiltrados();
         if (lista.length === 0) { alert("No hay movimientos para exportar."); return; }
 
-        const filas = [['Fecha', 'Tipo', 'Categoria', 'Descripcion', 'Propiedad/Cliente', 'Metodo', 'Monto']];
-        lista.forEach(m => {
-          filas.push([m.fecha, m.tipo, m.categoria, m.descripcion, m.propiedad || '', m.metodo || '', m.monto]);
-        });
+        const btn = document.getElementById('btnExportarCSV');
+        const textoOriginal = btn ? btn.innerHTML : '';
+        const avisoPrevio = document.getElementById('avisoDescargaCSV');
+        if (avisoPrevio) avisoPrevio.style.display = 'none';
+        if (btn) { btn.disabled = true; btn.innerHTML = '<span>⏳</span> Generando CSV...'; }
 
-        const csv = 'sep=;\n' + filas.map(f => f.map(c => `"${String(c).replace(/"/g, '""')}"`).join(';')).join('\n');
-        const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
-        const enlace = document.createElement('a');
-        enlace.href = URL.createObjectURL(blob);
-        const usuario = usuarioActualData.nombreUsuario || 'agente';
-        enlace.download = `contabilidad_${usuario}_${new Date().toISOString().slice(0,10)}.csv`;
-        enlace.click();
-        URL.revokeObjectURL(enlace.href);
+        try {
+          const filas = [['Fecha', 'Tipo', 'Categoria', 'Descripcion', 'Propiedad/Cliente', 'Metodo', 'Monto']];
+          lista.forEach(m => {
+            filas.push([m.fecha, m.tipo, m.categoria, m.descripcion, m.propiedad || '', m.metodo || '', m.monto]);
+          });
+
+          const csv = 'sep=;\n' + filas.map(f => f.map(c => `"${String(c).replace(/"/g, '""')}"`).join(';')).join('\n');
+          const tipoMime = 'text/csv;charset=utf-8;';
+          const blob = new Blob(["\uFEFF" + csv], { type: tipoMime });
+          const usuario = usuarioActualData.nombreUsuario || 'agente';
+          const nombreArchivo = `contabilidad_${usuario}_${new Date().toISOString().slice(0,10)}.csv`;
+          const archivo = new File([blob], nombreArchivo, { type: tipoMime });
+
+          // 1) Web Share API con archivos: funciona mejor dentro de apps
+          // envueltas en WebView, porque abre el panel nativo de
+          // "Compartir/Guardar" del sistema en vez de depender de una descarga.
+          if (navigator.canShare && navigator.canShare({ files: [archivo] })) {
+            await navigator.share({ files: [archivo], title: nombreArchivo });
+            mostrarAvisoDescargaCSV('Se abrió el panel para guardar/compartir el CSV.', false);
+          } else if (window.Android && typeof window.Android.saveFile === 'function') {
+            // 2a) Puente nativo Android
+            const base64 = await new Promise((resolve, reject) => {
+              const lector = new FileReader();
+              lector.onload = () => resolve(lector.result.split(',')[1]);
+              lector.onerror = reject;
+              lector.readAsDataURL(blob);
+            });
+            window.Android.saveFile(nombreArchivo, base64);
+            mostrarAvisoDescargaCSV('CSV enviado a la app para guardarlo.', false);
+          } else if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.saveFile) {
+            // 2b) Puente nativo iOS
+            const base64 = await new Promise((resolve, reject) => {
+              const lector = new FileReader();
+              lector.onload = () => resolve(lector.result.split(',')[1]);
+              lector.onerror = reject;
+              lector.readAsDataURL(blob);
+            });
+            window.webkit.messageHandlers.saveFile.postMessage({ nombre: nombreArchivo, base64: base64 });
+            mostrarAvisoDescargaCSV('CSV enviado a la app para guardarlo.', false);
+          } else {
+            // 3) Descarga clásica con data: URI, más compatible con WebViews
+            // que blob: (que muchos bloquean silenciosamente).
+            const base64 = await new Promise((resolve, reject) => {
+              const lector = new FileReader();
+              lector.onload = () => resolve(lector.result);
+              lector.onerror = reject;
+              lector.readAsDataURL(blob);
+            });
+            const enlace = document.createElement('a');
+            enlace.href = base64;
+            enlace.download = nombreArchivo;
+            document.body.appendChild(enlace);
+            enlace.click();
+            enlace.remove();
+            mostrarAvisoDescargaCSV('Si no ves el archivo descargado, revisa la carpeta "Descargas" de tu teléfono o intenta abrir esta página en Chrome/Safari en vez de la app.', false);
+          }
+        } catch (error) {
+          if (error && error.name === 'AbortError') return;
+          console.error("Error al generar el CSV:", error);
+          mostrarAvisoDescargaCSV('Hubo un error al generar el CSV: ' + (error && (error.message || error.name) || 'desconocido') + '. Intenta de nuevo o ábrelo en Chrome/Safari.', true);
+        } finally {
+          if (btn) { btn.disabled = false; btn.innerHTML = textoOriginal; }
+        }
+      }
+
+      // Muestra un mensaje visible en pantalla: muchas apps que envuelven la
+      // web en un WebView desactivan alert(), así que sin esto el usuario no
+      // ve ningún aviso si algo falla y parece que "no pasó nada".
+      function mostrarAvisoDescargaCSV(mensaje, esError) {
+        let aviso = document.getElementById('avisoDescargaCSV');
+        if (!aviso) {
+          aviso = document.createElement('div');
+          aviso.id = 'avisoDescargaCSV';
+          aviso.style.cssText = 'margin-top:12px;padding:12px 16px;border-radius:12px;font-size:14px;font-weight:600;width:100%;';
+          const btnRef = document.getElementById('btnExportarCSV');
+          if (btnRef && btnRef.parentNode) {
+            btnRef.parentNode.insertBefore(aviso, btnRef.nextSibling);
+          }
+        }
+        aviso.style.display = 'block';
+        aviso.style.background = esError ? 'rgba(239,68,68,0.12)' : 'rgba(34,197,94,0.12)';
+        aviso.style.border = esError ? '1px solid rgba(239,68,68,0.35)' : '1px solid rgba(34,197,94,0.35)';
+        aviso.style.color = esError ? '#ef4444' : '#22c55e';
+        aviso.innerText = mensaje;
       }
     </script>
 
