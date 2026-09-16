@@ -604,6 +604,11 @@
             <span>📋</span> Gestión
           </button>
 
+          <!-- Botón de Contabilidad, solo de rol agente en adelante -->
+          <button type="button" class="profile-action-btn-publish" id="btnContabilidad" style="display: none;" onclick="window.location.href='contabilidad.html'">
+            <span>📊</span> Mi Contabilidad
+          </button>
+
           <!-- Botón de Atrás en Color Verde -->
           <button type="button" class="profile-action-btn-back" onclick="window.history.back()">
             <span>⬅️</span> Atrás
@@ -1326,6 +1331,18 @@
             btnGestion.style.display = 'inline-flex';
           } else {
             btnGestion.style.display = 'none';
+          }
+        }
+
+        // --- VISIBILIDAD DEL BOTÓN DE CONTABILIDAD (de agente en adelante) ---
+        const rolesContabilidad = ['agente', 'agentepro', 'admin', 'superadmin'];
+        const btnContabilidad = document.getElementById('btnContabilidad');
+
+        if (btnContabilidad) {
+          if (rolesContabilidad.includes(rolUsuario)) {
+            btnContabilidad.style.display = 'inline-flex';
+          } else {
+            btnContabilidad.style.display = 'none';
           }
         }
 
