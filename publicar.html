@@ -1246,6 +1246,10 @@
           <button type="button" class="btn-view-archived" onclick="alternarModoSeleccion()" id="btnToggleSeleccion">
             <span>☑️</span> Seleccionar
           </button>
+          <!-- Mi Contabilidad: esta página ya solo la abren agente/agentepro/admin/superadmin -->
+          <button type="button" class="btn-view-archived" onclick="window.location.href='contabilidad.html'" id="btnContabilidad">
+            <span>📒</span> Mi Contabilidad
+          </button>
           <div id="controlesSeleccionMasiva">
             <label class="bulk-select-toggle">
               <input type="checkbox" id="checkboxSeleccionarTodas" onchange="alternarSeleccionarTodas(this)">
