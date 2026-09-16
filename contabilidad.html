@@ -9,6 +9,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
     <!-- Hoja de Estilos Principal -->
     <link rel="stylesheet" href="styles.css">
+    <!-- Font Awesome (íconos del banner inferior) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <!-- SDKs de Firebase Compat -->
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
@@ -34,6 +36,64 @@
         color: #9ca3af;
         margin-bottom: 25px;
       }
+      /* ================= TARJETA DE PERFIL DE AGENTE ================= */
+      .agent-result-card {
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(239, 68, 68, 0.08));
+        border: 1px solid rgba(59, 130, 246, 0.35);
+        border-radius: 20px;
+        padding: 20px 24px;
+        align-items: center;
+        gap: 18px;
+        flex-wrap: wrap;
+        position: relative;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        margin-bottom: 30px;
+      }
+      .agent-result-badge {
+        position: absolute;
+        top: -10px;
+        left: 20px;
+        background: #3b82f6;
+        color: #fff;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        padding: 4px 12px;
+        border-radius: 999px;
+      }
+      .agent-result-photo {
+        width: 72px;
+        height: 72px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid #3b82f6;
+        background-color: #27272a;
+        flex-shrink: 0;
+      }
+      .agent-result-info { flex-grow: 1; min-width: 180px; }
+      .agent-result-name { font-size: 19px; font-weight: 700; color: #fff; }
+      body.light-mode .agent-result-name { color: #111827; }
+      .agent-result-role { font-size: 13px; color: #9ca3af; margin-top: 2px; }
+      .agent-result-count { font-size: 13px; color: #9ca3af; margin-top: 4px; }
+      .agent-result-btn {
+        background: #3b82f6;
+        color: #fff;
+        border: none;
+        padding: 12px 22px;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 14px;
+        text-decoration: none;
+        white-space: nowrap;
+        transition: background 0.2s;
+        flex-shrink: 0;
+      }
+      .agent-result-btn:hover { background: #2563eb; }
+      @media (max-width: 600px) {
+        .agent-result-card { flex-direction: column; text-align: center; }
+        .agent-result-btn { width: 100%; text-align: center; }
+      }
+
       .conta-actions-bar {
         display: flex;
         gap: 15px;
@@ -270,6 +330,124 @@
         font-size: 17px;
       }
       #contaContenido { display: none; }
+
+      /* ================= FOOTER / BANNER INFERIOR ================= */
+      .site-footer {
+        background-color: #000000;
+        color: #a1a1aa;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        padding: 60px 20px 20px 20px;
+        position: relative;
+        z-index: 2;
+        transition: background-color 0.3s, color 0.3s;
+      }
+      body.light-mode .site-footer {
+        background-color: #e4e4e7;
+        color: #52525b;
+        border-top: 1px solid rgba(0, 0, 0, 0.1);
+      }
+      body.light-mode .footer-col-title,
+      body.light-mode .footer-brand-title {
+        color: #18181b !important;
+      }
+      body.light-mode .footer-brand-desc,
+      body.light-mode .footer-links a,
+      body.light-mode .footer-contact-list li,
+      body.light-mode .footer-bottom,
+      body.light-mode .footer-bottom-links a {
+        color: #52525b !important;
+      }
+      body.light-mode .footer-social-icon {
+        background: #ffffff;
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        color: #18181b;
+      }
+      body.light-mode .footer-social-icon:hover {
+        background: #ef4444;
+        color: #ffffff;
+        border-color: #ef4444;
+      }
+      .footer-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr 1.5fr;
+        gap: 40px;
+        padding-bottom: 40px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      }
+      body.light-mode .footer-container {
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+      }
+      .footer-col-title {
+        color: #fff;
+        font-size: 16px;
+        font-weight: 700;
+        margin-bottom: 20px;
+        letter-spacing: 0.5px;
+      }
+      .footer-brand-title {
+        color: #fff;
+        font-size: 24px;
+        font-weight: 800;
+        margin-bottom: 14px;
+      }
+      .footer-brand-title .highlight-red { color: #ef4444; }
+      .footer-brand-desc {
+        font-size: 14px;
+        line-height: 1.6;
+        color: #a1a1aa;
+        margin-bottom: 20px;
+      }
+      .footer-socials { display: flex; gap: 12px; }
+      .footer-social-icon {
+        background: #121214;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        color: #fff;
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        font-size: 16px;
+        transition: all 0.2s;
+      }
+      .footer-social-icon:hover { background: #ef4444; color: #fff; }
+      .footer-links { list-style: none; padding: 0; margin: 0; }
+      .footer-links li { margin-bottom: 12px; }
+      .footer-links a { color: #a1a1aa; text-decoration: none; font-size: 14px; transition: color 0.2s; }
+      .footer-links a:hover { color: #ef4444; }
+      .footer-contact-list { list-style: none; padding: 0; margin: 0; }
+      .footer-contact-list li {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        font-size: 14px;
+        color: #a1a1aa;
+        margin-bottom: 14px;
+      }
+      .footer-contact-list .contact-icon { font-size: 16px; flex-shrink: 0; }
+      .footer-email { color: #3b82f6; text-decoration: none; }
+      .footer-email:hover { text-decoration: underline; }
+      .footer-bottom {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding-top: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 13px;
+        color: #71717a;
+      }
+      .footer-bottom-links { display: flex; gap: 20px; }
+      .footer-bottom-links a { color: #71717a; text-decoration: none; transition: color 0.2s; }
+      .footer-bottom-links a:hover { color: #fff; }
+      @media(max-width: 900px) {
+        .footer-container { grid-template-columns: 1fr; gap: 30px; }
+        .footer-bottom { flex-direction: column; gap: 10px; text-align: center; }
+      }
     </style>
 </head>
 <body>
@@ -320,6 +498,18 @@
         <div class="conta-hero">
           <h1 class="conta-title">Mi Contabilidad</h1>
           <p class="conta-subtitle" id="contaSubtitulo">Ingresos, gastos y comisiones de tu gestión como agente</p>
+
+          <!-- TARJETA DE PERFIL DEL AGENTE QUE INICIÓ SESIÓN -->
+          <div id="agentProfileCard" class="agent-result-card" style="display:none;">
+            <div class="agent-result-badge">👤 AGENTE</div>
+            <img id="agentProfilePhoto" src="" alt="Foto de perfil" class="agent-result-photo">
+            <div class="agent-result-info">
+              <div class="agent-result-name" id="agentProfileName">—</div>
+              <div class="agent-result-role" id="agentProfileRole">—</div>
+              <div class="agent-result-count" id="agentProfileCount">🏠 0 propiedades publicadas</div>
+            </div>
+            <a href="perfil.html" id="agentProfileBtn" class="agent-result-btn">Ver perfil y catálogo →</a>
+          </div>
 
           <div class="conta-actions-bar">
             <button type="button" class="conta-btn conta-btn-back" onclick="window.location.href='perfil.html'">
@@ -490,6 +680,68 @@
       </div>
     </main>
 
+    <!-- ================= FOOTER / BANNER INFERIOR ================= -->
+    <footer class="site-footer">
+      <div class="footer-container">
+
+        <div class="footer-col footer-brand-col">
+          <h2 class="footer-brand-title">Compra tu casa en <span class="highlight-red">RD</span></h2>
+          <p class="footer-brand-desc">
+            Tu aliado confiable en la búsqueda y adquisición de propiedades en República Dominicana. Hacemos tus sueños de hogar una realidad.
+          </p>
+          <div class="footer-socials">
+            <a href="#" class="footer-social-icon"><i class="fa-brands fa-instagram"></i></a>
+            <a href="#" class="footer-social-icon"><i class="fa-brands fa-facebook-f"></i></a>
+            <a href="#" class="footer-social-icon"><i class="fa-brands fa-whatsapp"></i></a>
+            <a href="#" class="footer-social-icon"><i class="fa-brands fa-tiktok"></i></a>
+          </div>
+        </div>
+
+        <div class="footer-col">
+          <h3 class="footer-col-title">Navegación Rápida</h3>
+          <ul class="footer-links">
+            <li><a href="index.html">Inicio</a></li>
+            <li><a href="nosotros.html">Acerca de Nosotros</a></li>
+            <li><a href="propiedades.html">Propiedades</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h3 class="footer-col-title">Nuestros Servicios</h3>
+          <ul class="footer-links">
+            <li><a href="calculadora.html">Calculadora Hipotecaria</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h3 class="footer-col-title">Contacto Directo</h3>
+          <ul class="footer-contact-list">
+            <li>
+              <span class="contact-icon">📍</span>
+              <span>Ubicación: República Dominicana, Santo Domingo Este, La Ureña, C. El Sol</span>
+            </li>
+            <li>
+              <span class="contact-icon">📞</span>
+              <span>Teléfono: +1 (849) 857-2321</span>
+            </li>
+            <li>
+              <span class="contact-icon">✉️</span>
+              <span>Correo electrónico:<br><a href="mailto:Danieldecena63@gmail.com" class="footer-email">Danieldecena63@gmail.com</a></span>
+            </li>
+          </ul>
+        </div>
+
+      </div>
+
+      <div class="footer-bottom">
+        <p>© 2026 Compra tu casa en RD. Todos los derechos reservados.</p>
+        <div class="footer-bottom-links">
+          <a href="privacidad.html">Política de Privacidad</a>
+          <a href="terminos.html">Términos de Servicio</a>
+        </div>
+      </div>
+    </footer>
+
     <!-- ================= SCRIPTS ================= -->
     <script>
       const firebaseConfig = {
@@ -590,6 +842,7 @@
         document.getElementById('contaSubtitulo').innerText =
           `Contabilidad privada de ${nombre} · rol: ${rol}`;
 
+        await pintarPerfilAgente();
         await cargarMovimientos();
         renderizarTodo();
       }
@@ -607,6 +860,54 @@
             <img src="${avatarSrc}" alt="Avatar" style="width:38px;height:38px;border-radius:50%;object-fit:cover;border:2px solid #ef4444;">
             <span style="color:#fff;font-weight:600;font-size:15px;">${nombreMostrado}</span>
           </a>`;
+      }
+
+      /* ============ TARJETA DE PERFIL DEL AGENTE ============ */
+      // Pinta la misma tarjeta de "AGENTE" que aparece en propiedades.html,
+      // pero mostrando siempre los datos de quien inició sesión en esta página.
+      async function pintarPerfilAgente() {
+        const tarjeta = document.getElementById('agentProfileCard');
+        if (!tarjeta) return;
+
+        const username = usuarioActualData.nombreUsuario || usuarioActualData.email || 'usuario';
+        const nombre = usuarioActualData.nombres || username;
+        const rol = (usuarioActualData.rol || 'agente').toLowerCase();
+        const rolTexto = rol === 'agentepro' ? 'Agente Pro'
+          : rol === 'admin' ? 'Administrador'
+          : rol === 'superadmin' ? 'Superadmin'
+          : 'Agente Inmobiliario';
+        const fotoSrc = usuarioActualData.fotoPerfil || `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`;
+
+        const imgEl = document.getElementById('agentProfilePhoto');
+        imgEl.src = fotoSrc;
+        imgEl.onerror = function () {
+          this.onerror = null;
+          this.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`;
+        };
+        document.getElementById('agentProfileName').innerText = nombre;
+        document.getElementById('agentProfileRole').innerText = rolTexto;
+
+        const btnEl = document.getElementById('agentProfileBtn');
+        let cantidad = 0;
+
+        if (db && usuarioActualData.uid) {
+          try {
+            const snap = await db.collection('propiedades')
+              .where('creadoPorUid', '==', usuarioActualData.uid)
+              .get();
+            cantidad = snap.size;
+          } catch (error) {
+            console.warn('No se pudo contar las propiedades publicadas del agente:', error);
+          }
+          btnEl.href = `agente.html?uid=${encodeURIComponent(usuarioActualData.uid)}`;
+        } else {
+          btnEl.href = 'perfil.html';
+        }
+
+        document.getElementById('agentProfileCount').innerText =
+          `🏠 ${cantidad} ${cantidad === 1 ? 'propiedad publicada' : 'propiedades publicadas'}`;
+
+        tarjeta.style.display = 'flex';
       }
 
       /* ============ DATOS: CADA AGENTE TIENE LA SUYA ============ */
