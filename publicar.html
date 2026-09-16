@@ -2386,9 +2386,57 @@
       // actualizado automáticamente: si agregaste o borraste una propiedad hace
       // un segundo, ya sale reflejado aquí, sin necesidad de tocar nada más.
       // El listado se ordena por: Nombre → Sector → Habitaciones → Baños → Parqueos.
+      // Se precarga la librería XLSX en segundo plano apenas carga la página
+      // (no se espera al clic del botón). Así, cuando el usuario pulsa
+      // "Descargar Excel", la librería casi siempre ya está lista y no hay que
+      // esperar una descarga de red antes de poder compartir/guardar el
+      // archivo. Esto es clave en móvil: varias APIs (como navigator.share)
+      // solo funcionan si se llaman poco después del toque del usuario; si
+      // hay que esperar descargas de red en medio, el navegador considera que
+      // "ya pasó mucho tiempo" y bloquea la acción sin avisar con claridad.
+      let libreriaXLSXPromise = null;
+      function precargarLibreriaXLSX() {
+        if (!libreriaXLSXPromise) {
+          libreriaXLSXPromise = import("https://cdn.jsdelivr.net/npm/xlsx@0.18.5/+esm")
+            .catch(error => {
+              console.error("No se pudo precargar la librería de Excel:", error);
+              libreriaXLSXPromise = null; // se reintentará en el próximo clic
+              throw error;
+            });
+        }
+        return libreriaXLSXPromise;
+      }
+      precargarLibreriaXLSX();
+
+      // Muestra un mensaje de error VISIBLE en la propia página, en vez de
+      // depender solo de alert(). Muchas apps que envuelven la web en un
+      // WebView desactivan o ignoran alert()/confirm(), así que si algo
+      // falla ahí el usuario no ve absolutamente nada y parece que "no pasó
+      // nada". Con este aviso en pantalla sí queda visible el motivo real.
+      function mostrarAvisoDescarga(mensaje, esError) {
+        let aviso = document.getElementById('avisoDescargaExcel');
+        if (!aviso) {
+          aviso = document.createElement('div');
+          aviso.id = 'avisoDescargaExcel';
+          aviso.style.cssText = 'margin-top:12px;padding:12px 16px;border-radius:12px;font-size:14px;font-weight:600;';
+          const btnRef = document.getElementById('btnDescargarExcel');
+          if (btnRef && btnRef.parentNode) {
+            btnRef.parentNode.insertBefore(aviso, btnRef.nextSibling);
+          }
+        }
+        aviso.style.display = 'block';
+        aviso.style.background = esError ? 'rgba(239,68,68,0.12)' : 'rgba(34,197,94,0.12)';
+        aviso.style.border = esError ? '1px solid rgba(239,68,68,0.35)' : '1px solid rgba(34,197,94,0.35)';
+        aviso.style.color = esError ? '#ef4444' : '#22c55e';
+        aviso.innerText = mensaje;
+      }
+
       window.descargarExcelPropiedades = async function() {
         const btn = document.getElementById('btnDescargarExcel');
         const textoOriginal = btn ? btn.innerHTML : '';
+        const avisoPrevio = document.getElementById('avisoDescargaExcel');
+        if (avisoPrevio) avisoPrevio.style.display = 'none';
+
         if (btn) {
           btn.disabled = true;
           btn.innerHTML = '<span>⏳</span> Generando Excel...';
@@ -2435,7 +2483,7 @@
             return (Number(a.parqueos) || 0) - (Number(b.parqueos) || 0);
           });
 
-          const XLSX = await import("https://cdn.jsdelivr.net/npm/xlsx@0.18.5/+esm");
+          const XLSX = await precargarLibreriaXLSX();
 
           const filas = propiedades.map((prop, index) => {
             const fila = {
@@ -2495,6 +2543,7 @@
               files: [archivo],
               title: nombreArchivo
             });
+            mostrarAvisoDescarga('Se abrió el panel para guardar/compartir el Excel.', false);
           } else if (window.Android && typeof window.Android.saveFile === 'function') {
             // 2a) Puente nativo Android: la app expone "saveFile(nombre, base64)"
             // via WebView JavaScript interface (addJavascriptInterface).
@@ -2505,6 +2554,7 @@
               lector.readAsDataURL(blob);
             });
             window.Android.saveFile(nombreArchivo, base64);
+            mostrarAvisoDescarga('Excel enviado a la app para guardarlo.', false);
           } else if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.saveFile) {
             // 2b) Puente nativo iOS: la app expone un WKScriptMessageHandler
             // llamado "saveFile" (agregado con addScriptMessageHandler).
@@ -2515,16 +2565,27 @@
               lector.readAsDataURL(blob);
             });
             window.webkit.messageHandlers.saveFile.postMessage({ nombre: nombreArchivo, base64: base64 });
+            mostrarAvisoDescarga('Excel enviado a la app para guardarlo.', false);
           } else {
-            // 3) Descarga clásica por navegador (funciona en Chrome/Safari normales).
-            const url = URL.createObjectURL(blob);
+            // 3) Descarga clásica. Se usa un data: URI en vez de un blob: URI:
+            // varios WebViews de apps que envuelven la web bloquean o ignoran
+            // por completo las descargas con esquema "blob:" (el gestor de
+            // descargas nativo de Android solo escucha URLs http(s) o data:),
+            // así que "blob:" se queda sin hacer nada y parece que el botón
+            // no funcionó. "data:" es compatible con muchos más WebViews.
+            const base64 = await new Promise((resolve, reject) => {
+              const lector = new FileReader();
+              lector.onload = () => resolve(lector.result);
+              lector.onerror = reject;
+              lector.readAsDataURL(blob);
+            });
             const enlace = document.createElement('a');
-            enlace.href = url;
+            enlace.href = base64;
             enlace.download = nombreArchivo;
             document.body.appendChild(enlace);
             enlace.click();
             enlace.remove();
-            setTimeout(() => URL.revokeObjectURL(url), 4000);
+            mostrarAvisoDescarga('Si no ves el archivo descargado, revisa la carpeta "Descargas" de tu teléfono o intenta abrir esta página en Chrome/Safari en vez de la app.', false);
           }
 
         } catch (error) {
@@ -2533,7 +2594,7 @@
             return;
           }
           console.error("Error al generar el Excel:", error);
-          alert("Hubo un error al generar el Excel. Intenta de nuevo.");
+          mostrarAvisoDescarga('Hubo un error al generar el Excel: ' + (error && (error.message || error.name) || 'desconocido') + '. Intenta de nuevo o ábrelo en Chrome/Safari.', true);
         } finally {
           if (btn) {
             btn.disabled = false;
