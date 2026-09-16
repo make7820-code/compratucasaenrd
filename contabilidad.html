@@ -257,6 +257,12 @@
         display: none;
       }
 
+      .conta-aviso-error {
+        background: rgba(239,68,68,0.12);
+        border-color: rgba(239,68,68,0.35);
+        color: #ef4444;
+      }
+
       #contaCargando {
         text-align: center;
         padding: 160px 20px;
@@ -332,6 +338,13 @@
 
           <div class="conta-aviso" id="avisoLocal">
             ⚠️ No hay sesión de Firebase activa: tus movimientos se están guardando solo en este navegador.
+          </div>
+
+          <div class="conta-aviso conta-aviso-error" id="avisoPermisos">
+            🚫 Estás conectado, pero Firestore rechazó el acceso a tu contabilidad
+            (<span id="codigoErrorPermisos">permission-denied</span>). Falta publicar la regla de seguridad
+            para <strong>usuarios/{uid}/contabilidad</strong>. Mientras tanto, los movimientos se guardan
+            solo en este navegador.
           </div>
 
           <!-- RESUMEN -->
@@ -610,12 +623,21 @@
       async function cargarMovimientos() {
         if (db && usuarioActualData.uid) {
           try {
-            const snap = await refContabilidad().orderBy("fecha", "desc").get();
+            // Sin orderBy: se ordena en el navegador, así no depende de índices
+            const snap = await refContabilidad().get();
             movimientos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
             usandoFirestore = true;
             return;
           } catch (error) {
             console.error("Error al leer la contabilidad:", error);
+            // Estás logueado pero Firestore bloqueó la lectura: casi siempre son las reglas
+            usandoFirestore = false;
+            document.getElementById('codigoErrorPermisos').innerText = error.code || error.message || 'error';
+            document.getElementById('avisoPermisos').style.display = 'block';
+            try {
+              movimientos = JSON.parse(localStorage.getItem(claveLocal()) || '[]');
+            } catch (e) { movimientos = []; }
+            return;
           }
         }
         // Respaldo local (solo este navegador, solo este usuario)
