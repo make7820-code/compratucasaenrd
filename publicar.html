@@ -2431,11 +2431,133 @@
         aviso.innerText = mensaje;
       }
 
+      // ---------------------------------------------------------------
+      // POR QUÉ APARECÍA "Permission denied" EN EL CELULAR
+      // ---------------------------------------------------------------
+      // navigator.share() solo se puede llamar INMEDIATAMENTE después de un
+      // toque del usuario (lo que el navegador llama "activación transitoria",
+      // que dura unos pocos segundos y se pierde apenas hay esperas de red en
+      // el medio). Aquí, entre el toque del botón y el momento de compartir,
+      // se consultaba Firestore y se generaba el archivo, así que esa
+      // activación ya había caducado y el navegador rechazaba el share con
+      // NotAllowedError → "Permission denied".
+      //
+      // Solución: separar en dos pasos.
+      //   1) Al tocar el botón se prepara el archivo (consulta + XLSX + base64).
+      //   2) La ENTREGA (compartir/descargar) va en una función aparte que no
+      //      tiene ningún await antes del share, y que puede repetirse con un
+      //      toque nuevo si el navegador pidió activación fresca.
+      // Además, si compartir falla por cualquier otro motivo, se cae en cascada
+      // al puente nativo de la app o a la descarga clásica con data: URI.
+      // ---------------------------------------------------------------
+
+      let archivoExcelPendiente = null; // { nombre, base64, dataURI, archivo }
+
+      function obtenerBotonGuardarExcel() {
+        let btnGuardar = document.getElementById('btnGuardarExcelPendiente');
+        if (!btnGuardar) {
+          btnGuardar = document.createElement('button');
+          btnGuardar.id = 'btnGuardarExcelPendiente';
+          btnGuardar.type = 'button';
+          btnGuardar.style.cssText = 'display:none;margin-top:10px;padding:12px 18px;border:none;border-radius:12px;' +
+            'background:#22c55e;color:#fff;font-size:15px;font-weight:700;cursor:pointer;width:100%;max-width:320px;';
+          btnGuardar.innerHTML = '📥 Guardar / compartir el Excel';
+          // Se entrega el archivo dentro del propio clic: así el navegador sí
+          // considera que hay un toque reciente del usuario y permite compartir.
+          btnGuardar.addEventListener('click', () => entregarArchivoExcel(true));
+          const aviso = document.getElementById('avisoDescargaExcel');
+          const btnRef = aviso || document.getElementById('btnDescargarExcel');
+          if (btnRef && btnRef.parentNode) {
+            btnRef.parentNode.insertBefore(btnGuardar, btnRef.nextSibling);
+          }
+        }
+        return btnGuardar;
+      }
+
+      function mostrarBotonGuardarExcel() {
+        const btnGuardar = obtenerBotonGuardarExcel();
+        btnGuardar.style.display = 'block';
+      }
+
+      function ocultarBotonGuardarExcel() {
+        const btnGuardar = document.getElementById('btnGuardarExcelPendiente');
+        if (btnGuardar) btnGuardar.style.display = 'none';
+      }
+
+      // Entrega el archivo ya preparado. IMPORTANTE: sin awaits antes del share.
+      function entregarArchivoExcel(esToqueDirecto) {
+        if (!archivoExcelPendiente) return;
+        const { nombre, base64, dataURI, archivo } = archivoExcelPendiente;
+
+        // Plan B: puentes nativos de la app, y si no, descarga clásica.
+        const entregarPorDescarga = () => {
+          if (window.Android && typeof window.Android.saveFile === 'function') {
+            window.Android.saveFile(nombre, base64);
+            mostrarAvisoDescarga('Excel enviado a la app para guardarlo.', false);
+            ocultarBotonGuardarExcel();
+            return;
+          }
+          if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.saveFile) {
+            window.webkit.messageHandlers.saveFile.postMessage({ nombre: nombre, base64: base64 });
+            mostrarAvisoDescarga('Excel enviado a la app para guardarlo.', false);
+            ocultarBotonGuardarExcel();
+            return;
+          }
+          // Descarga clásica con data: URI (muchos WebViews ignoran blob:).
+          const enlace = document.createElement('a');
+          enlace.href = dataURI;
+          enlace.download = nombre;
+          enlace.rel = 'noopener';
+          document.body.appendChild(enlace);
+          enlace.click();
+          enlace.remove();
+          mostrarAvisoDescarga('Archivo enviado a Descargas. Si no lo ves, busca en la carpeta "Descargas" del teléfono o abre la página en Chrome/Safari.', false);
+          ocultarBotonGuardarExcel();
+        };
+
+        let puedeCompartir = false;
+        try {
+          puedeCompartir = !!(navigator.canShare && navigator.share && navigator.canShare({ files: [archivo] }));
+        } catch (e) {
+          puedeCompartir = false;
+        }
+
+        if (!puedeCompartir) {
+          entregarPorDescarga();
+          return;
+        }
+
+        navigator.share({ files: [archivo], title: nombre })
+          .then(() => {
+            mostrarAvisoDescarga('Se abrió el panel para guardar/compartir el Excel.', false);
+            ocultarBotonGuardarExcel();
+          })
+          .catch(error => {
+            if (error && error.name === 'AbortError') {
+              // El usuario cerró el panel de compartir: no es un error real.
+              ocultarBotonGuardarExcel();
+              return;
+            }
+            const faltaToque = error && (error.name === 'NotAllowedError' ||
+              /permission denied|user activation|gesture/i.test(error.message || ''));
+            if (faltaToque && !esToqueDirecto) {
+              // El archivo ya está listo; solo falta un toque nuevo del usuario.
+              mostrarAvisoDescarga('El Excel ya está listo. Toca el botón verde de abajo para guardarlo o compartirlo.', false);
+              mostrarBotonGuardarExcel();
+              return;
+            }
+            console.warn('No se pudo compartir, se intenta descargar:', error);
+            entregarPorDescarga();
+          });
+      }
+
       window.descargarExcelPropiedades = async function() {
         const btn = document.getElementById('btnDescargarExcel');
         const textoOriginal = btn ? btn.innerHTML : '';
         const avisoPrevio = document.getElementById('avisoDescargaExcel');
         if (avisoPrevio) avisoPrevio.style.display = 'none';
+        ocultarBotonGuardarExcel();
+        archivoExcelPendiente = null;
 
         if (btn) {
           btn.disabled = true;
@@ -2460,9 +2582,9 @@
           });
 
           if (propiedades.length === 0) {
-            alert(mostrandoArchivadas
+            mostrarAvisoDescarga(mostrandoArchivadas
               ? "No hay propiedades archivadas para incluir en el Excel."
-              : "No hay propiedades disponibles para incluir en el Excel.");
+              : "No hay propiedades disponibles para incluir en el Excel.", true);
             return;
           }
 
@@ -2524,75 +2646,31 @@
           const prefijoArchivo = mostrandoArchivadas ? 'propiedades-archivadas' : 'propiedades-disponibles';
           const nombreArchivo = `${prefijoArchivo}-${new Date().toISOString().slice(0, 10)}.xlsx`;
 
-          // Generamos el archivo como bytes en memoria (en vez de usar
-          // XLSX.writeFile, que internamente simula un clic en un <a download>).
-          // Ese truco no funciona dentro de muchos WebViews de apps (Android/iOS),
-          // porque bloquean las descargas automáticas o no tienen carpeta de
-          // Descargas accesible. Por eso probamos varias formas de entregar el
-          // archivo, de la más compatible con apps a la más básica:
           const bytes = XLSX.write(libro, { bookType: 'xlsx', type: 'array' });
           const tipoMime = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
           const blob = new Blob([bytes], { type: tipoMime });
           const archivo = new File([blob], nombreArchivo, { type: tipoMime });
 
-          // 1) Web Share API con archivos: es lo que mejor funciona dentro de
-          // apps envueltas en WebView, porque abre el panel nativo de
-          // "Compartir/Guardar" del sistema en vez de depender de una descarga.
-          if (navigator.canShare && navigator.canShare({ files: [archivo] })) {
-            await navigator.share({
-              files: [archivo],
-              title: nombreArchivo
-            });
-            mostrarAvisoDescarga('Se abrió el panel para guardar/compartir el Excel.', false);
-          } else if (window.Android && typeof window.Android.saveFile === 'function') {
-            // 2a) Puente nativo Android: la app expone "saveFile(nombre, base64)"
-            // via WebView JavaScript interface (addJavascriptInterface).
-            const base64 = await new Promise((resolve, reject) => {
-              const lector = new FileReader();
-              lector.onload = () => resolve(lector.result.split(',')[1]);
-              lector.onerror = reject;
-              lector.readAsDataURL(blob);
-            });
-            window.Android.saveFile(nombreArchivo, base64);
-            mostrarAvisoDescarga('Excel enviado a la app para guardarlo.', false);
-          } else if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.saveFile) {
-            // 2b) Puente nativo iOS: la app expone un WKScriptMessageHandler
-            // llamado "saveFile" (agregado con addScriptMessageHandler).
-            const base64 = await new Promise((resolve, reject) => {
-              const lector = new FileReader();
-              lector.onload = () => resolve(lector.result.split(',')[1]);
-              lector.onerror = reject;
-              lector.readAsDataURL(blob);
-            });
-            window.webkit.messageHandlers.saveFile.postMessage({ nombre: nombreArchivo, base64: base64 });
-            mostrarAvisoDescarga('Excel enviado a la app para guardarlo.', false);
-          } else {
-            // 3) Descarga clásica. Se usa un data: URI en vez de un blob: URI:
-            // varios WebViews de apps que envuelven la web bloquean o ignoran
-            // por completo las descargas con esquema "blob:" (el gestor de
-            // descargas nativo de Android solo escucha URLs http(s) o data:),
-            // así que "blob:" se queda sin hacer nada y parece que el botón
-            // no funcionó. "data:" es compatible con muchos más WebViews.
-            const base64 = await new Promise((resolve, reject) => {
-              const lector = new FileReader();
-              lector.onload = () => resolve(lector.result);
-              lector.onerror = reject;
-              lector.readAsDataURL(blob);
-            });
-            const enlace = document.createElement('a');
-            enlace.href = base64;
-            enlace.download = nombreArchivo;
-            document.body.appendChild(enlace);
-            enlace.click();
-            enlace.remove();
-            mostrarAvisoDescarga('Si no ves el archivo descargado, revisa la carpeta "Descargas" de tu teléfono o intenta abrir esta página en Chrome/Safari en vez de la app.', false);
-          }
+          // El data: URI se calcula AHORA (no al momento de entregar), para que
+          // la función de entrega no tenga ninguna espera y pueda compartir
+          // dentro del mismo toque del usuario.
+          const dataURI = await new Promise((resolve, reject) => {
+            const lector = new FileReader();
+            lector.onload = () => resolve(lector.result);
+            lector.onerror = reject;
+            lector.readAsDataURL(blob);
+          });
+
+          archivoExcelPendiente = {
+            nombre: nombreArchivo,
+            base64: (dataURI.split(',')[1] || ''),
+            dataURI: dataURI,
+            archivo: archivo
+          };
+
+          entregarArchivoExcel(false);
 
         } catch (error) {
-          if (error && error.name === 'AbortError') {
-            // El usuario cerró el panel de compartir sin elegir nada: no es un error real.
-            return;
-          }
           console.error("Error al generar el Excel:", error);
           mostrarAvisoDescarga('Hubo un error al generar el Excel: ' + (error && (error.message || error.name) || 'desconocido') + '. Intenta de nuevo o ábrelo en Chrome/Safari.', true);
         } finally {
