@@ -320,6 +320,18 @@
         text-align: right;
       }
 
+      .property-price-main-wrap {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 2px;
+        flex-shrink: 0;
+      }
+
+      .property-price-main-wrap.doble-precio .property-price-main {
+        font-size: clamp(15px, 2.6vw, 22px);
+      }
+
       /* Cuadrícula de Especificaciones */
       .property-specs-grid {
         display: grid;
@@ -955,6 +967,31 @@
           
           const priceColor = isVenta ? '#10b981' : '#f59e0b';
 
+          // Precio de Alquiler: solo existe cuando la propiedad es "Venta & Alquiler"
+          // y se guardó explícitamente al publicarla.
+          const esOperacionCombinada = offer.toLowerCase().includes('venta') && offer.toLowerCase().includes('alquiler');
+          const rawPrecioAlquiler = selectedProperty.precioAlquiler || '';
+          let precioAlquilerFormateado = '';
+          if (rawPrecioAlquiler) {
+            const monedaAlquiler = (selectedProperty.monedaAlquiler || '').toUpperCase();
+            const alquilerEsDolar = monedaAlquiler === 'USD' ||
+                                     rawPrecioAlquiler.toString().toUpperCase().includes('USD') ||
+                                     rawPrecioAlquiler.toString().includes('US$') ||
+                                     rawPrecioAlquiler.toString().startsWith('$');
+            const alquilerLabel = alquilerEsDolar ? '$ ' : 'RD$ ';
+            const alquilerNum = parseFloat(rawPrecioAlquiler.toString().replace(/[^0-9]/g, '')) || 0;
+            precioAlquilerFormateado = `${alquilerLabel}${alquilerNum.toLocaleString('es-DO')}`;
+          }
+
+          // Unidades disponibles: cuántos inmuebles iguales hay en el mismo edificio/proyecto
+          const unidadesDisponibles = parseInt(selectedProperty.unidadesDisponibles, 10) || 1;
+          const unidadesHtml = unidadesDisponibles > 1
+            ? `<div class="spec-card">
+                 <span>Unidades</span>
+                 <strong style="color: #3b82f6;">🏘️ ${unidadesDisponibles} disponibles</strong>
+               </div>`
+            : '';
+
           const habs = selectedProperty.habitaciones || selectedProperty.habs || selectedProperty.habitacion || '1';
           const banos = selectedProperty.banos || selectedProperty.bathrooms || selectedProperty.bano || '2';
           const metros = selectedProperty.metros || selectedProperty.superficie || selectedProperty.area || 'N/D';
@@ -1204,7 +1241,14 @@
                   <h1 class="property-title-main">${title}</h1>
                   <p class="property-location-main">📍 ${location}</p>
                 </div>
-                <div class="property-price-main" style="color: ${priceColor};">${finalPriceFormatted}</div>
+                <div class="property-price-main-wrap${esOperacionCombinada && precioAlquilerFormateado ? ' doble-precio' : ''}">
+                  ${esOperacionCombinada && precioAlquilerFormateado ? `
+                    <div class="property-price-main" style="color: #10b981;">🏷️ Venta: ${finalPriceFormatted}</div>
+                    <div class="property-price-main" style="color: #f59e0b;">🔑 Alquiler: ${precioAlquilerFormateado}</div>
+                  ` : `
+                    <div class="property-price-main" style="color: ${priceColor};">${finalPriceFormatted}</div>
+                  `}
+                </div>
               </div>
 
               <!-- Cuadrícula de Especificaciones -->
@@ -1218,6 +1262,7 @@
                 ${amuebladoBadgeHtml}
                 ${negociableBadgeHtml}
                 ${depositosHtml}
+                ${unidadesHtml}
               </div>
 
               <div class="property-description-section">
