@@ -1305,12 +1305,14 @@
                 <span class="preview-badge-extranjeros" id="previewBadgeAmueblado" style="display:none; top: 40px; background: rgba(139, 92, 246, 0.9);">🛋️ Amueblado</span>
                 <span class="preview-badge-extranjeros" id="previewBadgePremium" style="display:none; top: 70px; background: linear-gradient(135deg, #fde047, #f59e0b); color: #1a1a1a;">⭐ Premium</span>
                 <span class="preview-badge-extranjeros" id="previewBadgeNegociable" style="display:none; top: 100px; background: rgba(34, 197, 94, 0.9);">🤝 Negociable</span>
+                <span class="preview-badge-extranjeros" id="previewBadgeUnidades" style="display:none; top: 130px; background: rgba(59, 130, 246, 0.9);">🏘️ x1</span>
               </div>
               <div class="preview-card-body">
                 <div class="preview-card-tipo" id="previewTipo">Casa</div>
                 <h4 class="preview-card-title" id="previewTitulo">Título de la propiedad</h4>
                 <p class="preview-card-loc" id="previewUbicacion">📍 Selecciona ubicación</p>
                 <div class="preview-card-price" id="previewPrecio">$ 0</div>
+                <div class="preview-card-price" id="previewPrecioAlquiler" style="display:none; font-size: 13px; opacity: 0.85;"></div>
                 <p class="preview-card-desc" id="previewDescripcion"></p>
                 <div class="preview-card-meta">
                   <span id="previewHabs">🛏️ 0 Hab</span>
@@ -1361,7 +1363,7 @@
           <div class="form-grid-2">
             <div class="publish-form-group">
               <label>Tipo de Operación</label>
-              <select id="propOperacion" class="publish-control">
+              <select id="propOperacion" class="publish-control" onchange="window.alOperacionCambiar()">
                 <option value="Venta">Venta</option>
                 <option value="Alquiler">Alquiler</option>
                 <option value="Venta & Alquiler">Venta &amp; Alquiler</option>
@@ -1385,8 +1387,8 @@
           </div>
 
           <div class="form-grid-2">
-            <div class="publish-form-group">
-              <label>Precio</label>
+            <div class="publish-form-group" id="grupoPrecioVenta">
+              <label id="labelPrecioVenta">Precio</label>
               <div style="display: flex; gap: 8px;">
                 <input type="number" id="propPrecio" class="publish-control" placeholder="Ej. 150000" required style="flex: 2;">
                 <select id="propMoneda" class="publish-control" style="flex: 1;">
@@ -1395,9 +1397,19 @@
                 </select>
               </div>
             </div>
+            <div class="publish-form-group" id="grupoPrecioAlquiler" style="display:none;">
+              <label>💰 Precio de Alquiler</label>
+              <div style="display: flex; gap: 8px;">
+                <input type="number" id="propPrecioAlquiler" class="publish-control" placeholder="Ej. 1200" style="flex: 2;">
+                <select id="propMonedaAlquiler" class="publish-control" style="flex: 1;">
+                  <option value="USD">USD ($)</option>
+                  <option value="DOP">DOP (RD$)</option>
+                </select>
+              </div>
+            </div>
           </div>
 
-          <!-- NUEVOS APARTADOS: Depósito, Comisión y Extranjeros -->
+          <!-- NUEVOS APARTADOS: Depósito, Comisión, Extranjeros y Unidades -->
           <div class="form-grid-2">
             <div class="publish-form-group">
               <label>Número de Depósito</label>
@@ -1406,6 +1418,14 @@
             <div class="publish-form-group">
               <label>Porcentaje de Comisión (%)</label>
               <input type="number" id="propComision" class="publish-control" placeholder="Ej. 5" min="0" max="100" step="0.1">
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="publish-form-group">
+              <label>🏘️ Unidades Disponibles</label>
+              <input type="number" id="propUnidadesDisponibles" class="publish-control" placeholder="Ej. 3" min="1" step="1" value="1">
+              <span style="font-size: 11px; color: var(--text-secondary, #999); margin-top: 4px; display: block;">Cantidad de inmuebles iguales disponibles en este mismo edificio/proyecto</span>
             </div>
           </div>
 
@@ -2029,6 +2049,30 @@
       }
 
       /* =========================================================
+         TOGGLE DE CAMPOS SEGÚN TIPO DE OPERACIÓN
+         Cuando la operación incluye Venta Y Alquiler a la vez, se
+         muestra un segundo campo de precio exclusivo para el
+         Alquiler (con su propia moneda), y la etiqueta del precio
+         principal pasa a decir "Precio de Venta" para no generar
+         confusión. En Venta o Alquiler solos, se mantiene un único
+         campo de precio como siempre.
+      ========================================================= */
+      window.alOperacionCambiar = function() {
+        const operacionSel = (document.getElementById('propOperacion').value || 'Venta').toLowerCase();
+        const esCombinada = operacionSel.includes('venta') && operacionSel.includes('alquiler');
+        const grupoAlquiler = document.getElementById('grupoPrecioAlquiler');
+        const labelPrincipal = document.getElementById('labelPrecioVenta');
+        const inputPrecioAlquiler = document.getElementById('propPrecioAlquiler');
+
+        if (grupoAlquiler) grupoAlquiler.style.display = esCombinada ? '' : 'none';
+        if (labelPrincipal) labelPrincipal.textContent = esCombinada ? 'Precio de Venta' : 'Precio';
+        if (inputPrecioAlquiler) inputPrecioAlquiler.required = false; // nunca obligatorio: si no se llena, no se muestra en el listado
+        if (!esCombinada && inputPrecioAlquiler) inputPrecioAlquiler.value = '';
+
+        actualizarVistaPrevia();
+      };
+
+      /* =========================================================
          VISTA PREVIA EN VIVO DE LA TARJETA
       ========================================================= */
       let previewImgUrl = '';
@@ -2042,6 +2086,11 @@
         const distrito = document.getElementById('propDistrito').value;
         const precio = document.getElementById('propPrecio').value;
         const moneda = document.getElementById('propMoneda').value;
+        const precioAlquilerEl = document.getElementById('propPrecioAlquiler');
+        const monedaAlquilerEl = document.getElementById('propMonedaAlquiler');
+        const precioAlquiler = precioAlquilerEl ? precioAlquilerEl.value : '';
+        const monedaAlquiler = monedaAlquilerEl ? monedaAlquilerEl.value : 'USD';
+        const unidadesDisponibles = parseInt(document.getElementById('propUnidadesDisponibles').value, 10) || 1;
         const habs = document.getElementById('propHabitaciones').value || '0';
         const banos = document.getElementById('propBanos').value || '0';
         const nivel = document.getElementById('propNivel').value;
@@ -2058,8 +2107,28 @@
         const ubicacionPartes = [distrito, municipio, provincia].filter(Boolean);
         document.getElementById('previewUbicacion').textContent = ubicacionPartes.length ? `📍 ${ubicacionPartes.join(', ')}` : '📍 Selecciona ubicación';
 
+        const opLowerParaPrecio = operacion.toLowerCase();
+        const esCombinadaParaPrecio = opLowerParaPrecio.includes('venta') && opLowerParaPrecio.includes('alquiler');
+
         const precioFmt = precio ? `${moneda === 'USD' ? '$' : 'RD$'} ${Number(precio).toLocaleString()}` : '$ 0';
-        document.getElementById('previewPrecio').textContent = precioFmt;
+        document.getElementById('previewPrecio').textContent = esCombinadaParaPrecio ? `Venta: ${precioFmt}` : precioFmt;
+
+        const previewPrecioAlquilerEl = document.getElementById('previewPrecioAlquiler');
+        if (esCombinadaParaPrecio && precioAlquiler) {
+          const precioAlquilerFmt = `${monedaAlquiler === 'USD' ? '$' : 'RD$'} ${Number(precioAlquiler).toLocaleString()}`;
+          previewPrecioAlquilerEl.textContent = `Alquiler: ${precioAlquilerFmt}`;
+          previewPrecioAlquilerEl.style.display = '';
+        } else {
+          previewPrecioAlquilerEl.style.display = 'none';
+        }
+
+        const previewBadgeUnidadesEl = document.getElementById('previewBadgeUnidades');
+        if (unidadesDisponibles > 1) {
+          previewBadgeUnidadesEl.textContent = `🏘️ x${unidadesDisponibles} disponibles`;
+          previewBadgeUnidadesEl.style.display = 'inline-flex';
+        } else {
+          previewBadgeUnidadesEl.style.display = 'none';
+        }
 
         document.getElementById('previewDescripcion').textContent = descripcion || '';
 
@@ -2121,8 +2190,8 @@
       }
 
       function inicializarVistaPreviaListeners() {
-        const idsInputEvent = ['propTitulo', 'propPrecio', 'propHabitaciones', 'propBanos', 'propNivel', 'propParqueos', 'propDescripcion'];
-        const idsChangeEvent = ['propTipoPropiedad', 'propOperacion', 'propMoneda', 'propExtranjeros', 'propAmueblado', 'propPremium', 'propNegociable'];
+        const idsInputEvent = ['propTitulo', 'propPrecio', 'propPrecioAlquiler', 'propUnidadesDisponibles', 'propHabitaciones', 'propBanos', 'propNivel', 'propParqueos', 'propDescripcion'];
+        const idsChangeEvent = ['propTipoPropiedad', 'propOperacion', 'propMoneda', 'propMonedaAlquiler', 'propExtranjeros', 'propAmueblado', 'propPremium', 'propNegociable'];
 
         idsInputEvent.forEach(id => {
           const el = document.getElementById(id);
@@ -2616,7 +2685,9 @@
               'Baños': prop.banos ?? 'N/D',
               'Parqueos': prop.parqueos ?? 'N/D',
               'Precio': prop.precio || 'N/D',
+              'Precio Alquiler': prop.precioAlquiler || 'N/D',
               'Operación': prop.operacion || 'N/D',
+              'Unidades Disponibles': prop.unidadesDisponibles || 1,
               'Tipo': prop.tipo || 'N/D',
               'Nivel': prop.nivel || 'N/D',
               'Metros²': prop.metros || 'N/D',
@@ -2776,6 +2847,21 @@
             document.getElementById('propPrecio').value = soloNumeros;
           }
 
+          if (editarObj.precioAlquiler) {
+            const precioAlqStr = String(editarObj.precioAlquiler);
+            if (editarObj.monedaAlquiler) {
+              document.getElementById('propMonedaAlquiler').value = editarObj.monedaAlquiler;
+            } else if (precioAlqStr.includes('RD') || precioAlqStr.includes('DOP')) {
+              document.getElementById('propMonedaAlquiler').value = 'DOP';
+            } else if (precioAlqStr.includes('USD') || precioAlqStr.includes('$')) {
+              document.getElementById('propMonedaAlquiler').value = 'USD';
+            }
+            document.getElementById('propPrecioAlquiler').value = precioAlqStr.replace(/[^0-9.]/g, '');
+          } else {
+            document.getElementById('propPrecioAlquiler').value = '';
+          }
+          document.getElementById('propUnidadesDisponibles').value = editarObj.unidadesDisponibles || 1;
+
           document.getElementById('propExtranjeros').checked = !!editarObj.extranjeros;
           document.getElementById('propAmueblado').checked = !!editarObj.amueblado;
           document.getElementById('propPremium').checked = !!editarObj.premium;
@@ -2816,8 +2902,11 @@
           videoArchivoActualUrl = '';
           videoArchivoEliminado = false;
           renderizarVideoActual();
+          document.getElementById('propUnidadesDisponibles').value = 1;
+          document.getElementById('propPrecioAlquiler').value = '';
         }
 
+        window.alOperacionCambiar();
         actualizarVistaPrevia();
       }
 
@@ -2895,6 +2984,18 @@
         const editId = document.getElementById('propEditId').value;
         const archivosInput = document.getElementById('propArchivos');
 
+        // Si la operación es "Venta & Alquiler", el precio de alquiler es obligatorio
+        // para que ambos precios queden completos en propiedades.html y detalle.html.
+        const operacionCheck = (document.getElementById('propOperacion').value || '').toLowerCase();
+        if (operacionCheck.includes('venta') && operacionCheck.includes('alquiler')) {
+          const precioAlquilerCheck = document.getElementById('propPrecioAlquiler').value;
+          if (!precioAlquilerCheck) {
+            alert("Como seleccionaste 'Venta & Alquiler', debes completar también el Precio de Alquiler.");
+            document.getElementById('propPrecioAlquiler').focus();
+            return;
+          }
+        }
+
         // Seguridad: si se está editando, solo el dueño de la publicación o un admin pueden guardar cambios.
         if (editId) {
           const propOriginal = cachePropiedadesActuales[editId];
@@ -2956,6 +3057,17 @@
           const monedaVal = document.getElementById('propMoneda').value;
           const precioFmt = `${monedaVal === 'USD' ? '$' : 'RD$'} ${Number(precioVal).toLocaleString()}`;
 
+          // Precio de alquiler: solo aplica cuando la operación es "Venta & Alquiler"
+          // y el usuario llenó ese campo; de lo contrario se guarda vacío.
+          const operacionVal = document.getElementById('propOperacion').value;
+          const opValLower = operacionVal.toLowerCase();
+          const esOperacionCombinada = opValLower.includes('venta') && opValLower.includes('alquiler');
+          const precioAlquilerVal = document.getElementById('propPrecioAlquiler').value;
+          const monedaAlquilerVal = document.getElementById('propMonedaAlquiler').value;
+          const precioAlquilerFmt = (esOperacionCombinada && precioAlquilerVal)
+            ? `${monedaAlquilerVal === 'USD' ? '$' : 'RD$'} ${Number(precioAlquilerVal).toLocaleString()}`
+            : '';
+
           // Determina a nombre de quién queda publicada la propiedad:
           // - Agente normal: siempre a nombre de sí mismo.
           // - Admin/superadmin: por defecto a nombre de la empresa, PERO puede elegir
@@ -2995,6 +3107,9 @@
             operacion: document.getElementById('propOperacion').value,
             precio: precioFmt,
             moneda: monedaVal,
+            precioAlquiler: precioAlquilerFmt,
+            monedaAlquiler: precioAlquilerFmt ? monedaAlquilerVal : '',
+            unidadesDisponibles: parseInt(document.getElementById('propUnidadesDisponibles').value, 10) || 1,
             agente: nombreAgenteFinal,
             agenteWhatsapp: (document.getElementById('propAgenteWhatsapp').value || '').replace(/[^0-9]/g, '') || '18498572321',
             creadorRol: rolCreadorFinal,
@@ -3278,6 +3393,7 @@
                 ${prop.amueblado ? `<span class="badge-amueblado">🛋️ Amueblado</span>` : ''}
                 ${prop.premium ? `<span class="badge-premium">⭐ Premium</span>` : ''}
                 ${prop.negociable ? `<span class="badge-negociable">🤝 Negociable</span>` : ''}
+                ${(Number(prop.unidadesDisponibles) > 1) ? `<span class="badge-amueblado" style="background: rgba(59, 130, 246, 0.9);">🏘️ x${prop.unidadesDisponibles} disponibles</span>` : ''}
                 ${publicadaPorAgente ? `<span class="badge-publicada-agente">🧑‍💼 Agente</span>` : `<span class="badge-publicada-empresa">🏢 Empresa</span>`}
                 <div class="carousel-track" id="track-${prop.id}" style="transform: translateX(0%);">
                   ${carouselImgsHtml}
@@ -3290,7 +3406,7 @@
               <div class="card-body-content" onclick="window.location.href='detalle.html?id=${prop.id}'">
                 <div class="card-title-row">
                   <h4 class="card-prop-title">${prop.titulo}</h4>
-                  <span class="card-prop-price">${prop.precio}</span>
+                  <span class="card-prop-price">${prop.precio}${prop.precioAlquiler ? ` <br><small style="opacity:0.8; font-weight:600;">🔑 ${prop.precioAlquiler}</small>` : ''}</span>
                 </div>
                 <p class="card-prop-ubicacion">📍 ${prop.ubicacion}</p>
                 ${esModoAdmin ? `<p class="card-prop-ubicacion" style="opacity:0.8;">🧑‍💼 Agente: ${prop.agente || 'N/D'}</p>` : ''}
