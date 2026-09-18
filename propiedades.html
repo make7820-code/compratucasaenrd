@@ -1640,6 +1640,25 @@
              cómo se haya guardado el precio en la base de datos */
           const propPriceNum = parseFloat(propPriceRaw.toString().replace(/[^0-9]/g, '')) || 0;
           const propPrice = propCurrencyLabel + propPriceNum.toLocaleString('es-DO');
+
+          // Precio de Alquiler: solo existe cuando la propiedad es "Venta & Alquiler"
+          // y se guardó explícitamente al publicarla.
+          const propPrecioAlquilerRaw = prop.precioAlquiler || '';
+          let propPrecioAlquilerFmt = '';
+          if (propPrecioAlquilerRaw) {
+            const propMonedaAlquiler = (prop.monedaAlquiler || '').toUpperCase();
+            const propAlquilerEsDolar = propMonedaAlquiler === 'USD' ||
+                                         propPrecioAlquilerRaw.toString().toUpperCase().includes('USD') ||
+                                         propPrecioAlquilerRaw.toString().includes('US$') ||
+                                         propPrecioAlquilerRaw.toString().startsWith('$');
+            const propAlquilerLabel = propAlquilerEsDolar ? '$ ' : 'RD$ ';
+            const propAlquilerNum = parseFloat(propPrecioAlquilerRaw.toString().replace(/[^0-9]/g, '')) || 0;
+            propPrecioAlquilerFmt = propAlquilerLabel + propAlquilerNum.toLocaleString('es-DO');
+          }
+
+          // Unidades disponibles: cuántos inmuebles iguales hay en el mismo edificio/proyecto
+          const propUnidadesDisponibles = parseInt(prop.unidadesDisponibles, 10) || 1;
+
           const propHabs = prop.habitaciones || prop.habs || '0';
           const propBanos = prop.banos || '0';
           const rawNivel = (prop.nivel || prop.altura || prop.piso || '').toString().trim();
@@ -1797,6 +1816,7 @@
                 ${esAmueblado ? `<span class="property-badge-top" style="background: #8b5cf6; left: auto; top: 44px;">🛋️ Amueblado</span>` : ''}
                 ${esPremium ? `<span class="property-badge-top" style="background: linear-gradient(135deg, #fde047, #f59e0b); color: #1a1a1a; left: auto; top: ${esAmueblado ? '78px' : '44px'};">⭐ Premium</span>` : ''}
                 ${esNegociable ? `<span class="property-badge-top" style="background: #22c55e; left: auto; top: ${44 + (esAmueblado ? 34 : 0) + (esPremium ? 34 : 0)}px;">🤝 Negociable</span>` : ''}
+                ${propUnidadesDisponibles > 1 ? `<span class="property-badge-top" style="background: #3b82f6; left: auto; top: ${44 + (esAmueblado ? 34 : 0) + (esPremium ? 34 : 0) + (esNegociable ? 34 : 0)}px;">🏘️ x${propUnidadesDisponibles} disponibles</span>` : ''}
                 
                 <div class="property-carousel-track">
                   ${slidesHtml}
@@ -1821,7 +1841,9 @@
                 <div class="property-type">${propType}</div>
                 <h3 class="property-title"><a href="detalle.html?id=${propId}">${propTitle}</a></h3>
                 <p class="property-location">📍 ${propLocation}</p>
-                <div class="property-price">${propPrice}</div>
+                <div class="property-price">
+                  ${propPrecioAlquilerFmt ? `<span>🏷️ Venta: ${propPrice}</span><br><span style="font-size: 0.75em; opacity: 0.85;">🔑 Alquiler: ${propPrecioAlquilerFmt}</span>` : propPrice}
+                </div>
                 ${propDescripcion ? `<p class="property-desc-preview">${propDescripcion}</p>` : ''}
                 <div class="footer-info property-footer-info">
                   ${numHabs >= 1 ? `<span>🛏️ ${numHabs} Hab</span>` : ''}
@@ -1832,6 +1854,7 @@
                 ${aceptaExtranjero ? `<div class="property-extranjeros-pill">🌍 Acepta extranjeros</div>` : ''}
                 ${esAmueblado ? `<div class="property-amueblado-pill">🛋️ Amueblado</div>` : ''}
                 ${esNegociable ? `<div class="property-negociable-pill">🤝 Precio Negociable</div>` : ''}
+                ${propUnidadesDisponibles > 1 ? `<div class="property-negociable-pill" style="background: rgba(59, 130, 246, 0.12); border-color: rgba(59, 130, 246, 0.5); color: #3b82f6;">🏘️ ${propUnidadesDisponibles} unidades disponibles</div>` : ''}
               </div>
             </div>
           `;
