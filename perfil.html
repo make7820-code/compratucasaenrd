@@ -1078,6 +1078,7 @@
               }
             }
             aplicarDatosEnPantalla();
+            if (user) sincronizarPropiedadesSegunRol();
           });
         } else {
           const localUser = localStorage.getItem('usuario_activo') || 'onlybladi';
@@ -1092,6 +1093,11 @@
         }
       });
 
+      // Rol leído realmente de Firestore (vacío si la lectura falló o el doc no existe).
+      // Se usa para sincronizar las propiedades; nunca se usa el rol por defecto ('cliente'),
+      // así un fallo de red no archiva por error las propiedades de un agente.
+      let rolConfirmadoFirestore = '';
+
       async function cargarDatosDesdeFirestore(uid) {
         if (!db) return;
         try {
@@ -1099,6 +1105,7 @@
           const doc = await docRef.get();
           if (doc.exists) {
             const data = doc.data();
+            rolConfirmadoFirestore = String(data.rol || '').toLowerCase();
             usuarioActualData = { ...usuarioActualData, ...data };
             if (data.createdAt) {
               usuarioActualData.fechaCreacion = formatearMesAnio(data.createdAt);
@@ -1108,6 +1115,64 @@
           }
         } catch (error) {
           console.error("Error al cargar datos de Firestore:", error);
+        }
+      }
+
+      // ===== Archivado automático de propiedades según el rol =====
+      // - Si el usuario es CLIENTE: sus propiedades activas se archivan (archivada: true)
+      //   y se marcan con archivadaPorRol: true. No se borra nada (ni fotos ni videos).
+      // - Si el usuario vuelve a ser agente/agentepro/admin: se restauran SOLO las que
+      //   se archivaron por cambio de rol. Las que archivó él manualmente se quedan archivadas.
+      // - El rol "agente" respeta el límite de 15 propiedades activas; las que no
+      //   quepan siguen archivadas y las puede restaurar a mano cuando tenga cupo.
+      const ROLES_QUE_PUBLICAN = ['agente', 'agentepro', 'admin', 'superadmin'];
+      const LIMITE_PROPIEDADES_AGENTE = 15;
+
+      async function sincronizarPropiedadesSegunRol() {
+        const uid = usuarioActualData.uid;
+        const rol = rolConfirmadoFirestore;
+        if (!db || !uid || !rol) return;
+
+        // Una sola pasada por sesión y por rol, para no repetir lecturas en cada visita.
+        const claveSesion = `sync_propiedades_${uid}_${rol}`;
+        try { if (sessionStorage.getItem(claveSesion)) return; } catch (e) {}
+
+        try {
+          const snap = await db.collection('propiedades').where('creadoPorUid', '==', uid).get();
+          const cambios = []; // { ref, datos }
+
+          if (rol === 'cliente') {
+            snap.forEach(d => {
+              if (d.data().archivada !== true) {
+                cambios.push({ ref: d.ref, datos: { archivada: true, archivadaPorRol: true } });
+              }
+            });
+          } else if (ROLES_QUE_PUBLICAN.includes(rol)) {
+            let activas = 0;
+            const porRol = [];
+            snap.forEach(d => {
+              const data = d.data();
+              if (data.archivada !== true) activas++;
+              else if (data.archivadaPorRol === true) porRol.push({ ref: d.ref, fecha: data.fechaCreacion });
+            });
+            porRol.sort((a, b) => new Date(b.fecha || 0) - new Date(a.fecha || 0));
+            const cupo = rol === 'agente' ? Math.max(0, LIMITE_PROPIEDADES_AGENTE - activas) : porRol.length;
+            porRol.forEach((item, i) => {
+              cambios.push({
+                ref: item.ref,
+                datos: i < cupo ? { archivada: false, archivadaPorRol: false } : { archivadaPorRol: false }
+              });
+            });
+          }
+
+          for (let i = 0; i < cambios.length; i += 400) {
+            const lote = db.batch();
+            cambios.slice(i, i + 400).forEach(c => lote.update(c.ref, c.datos));
+            await lote.commit();
+          }
+          try { sessionStorage.setItem(claveSesion, '1'); } catch (e) {}
+        } catch (error) {
+          console.warn('No se pudo sincronizar el archivado de propiedades:', error);
         }
       }
 
