@@ -2422,6 +2422,7 @@
               }
             }
 
+            await restaurarPropiedadesArchivadasPorRol();
             actualizarContadorArchivadas();
             renderizarPublicaciones();
           } catch (e) {
@@ -2431,6 +2432,45 @@
           }
         });
       });
+
+      // Cuando un usuario vuelve a ser agente/agentepro, sus propiedades que se archivaron
+      // automáticamente al pasar a cliente (archivadaPorRol: true) se reactivan solas.
+      // Las archivadas manualmente NO se tocan. El rol "agente" respeta el límite de
+      // LIMITE_PROPIEDADES_AGENTE: las que no caben siguen archivadas (restaurables a mano).
+      async function restaurarPropiedadesArchivadasPorRol() {
+        try {
+          const snap = await getDocs(query(collection(db, "propiedades"), where("creadoPorUid", "==", usuarioActualUid)));
+          let activas = 0;
+          const porRol = [];
+          snap.forEach(d => {
+            const data = d.data();
+            if (data.archivada !== true) activas++;
+            else if (data.archivadaPorRol === true) porRol.push({ id: d.id, fecha: data.fechaCreacion });
+          });
+          if (porRol.length === 0) return;
+
+          porRol.sort((a, b) => new Date(b.fecha || 0) - new Date(a.fecha || 0));
+          const cupo = rolUsuarioActual === 'agente'
+            ? Math.max(0, LIMITE_PROPIEDADES_AGENTE - activas)
+            : porRol.length;
+
+          let restauradas = 0;
+          for (let i = 0; i < porRol.length; i++) {
+            const datos = i < cupo ? { archivada: false, archivadaPorRol: false } : { archivadaPorRol: false };
+            await updateDoc(doc(db, "propiedades", porRol[i].id), datos);
+            if (i < cupo) restauradas++;
+          }
+
+          const sinCupo = porRol.length - restauradas;
+          let aviso = `Se reactivaron ${restauradas} propiedad(es) que estaban archivadas por tu cambio de rol.`;
+          if (sinCupo > 0) {
+            aviso += ` ${sinCupo} siguen archivadas porque tu plan Agente permite máximo ${LIMITE_PROPIEDADES_AGENTE} activas; las encuentras en "Ver Archivadas".`;
+          }
+          alert(aviso);
+        } catch (e) {
+          console.error("Error al restaurar propiedades archivadas por rol:", e);
+        }
+      }
 
       async function actualizarContadorArchivadas() {
         try {
@@ -3572,7 +3612,7 @@
         try {
           // El archivado ya no borra el documento: solo marca "archivada: true" en Firestore,
           // así queda visible para admin/superadmin y se puede restaurar desde cualquier lugar.
-          await updateDoc(doc(db, "propiedades", prop.id), { archivada: true });
+          await updateDoc(doc(db, "propiedades", prop.id), { archivada: true, archivadaPorRol: false });
 
           // Se actualiza la lista y el contador de "Ver Archivadas" al instante,
           // sin ventana emergente que haya que cerrar primero.
@@ -3619,7 +3659,7 @@
           return;
         }
         try {
-          await updateDoc(doc(db, "propiedades", id), { archivada: false });
+          await updateDoc(doc(db, "propiedades", id), { archivada: false, archivadaPorRol: false });
 
           alert("¡Propiedad desarchivada y restaurada con éxito!");
           renderizarPublicaciones(obtenerFiltroActual(), true);
