@@ -947,6 +947,19 @@
             ? `<span class="property-tag-badge" style="background:#6366f1;">${tipoPropiedad}</span>`
             : '';
           
+          // Distribución (Normal, Dúplex, Tríplex, Bi-nivel, Multifamiliar; en Terreno: Normal o Mejora)
+          const distribucionPropiedad = (selectedProperty.distribucion || '').toString().trim();
+          const esTerrenoDetalle = tipoPropiedad.toLowerCase() === 'terreno';
+          const distribucionBadgeHtml = (distribucionPropiedad && distribucionPropiedad.toLowerCase() !== 'normal')
+            ? `<span class="property-tag-badge" style="background:#0ea5e9;">${distribucionPropiedad}</span>`
+            : '';
+          const distribucionHtml = distribucionPropiedad
+            ? `<div class="spec-card">
+                 <span>${esTerrenoDetalle ? 'Tipo de terreno' : 'Distribución'}</span>
+                 <strong>${distribucionPropiedad}</strong>
+               </div>`
+            : '';
+
           const title = selectedProperty.titulo || selectedProperty.title || selectedProperty.nombre || 'Sin título';
           const location = selectedProperty.ubicacion || selectedProperty.location || selectedProperty.direccion || 'República Dominicana';
           
@@ -1209,6 +1222,7 @@
                 <div style="position: absolute; top: 16px; left: 16px; z-index: 3; display: flex; gap: 8px; align-items: center;">
                   <span class="property-tag-badge" style="background: ${badgeBg};">${offer}</span>
                   ${tipoBadgeHtml}
+                  ${distribucionBadgeHtml}
                 </div>
 
                 ${videoEnGaleriaPrincipal ? `
@@ -1262,6 +1276,7 @@
                 ${amuebladoBadgeHtml}
                 ${negociableBadgeHtml}
                 ${depositosHtml}
+                ${distribucionHtml}
                 ${unidadesHtml}
               </div>
 
