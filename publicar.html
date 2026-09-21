@@ -1351,6 +1351,14 @@
             </div>
           </div>
 
+          <!-- Distribución: Normal / Dúplex / Tríplex / Bi-nivel / Multifamiliar (Terreno: Normal / Mejora) -->
+          <div class="form-grid-2">
+            <div class="publish-form-group" id="grupoDistribucion">
+              <label id="labelDistribucion">Distribución</label>
+              <select id="propDistribucion" class="publish-control"></select>
+            </div>
+          </div>
+
           <div class="form-grid-2" id="grupoPublicarComo" style="display:none;">
             <div class="publish-form-group" style="grid-column: 1 / -1;">
               <label>Publicar como (solo admin/superadmin)</label>
@@ -2057,6 +2065,43 @@
          confusión. En Venta o Alquiler solos, se mantiene un único
          campo de precio como siempre.
       ========================================================= */
+      /* =========================================================
+         DISTRIBUCIÓN DE LA PROPIEDAD
+         - Cualquier tipo (Casa, Apartamento, Villa, etc.): Normal, Dúplex,
+           Tríplex, Bi-nivel o Multifamiliar.
+         - Terreno: Normal o Mejora.
+         Las opciones se reconstruyen solo cuando cambia el grupo
+         (Terreno <-> resto), conservando lo elegido si sigue siendo válido.
+      ========================================================= */
+      const DISTRIBUCIONES_ESTANDAR = ['Normal', 'Dúplex', 'Tríplex', 'Bi-nivel', 'Multifamiliar'];
+      const DISTRIBUCIONES_TERRENO = ['Normal', 'Mejora'];
+
+      function actualizarOpcionesDistribucion(valorDeseado) {
+        const sel = document.getElementById('propDistribucion');
+        const tipoEl = document.getElementById('propTipoPropiedad');
+        if (!sel || !tipoEl) return;
+
+        const esTerreno = (tipoEl.value || '').toLowerCase() === 'terreno';
+        const grupo = esTerreno ? 'terreno' : 'estandar';
+        const opciones = esTerreno ? DISTRIBUCIONES_TERRENO : DISTRIBUCIONES_ESTANDAR;
+        const actual = valorDeseado !== undefined ? valorDeseado : sel.value;
+
+        if (sel.dataset.grupo !== grupo) {
+          sel.innerHTML = opciones.map(o => `<option value="${o}">${o}</option>`).join('');
+          sel.dataset.grupo = grupo;
+        }
+        sel.value = opciones.includes(actual) ? actual : 'Normal';
+
+        const labelEl = document.getElementById('labelDistribucion');
+        if (labelEl) labelEl.textContent = esTerreno ? 'Tipo de Terreno' : 'Distribución';
+      }
+
+      // Texto que se muestra como etiqueta de tipo: "Casa", o "Casa · Dúplex" si no es Normal.
+      function etiquetaTipoConDistribucion(tipo, distribucion) {
+        const d = (distribucion || '').toString().trim();
+        return (d && d.toLowerCase() !== 'normal') ? `${tipo} · ${d}` : tipo;
+      }
+
       window.alOperacionCambiar = function() {
         const operacionSel = (document.getElementById('propOperacion').value || 'Venta').toLowerCase();
         const esCombinada = operacionSel.includes('venta') && operacionSel.includes('alquiler');
@@ -2078,8 +2123,10 @@
       let previewImgUrl = '';
 
       function actualizarVistaPrevia() {
+        actualizarOpcionesDistribucion();
         const titulo = (document.getElementById('propTitulo').value || 'Título de la propiedad').trim();
         const tipoPropiedad = document.getElementById('propTipoPropiedad').value || 'Casa';
+        const distribucionSel = document.getElementById('propDistribucion') ? document.getElementById('propDistribucion').value : 'Normal';
         const operacion = document.getElementById('propOperacion').value || 'Venta';
         const provincia = document.getElementById('propProvincia').value;
         const municipio = document.getElementById('propMunicipio').value;
@@ -2102,7 +2149,7 @@
         const descripcion = document.getElementById('propDescripcion').value;
 
         document.getElementById('previewTitulo').textContent = titulo;
-        document.getElementById('previewTipo').textContent = tipoPropiedad;
+        document.getElementById('previewTipo').textContent = etiquetaTipoConDistribucion(tipoPropiedad, distribucionSel);
 
         const ubicacionPartes = [distrito, municipio, provincia].filter(Boolean);
         document.getElementById('previewUbicacion').textContent = ubicacionPartes.length ? `📍 ${ubicacionPartes.join(', ')}` : '📍 Selecciona ubicación';
@@ -2191,7 +2238,7 @@
 
       function inicializarVistaPreviaListeners() {
         const idsInputEvent = ['propTitulo', 'propPrecio', 'propPrecioAlquiler', 'propUnidadesDisponibles', 'propHabitaciones', 'propBanos', 'propNivel', 'propParqueos', 'propDescripcion'];
-        const idsChangeEvent = ['propTipoPropiedad', 'propOperacion', 'propMoneda', 'propMonedaAlquiler', 'propExtranjeros', 'propAmueblado', 'propPremium', 'propNegociable'];
+        const idsChangeEvent = ['propTipoPropiedad', 'propDistribucion', 'propOperacion', 'propMoneda', 'propMonedaAlquiler', 'propExtranjeros', 'propAmueblado', 'propPremium', 'propNegociable'];
 
         idsInputEvent.forEach(id => {
           const el = document.getElementById(id);
@@ -2422,7 +2469,6 @@
               }
             }
 
-            await restaurarPropiedadesArchivadasPorRol();
             actualizarContadorArchivadas();
             renderizarPublicaciones();
           } catch (e) {
@@ -2432,45 +2478,6 @@
           }
         });
       });
-
-      // Cuando un usuario vuelve a ser agente/agentepro, sus propiedades que se archivaron
-      // automáticamente al pasar a cliente (archivadaPorRol: true) se reactivan solas.
-      // Las archivadas manualmente NO se tocan. El rol "agente" respeta el límite de
-      // LIMITE_PROPIEDADES_AGENTE: las que no caben siguen archivadas (restaurables a mano).
-      async function restaurarPropiedadesArchivadasPorRol() {
-        try {
-          const snap = await getDocs(query(collection(db, "propiedades"), where("creadoPorUid", "==", usuarioActualUid)));
-          let activas = 0;
-          const porRol = [];
-          snap.forEach(d => {
-            const data = d.data();
-            if (data.archivada !== true) activas++;
-            else if (data.archivadaPorRol === true) porRol.push({ id: d.id, fecha: data.fechaCreacion });
-          });
-          if (porRol.length === 0) return;
-
-          porRol.sort((a, b) => new Date(b.fecha || 0) - new Date(a.fecha || 0));
-          const cupo = rolUsuarioActual === 'agente'
-            ? Math.max(0, LIMITE_PROPIEDADES_AGENTE - activas)
-            : porRol.length;
-
-          let restauradas = 0;
-          for (let i = 0; i < porRol.length; i++) {
-            const datos = i < cupo ? { archivada: false, archivadaPorRol: false } : { archivadaPorRol: false };
-            await updateDoc(doc(db, "propiedades", porRol[i].id), datos);
-            if (i < cupo) restauradas++;
-          }
-
-          const sinCupo = porRol.length - restauradas;
-          let aviso = `Se reactivaron ${restauradas} propiedad(es) que estaban archivadas por tu cambio de rol.`;
-          if (sinCupo > 0) {
-            aviso += ` ${sinCupo} siguen archivadas porque tu plan Agente permite máximo ${LIMITE_PROPIEDADES_AGENTE} activas; las encuentras en "Ver Archivadas".`;
-          }
-          alert(aviso);
-        } catch (e) {
-          console.error("Error al restaurar propiedades archivadas por rol:", e);
-        }
-      }
 
       async function actualizarContadorArchivadas() {
         try {
@@ -2729,6 +2736,7 @@
               'Operación': prop.operacion || 'N/D',
               'Unidades Disponibles': prop.unidadesDisponibles || 1,
               'Tipo': prop.tipo || 'N/D',
+              'Distribución': prop.distribucion || 'N/D',
               'Nivel': prop.nivel || 'N/D',
               'Metros²': prop.metros || 'N/D',
               'Amueblado': prop.amueblado ? 'Sí' : 'No',
@@ -2946,6 +2954,7 @@
           document.getElementById('propPrecioAlquiler').value = '';
         }
 
+        actualizarOpcionesDistribucion(editarObj ? (editarObj.distribucion || 'Normal') : 'Normal');
         window.alOperacionCambiar();
         actualizarVistaPrevia();
       }
@@ -3144,6 +3153,7 @@
           const datosPropiedad = {
             titulo: document.getElementById('propTitulo').value,
             tipo: document.getElementById('propTipoPropiedad').value || 'Casa',
+            distribucion: document.getElementById('propDistribucion').value || 'Normal',
             operacion: document.getElementById('propOperacion').value,
             precio: precioFmt,
             moneda: monedaVal,
@@ -3428,7 +3438,7 @@
               ` : ''}
               <div class="card-carousel-wrapper" id="track-wrapper-${prop.id}">
                 <span class="badge-operacion ${claseOperacion}">${prop.operacion || 'Venta'}</span>
-                <span class="badge-tipo-propiedad">${prop.tipo || 'Casa'}</span>
+                <span class="badge-tipo-propiedad">${etiquetaTipoConDistribucion(prop.tipo || 'Casa', prop.distribucion)}</span>
                 ${prop.extranjeros ? `<span class="badge-extranjeros">Extranjeros</span>` : ''}
                 ${prop.amueblado ? `<span class="badge-amueblado">🛋️ Amueblado</span>` : ''}
                 ${prop.premium ? `<span class="badge-premium">⭐ Premium</span>` : ''}
@@ -3612,7 +3622,7 @@
         try {
           // El archivado ya no borra el documento: solo marca "archivada: true" en Firestore,
           // así queda visible para admin/superadmin y se puede restaurar desde cualquier lugar.
-          await updateDoc(doc(db, "propiedades", prop.id), { archivada: true, archivadaPorRol: false });
+          await updateDoc(doc(db, "propiedades", prop.id), { archivada: true });
 
           // Se actualiza la lista y el contador de "Ver Archivadas" al instante,
           // sin ventana emergente que haya que cerrar primero.
@@ -3659,7 +3669,7 @@
           return;
         }
         try {
-          await updateDoc(doc(db, "propiedades", id), { archivada: false, archivadaPorRol: false });
+          await updateDoc(doc(db, "propiedades", id), { archivada: false });
 
           alert("¡Propiedad desarchivada y restaurada con éxito!");
           renderizarPublicaciones(obtenerFiltroActual(), true);
