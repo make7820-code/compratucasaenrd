@@ -1659,6 +1659,13 @@
           // Unidades disponibles: cuántos inmuebles iguales hay en el mismo edificio/proyecto
           const propUnidadesDisponibles = parseInt(prop.unidadesDisponibles, 10) || 1;
 
+          // Distribución (Dúplex, Tríplex, Bi-nivel, Multifamiliar; en Terreno: Mejora).
+          // "Normal" no se muestra porque es lo esperado por defecto.
+          const propDistribucionRaw = (prop.distribucion || '').toString().trim();
+          const propTipoEtiqueta = (propDistribucionRaw && propDistribucionRaw.toLowerCase() !== 'normal')
+            ? `${propType} · ${propDistribucionRaw}`
+            : propType;
+
           const propHabs = prop.habitaciones || prop.habs || '0';
           const propBanos = prop.banos || '0';
           const rawNivel = (prop.nivel || prop.altura || prop.piso || '').toString().trim();
@@ -1838,7 +1845,7 @@
               </div>
 
               <div class="property-body" data-property-link="detalle.html?id=${propId}" style="cursor: pointer;">
-                <div class="property-type">${propType}</div>
+                <div class="property-type">${propTipoEtiqueta}</div>
                 <h3 class="property-title"><a href="detalle.html?id=${propId}">${propTitle}</a></h3>
                 <p class="property-location">📍 ${propLocation}</p>
                 <div class="property-price">
