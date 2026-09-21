@@ -925,6 +925,17 @@
       async function obtenerCreadorPropiedad(propId) {
         if (!propId || propId === 'general') return { creadoPorUid: null, creadorRol: '' };
         if (cacheCreadorPropiedad[propId]) return cacheCreadorPropiedad[propId];
+
+        // Mensajes enviados desde la página de un agente (botón "Enviar Mensaje" de agente.html):
+        // el chat usa el id "perfil-agente-<uid>", que no es una propiedad real. El dueño de
+        // esa conversación es el propio agente, cuyo uid viene dentro del id.
+        const PREFIJO_PERFIL_AGENTE = 'perfil-agente-';
+        if (propId.startsWith(PREFIJO_PERFIL_AGENTE)) {
+          const infoPerfil = { creadoPorUid: propId.slice(PREFIJO_PERFIL_AGENTE.length) || null, creadorRol: '' };
+          cacheCreadorPropiedad[propId] = infoPerfil;
+          return infoPerfil;
+        }
+
         let info = { creadoPorUid: null, creadorRol: '' };
         try {
           const propSnap = await getDoc(doc(db, "propiedades", propId));
