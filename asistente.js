@@ -3,6 +3,9 @@
 const ASISTENTE_URL = 'https://asistente-casas.makeg3.workers.dev'; // <- pega aquí la URL de tu Worker
 const COLECCIONES = ['propiedades', 'properties', 'inmuebles'];
 const DEBUG = true; // true = muestra el error real dentro del chat (ponlo en false cuando todo funcione)
+const WHATSAPP = '18498572321';            // número de WhatsApp: código de país + número, sin + ni espacios
+const WHATSAPP_VISIBLE = '+1 (849) 857-2321';
+const WA_MENSAJE = 'Hola, quiero información sobre el Servicio de Captación de Propiedades.';
 
 /* ---------- Conversación persistente (sobrevive al cambiar de página en la misma pestaña) ---------- */
 const KEY = 'ia-chat-v1';
@@ -21,6 +24,7 @@ const guardar = () => {
 };
 
 let catalogo = null, cargando = null;
+let servicios = []; // artículos del blog sobre el servicio de captación (se leen de Firestore)
 
 /* ---------- Datos ---------- */
 const num = v => parseFloat(String(v ?? '').replace(/[^0-9]/g, '')) || 0;
@@ -71,6 +75,17 @@ function cargarCatalogo() {
         break;
       } catch (e) { console.warn('Asistente: no se pudo leer', nombre); }
     }
+    // Servicio de captación: se lee del blog (colección articulosBlog) para que siempre esté actualizado
+    try {
+      const snapB = await getDocs(collection(db, 'articulosBlog'));
+      servicios = [];
+      snapB.forEach(d => {
+        const a = d.data();
+        if (a.publicado === false) return;
+        if (!sinAcentos(a.titulo).includes('captacion')) return;
+        servicios.push({ titulo: String(a.titulo || ''), contenido: String(a.contenido || '').slice(0, 1500) });
+      });
+    } catch (e) { console.warn('Asistente: no se pudo leer articulosBlog', e); }
     if (!(catalogo || []).length) console.warn('Asistente: el catálogo está vacío (revisa COLECCIONES y firebase-config.js)');
     return (catalogo = catalogo || []);
   })();
@@ -118,6 +133,8 @@ const css = `
 #ia-fin div{display:flex;gap:8px;margin-top:10px}
 #ia-fin button{flex:1;padding:8px;border-radius:10px;cursor:pointer;font-weight:600;border:1px solid var(--border-color,rgba(255,255,255,.2));background:none;color:inherit;font-family:inherit}
 #ia-fin button.si{background:#3b82f6;border-color:#3b82f6;color:#fff}
+.ia-wa{display:block;margin-top:8px;padding:10px 12px;border-radius:10px;background:#22c55e;color:#fff;font-weight:700;font-size:13px;text-align:center;text-decoration:none;white-space:normal}
+.ia-wa:hover{filter:brightness(1.1)}
 #ia-form{display:flex;gap:8px;padding:10px;border-top:1px solid var(--border-color,rgba(255,255,255,.1))}
 #ia-form input{flex:1;min-width:0;padding:10px 12px;border-radius:12px;border:1px solid var(--border-color,rgba(255,255,255,.15));background:var(--bg-input,#1f1f23);color:inherit;font-size:14px;font-family:inherit}
 #ia-form button{border:0;border-radius:12px;padding:0 16px;background:#3b82f6;color:#fff;font-weight:700;cursor:pointer}
@@ -132,6 +149,14 @@ const el = (tag, props = {}, ...hijos) => {
 function render(contenedor, texto) {
   texto.split(/\[\[([^\]]+)\]\]/g).forEach((parte, i) => {
     if (i % 2 === 0) { if (parte.trim()) contenedor.append(parte); return; }
+    if (parte.trim().toLowerCase() === 'whatsapp') { // botón de contacto por WhatsApp
+      contenedor.append(el('a', {
+        className: 'ia-wa', target: '_blank', rel: 'noopener',
+        href: 'https://wa.me/' + WHATSAPP + '?text=' + encodeURIComponent(WA_MENSAJE),
+        textContent: '💬 Contactar por WhatsApp · ' + WHATSAPP_VISIBLE
+      }));
+      return;
+    }
     const p = (catalogo || []).find(x => x.id === parte.trim());
     if (!p) return; // solo se muestran propiedades que existen de verdad
     const a = el('a', { className: 'ia-card', href: 'detalle.html?id=' + encodeURIComponent(p.id) },
@@ -191,7 +216,8 @@ function iniciar() {
           catalogo: seleccionar(cat, historial.filter(m => m.role === 'user').slice(-3).map(m => m.text).join(' '), idActual)
             .map(({ foto, agente, ...resto }) =>
               Object.fromEntries(Object.entries(resto).filter(([, v]) => v !== '' && v !== false && v !== 0 && !(Array.isArray(v) && !v.length)))),
-          propiedadActual: idActual
+          propiedadActual: idActual,
+          servicios
         })
       });
       const data = await r.json();
@@ -212,7 +238,7 @@ function iniciar() {
   const saludo = () => {
     chips.textContent = '';
     añadir('ia-bot', '¡Hola! Te ayudo a encontrar propiedades en el sitio. Dime qué buscas: zona, presupuesto, habitaciones, si es compra o alquiler…', false);
-    ['Apartamentos en alquiler', 'Algo cerca del metro', 'Con parqueo y amueblado'].forEach(t =>
+    ['Apartamentos en alquiler', 'Algo cerca del metro', 'Con parqueo y amueblado', 'Servicio de captación'].forEach(t =>
       chips.append(el('button', { type: 'button', textContent: t, onclick: () => enviar(t) })));
     msgs.after(chips);
   };
