@@ -55,6 +55,7 @@ function cargarCatalogo() {
         break;
       } catch (e) { console.warn('Asistente: no se pudo leer', nombre); }
     }
+    if (!(catalogo || []).length) console.warn('Asistente: el catálogo está vacío (revisa COLECCIONES y firebase-config.js)');
     return (catalogo = catalogo || []);
   })();
   return cargando;
@@ -128,20 +129,22 @@ function iniciar() {
     historial.push({ role: 'user', text: texto });
     const espera = añadir('ia-bot', 'Escribiendo…');
     try {
+      if (ASISTENTE_URL.includes('TU-WORKER')) throw new Error('Falta pegar la URL real del Worker en ASISTENTE_URL');
       const cat = await cargarCatalogo();
       const r = await fetch(ASISTENTE_URL, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          messages: historial.slice(-9),
+          messages: (() => { const h = historial.slice(-9); while (h.length && h[0].role !== 'user') h.shift(); return h; })(),
           catalogo: cat.map(({ foto, ...resto }) => resto),
           propiedadActual: location.pathname.includes('detalle') ? (new URLSearchParams(location.search).get('id') || '') : ''
         })
       });
       const data = await r.json();
-      if (!r.ok || !data.reply) throw new Error(data.error || 'error');
+      if (!r.ok || !data.reply) throw new Error((data.error || 'error') + (data.detalle ? ' — ' + data.detalle : ''));
       historial.push({ role: 'model', text: data.reply });
       espera.textContent = ''; render(espera, data.reply);
     } catch (e) {
+      console.error('Asistente:', e); // abre F12 > Consola para ver la causa exacta
       historial.pop();
       espera.textContent = 'No pude responder ahora. Intenta de nuevo en un momento.';
     }
