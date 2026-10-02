@@ -67,28 +67,35 @@ export default {
     const sistema = `${SISTEMA}\n\nPROPIEDADES DISPONIBLES (JSON):\n${catalogo}` +
       (actual ? `\n\nEl visitante está viendo ahora la propiedad con id "${actual}"; si pregunta "esta" o "este", se refiere a ella.` : '');
 
-    let r;
-    try {
-      r = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${env.MODEL || 'gemini-flash-latest'}:generateContent`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'x-goog-api-key': env.GEMINI_API_KEY },
-          body: JSON.stringify({
-            systemInstruction: { parts: [{ text: sistema }] },
-            contents,
-            // thinkingBudget 0: evita que el "pensamiento" consuma los tokens y la respuesta salga vacía
-            generationConfig: { temperature: 0.4, maxOutputTokens: 1500, thinkingConfig: { thinkingBudget: 0 } }
-          })
-        }
-      );
-    } catch (e) { return out({ error: 'No se pudo contactar a Gemini', detalle: String(e) }, 502); }
-
-    if (!r.ok) {
-      const t = await r.text();
-      console.error('Gemini error', r.status, t);
-      return out({ error: 'Gemini respondió con error ' + r.status, detalle: t.slice(0, 400) }, 502);
+    // Prueba varios modelos y reintenta si Google responde saturado (503) o con límite (429)
+    const modelos = [...new Set([env.MODEL || 'gemini-flash-latest', 'gemini-2.5-flash', 'gemini-2.5-flash-lite'])];
+    const cuerpo = JSON.stringify({
+      systemInstruction: { parts: [{ text: sistema }] },
+      contents,
+      // thinkingBudget 0: evita que el "pensamiento" consuma los tokens y la respuesta salga vacía
+      generationConfig: { temperature: 0.4, maxOutputTokens: 1500, thinkingConfig: { thinkingBudget: 0 } }
+    });
+    const espera = ms => new Promise(res => setTimeout(res, ms));
+    let r = null, ultimo = '';
+    for (const modelo of modelos) {
+      for (let intento = 0; intento < 2; intento++) {
+        try {
+          r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelo}:generateContent`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-goog-api-key': env.GEMINI_API_KEY },
+            body: cuerpo
+          });
+        } catch (e) { r = null; ultimo = String(e); await espera(600); continue; }
+        if (r.ok) break;
+        ultimo = `${modelo} → ${r.status}: ${(await r.text()).slice(0, 300)}`;
+        console.error('Gemini error', ultimo);
+        if (![429, 500, 503, 504].includes(r.status)) break; // error que no se arregla reintentando
+        await espera(700 * (intento + 1));
+      }
+      if (r && r.ok) break;
+      if (r && ![429, 500, 503, 504].includes(r.status) && r.status !== 404) break;
     }
+    if (!r || !r.ok) return out({ error: 'Gemini no está disponible ahora', detalle: ultimo }, 502);
 
     const d = await r.json();
     const reply = (d.candidates?.[0]?.content?.parts || []).map(p => p.text || '').join('').trim();
