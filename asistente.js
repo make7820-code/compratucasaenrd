@@ -2,6 +2,7 @@
 // Se carga con: <script type="module" src="asistente.js"></script> (misma carpeta que firebase-config.js)
 const ASISTENTE_URL = 'https://asistente-casas.makeg3.workers.dev'; // <- pega aquí la URL de tu Worker
 const COLECCIONES = ['propiedades', 'properties', 'inmuebles'];
+const DEBUG = true; // true = muestra el error real dentro del chat (ponlo en false cuando todo funcione)
 
 let catalogo = null, cargando = null;
 const historial = []; // { role: 'user' | 'model', text }
@@ -131,11 +132,14 @@ function iniciar() {
     try {
       if (ASISTENTE_URL.includes('TU-WORKER')) throw new Error('Falta pegar la URL real del Worker en ASISTENTE_URL');
       const cat = await cargarCatalogo();
+      console.info('Asistente: propiedades cargadas =', cat.length);
+      if (!cat.length) throw new Error('No se cargaron propiedades desde Firebase (¿bloqueador de anuncios, reglas de Firestore o nombre de colección?)');
       const r = await fetch(ASISTENTE_URL, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           messages: (() => { const h = historial.slice(-9); while (h.length && h[0].role !== 'user') h.shift(); return h; })(),
-          catalogo: cat.map(({ foto, ...resto }) => resto),
+          catalogo: cat.map(({ foto, agente, ...resto }) =>
+            Object.fromEntries(Object.entries(resto).filter(([, v]) => v !== '' && v !== false && v !== 0 && !(Array.isArray(v) && !v.length)))),
           propiedadActual: location.pathname.includes('detalle') ? (new URLSearchParams(location.search).get('id') || '') : ''
         })
       });
@@ -146,7 +150,7 @@ function iniciar() {
     } catch (e) {
       console.error('Asistente:', e); // abre F12 > Consola para ver la causa exacta
       historial.pop();
-      espera.textContent = 'No pude responder ahora. Intenta de nuevo en un momento.';
+      espera.textContent = 'No pude responder ahora. Intenta de nuevo en un momento.' + (DEBUG ? '\n\n[debug] ' + String(e.message || e).slice(0, 300) : '');
     }
     msgs.scrollTop = msgs.scrollHeight;
   }
