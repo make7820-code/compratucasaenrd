@@ -62,6 +62,22 @@ function cargarCatalogo() {
   return cargando;
 }
 
+
+/* ---------- Selección de propiedades relevantes (más rápido y barato) ---------- */
+const sinAcentos = t => String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+const IGNORAR = new Set('para una uno unos unas que con por los las del esta este estoy busco buscando necesito quiero quisiera gustaria saber algo hola favor tienen tiene hay como donde cual mas muy pesos peso'.split(' '));
+function seleccionar(cat, textoUsuario, idActual, max = 30) {
+  if (cat.length <= max) return cat;
+  const palabras = [...new Set(sinAcentos(textoUsuario).split(/[^a-z0-9ñ]+/).filter(w => w.length >= 3 && !IGNORAR.has(w)))];
+  const puntuada = cat.map((p, i) => {
+    const txt = sinAcentos(JSON.stringify(p));
+    let pts = p.id === idActual ? 1000 : 0;
+    palabras.forEach(w => { if (txt.includes(w)) pts += 1; });
+    return { p, pts, i };
+  });
+  return puntuada.sort((a, b) => b.pts - a.pts || a.i - b.i).slice(0, max).map(x => x.p);
+}
+
 /* ---------- Interfaz ---------- */
 const css = `
 #ia-btn{position:fixed;right:18px;bottom:18px;z-index:9998;width:56px;height:56px;border-radius:50%;border:0;cursor:pointer;
@@ -138,7 +154,8 @@ function iniciar() {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           messages: (() => { const h = historial.slice(-9); while (h.length && h[0].role !== 'user') h.shift(); return h; })(),
-          catalogo: cat.map(({ foto, agente, ...resto }) =>
+          catalogo: seleccionar(cat, historial.filter(m => m.role === 'user').slice(-3).map(m => m.text).join(' '),
+                                location.pathname.includes('detalle') ? (new URLSearchParams(location.search).get('id') || '') : '').map(({ foto, agente, ...resto }) =>
             Object.fromEntries(Object.entries(resto).filter(([, v]) => v !== '' && v !== false && v !== 0 && !(Array.isArray(v) && !v.length)))),
           propiedadActual: location.pathname.includes('detalle') ? (new URLSearchParams(location.search).get('id') || '') : ''
         })
