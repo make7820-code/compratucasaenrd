@@ -67,13 +67,17 @@ export default {
     const sistema = `${SISTEMA}\n\nPROPIEDADES DISPONIBLES (JSON):\n${catalogo}` +
       (actual ? `\n\nEl visitante está viendo ahora la propiedad con id "${actual}"; si pregunta "esta" o "este", se refiere a ella.` : '');
 
-    // Prueba varios modelos y reintenta si Google responde saturado (503) o con límite (429)
-    const modelos = [...new Set([env.MODEL || 'gemini-flash-latest', 'gemini-2.5-flash', 'gemini-2.5-flash-lite'])];
-    const cuerpo = JSON.stringify({
+    // Prueba varios modelos; si uno falla (saturado, retirado, etc.) pasa al siguiente
+    const modelos = [...new Set([env.MODEL || 'gemini-3.5-flash-lite', 'gemini-flash-latest', 'gemini-3.5-flash'])];
+    const armar = modelo => JSON.stringify({
       systemInstruction: { parts: [{ text: sistema }] },
       contents,
-      // thinkingBudget 0: evita que el "pensamiento" consuma los tokens y la respuesta salga vacía
-      generationConfig: { temperature: 0.4, maxOutputTokens: 1500, thinkingConfig: { thinkingBudget: 0 } }
+      generationConfig: {
+        temperature: 0.4,
+        maxOutputTokens: 1500,
+        // Solo los modelos 2.5 aceptan thinkingBudget; los 3.x no lo necesitan (3.5 Flash-Lite no piensa por defecto)
+        ...(modelo.includes('2.5') ? { thinkingConfig: { thinkingBudget: 0 } } : {})
+      }
     });
     const espera = ms => new Promise(res => setTimeout(res, ms));
     let r = null, ultimo = '';
@@ -83,17 +87,17 @@ export default {
           r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelo}:generateContent`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'x-goog-api-key': env.GEMINI_API_KEY },
-            body: cuerpo
+            body: armar(modelo)
           });
-        } catch (e) { r = null; ultimo = String(e); await espera(600); continue; }
+        } catch (e) { r = null; ultimo = `${modelo} → ${e}`; await espera(300); continue; }
         if (r.ok) break;
-        ultimo = `${modelo} → ${r.status}: ${(await r.text()).slice(0, 300)}`;
+        ultimo += `${ultimo ? ' | ' : ''}${modelo} → ${r.status}: ${(await r.text()).slice(0, 150)}`;
         console.error('Gemini error', ultimo);
-        if (![429, 500, 503, 504].includes(r.status)) break; // error que no se arregla reintentando
-        await espera(700 * (intento + 1));
+        if (![429, 500, 503, 504].includes(r.status)) break; // no se arregla reintentando: siguiente modelo
+        await espera(400);
       }
       if (r && r.ok) break;
-      if (r && ![429, 500, 503, 504].includes(r.status) && r.status !== 404) break;
+      if (r && [401, 403].includes(r.status)) break; // problema con la clave: no tiene sentido seguir
     }
     if (!r || !r.ok) return out({ error: 'Gemini no está disponible ahora', detalle: ultimo }, 502);
 
