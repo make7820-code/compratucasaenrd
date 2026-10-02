@@ -5,6 +5,7 @@ const COLECCIONES = ['propiedades', 'properties', 'inmuebles'];
 const DEBUG = true; // true = muestra el error real dentro del chat (ponlo en false cuando todo funcione)
 const WHATSAPP = '18498572321';            // número de WhatsApp: código de país + número, sin + ni espacios
 const WHATSAPP_VISIBLE = '+1 (849) 857-2321';
+const BLOG_CAPTACION = 'blog-detalle.html?id=bBrUddDAT7R0AzFsjxSs'; // artículo del servicio de captación
 const WA_MENSAJE = 'Hola, quiero información sobre el Servicio de Captación de Propiedades.';
 
 /* ---------- Conversación persistente (sobrevive al cambiar de página en la misma pestaña) ---------- */
@@ -135,6 +136,8 @@ const css = `
 #ia-fin button.si{background:#3b82f6;border-color:#3b82f6;color:#fff}
 .ia-wa{display:block;margin-top:8px;padding:10px 12px;border-radius:10px;background:#22c55e;color:#fff;font-weight:700;font-size:13px;text-align:center;text-decoration:none;white-space:normal}
 .ia-wa:hover{filter:brightness(1.1)}
+.ia-blog{display:block;margin-top:8px;padding:10px 12px;border-radius:10px;background:var(--bg-card,#121214);border:1px solid #3b82f6;color:#93c5fd;font-weight:700;font-size:13px;text-align:center;text-decoration:none;white-space:normal}
+.ia-blog:hover{background:rgba(59,130,246,.15)}
 #ia-form{display:flex;gap:8px;padding:10px;border-top:1px solid var(--border-color,rgba(255,255,255,.1))}
 #ia-form input{flex:1;min-width:0;padding:10px 12px;border-radius:12px;border:1px solid var(--border-color,rgba(255,255,255,.15));background:var(--bg-input,#1f1f23);color:inherit;font-size:14px;font-family:inherit}
 #ia-form button{border:0;border-radius:12px;padding:0 16px;background:#3b82f6;color:#fff;font-weight:700;cursor:pointer}
@@ -149,6 +152,10 @@ const el = (tag, props = {}, ...hijos) => {
 function render(contenedor, texto) {
   texto.split(/\[\[([^\]]+)\]\]/g).forEach((parte, i) => {
     if (i % 2 === 0) { if (parte.trim()) contenedor.append(parte); return; }
+    if (parte.trim().toLowerCase() === 'blog') { // enlace al artículo del servicio de captación
+      contenedor.append(el('a', { className: 'ia-blog', href: BLOG_CAPTACION, textContent: '📰 Ver el servicio de captación completo' }));
+      return;
+    }
     if (parte.trim().toLowerCase() === 'whatsapp') { // botón de contacto por WhatsApp
       contenedor.append(el('a', {
         className: 'ia-wa', target: '_blank', rel: 'noopener',
