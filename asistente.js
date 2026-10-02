@@ -1,7 +1,5 @@
 // asistente.js — Asistente de IA de "Compra tu casa en RD"
 // Se carga con: <script type="module" src="asistente.js"></script> (misma carpeta que firebase-config.js)
-import { db, collection, getDocs } from './firebase-config.js';
-
 const ASISTENTE_URL = 'https://TU-WORKER-ASISTENTE.workers.dev'; // <- pega aquí la URL de tu Worker
 const COLECCIONES = ['propiedades', 'properties', 'inmuebles'];
 
@@ -20,6 +18,9 @@ const si = v => v === true || ['true', 'si', 'sí', 'on', 1].includes(v);
 
 function cargarCatalogo() {
   if (!cargando) cargando = (async () => {
+    let db, collection, getDocs;
+    try { ({ db, collection, getDocs } = await import('./firebase-config.js')); }
+    catch (e) { console.error('Asistente: no se pudo cargar firebase-config.js', e); return (catalogo = []); }
     for (const nombre of COLECCIONES) {
       try {
         const snap = await getDocs(collection(db, nombre));
