@@ -215,7 +215,7 @@ function iniciar() {
       const cat = await cargarCatalogo();
       console.info('Asistente: propiedades cargadas =', cat.length);
       if (!cat.length) throw new Error('No se cargaron propiedades desde Firebase (¿bloqueador de anuncios, reglas de Firestore o nombre de colección?)');
-      const idActual = location.pathname.includes('detalle') ? (new URLSearchParams(location.search).get('id') || '') : '';
+      const idActual = /\/detalle(\.html)?$/.test(location.pathname) ? (new URLSearchParams(location.search).get('id') || '') : '';
       const r = await fetch(ASISTENTE_URL, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
