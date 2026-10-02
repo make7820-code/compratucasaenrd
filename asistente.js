@@ -1,6 +1,6 @@
 // asistente.js — Asistente de IA de "Compra tu casa en RD"
 // Se carga con: <script type="module" src="asistente.js"></script> (misma carpeta que firebase-config.js)
-const ASISTENTE_URL = 'https://TU-WORKER-ASISTENTE.workers.dev'; // <- pega aquí la URL de tu Worker
+const ASISTENTE_URL = 'https://asistente-casas.makeg3.workers.dev'; // <- pega aquí la URL de tu Worker
 const COLECCIONES = ['propiedades', 'properties', 'inmuebles'];
 
 let catalogo = null, cargando = null;
