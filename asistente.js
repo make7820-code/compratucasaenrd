@@ -83,9 +83,8 @@ function cargarCatalogo() {
       servicios = []; blogs = [];
       snapB.forEach(d => {
         const a = d.data();
-        if (a.publicado === false) return;
-        const img = [a.imagen, a.portada, a.imagenPortada, a.foto, a.image, a.img].flat().find(x => typeof x === 'string' && x) || '';
-        blogs.push({ id: d.id, titulo: String(a.titulo || ''), texto: String(a.contenido || '').replace(/<[^>]+>/g, ' ').slice(0, 4000), foto: img });
+        const img = [a.imagenURL, a.imagen, a.portada, a.imagenPortada, a.foto, a.image, a.img].flat().find(x => typeof x === 'string' && x) || '';
+        blogs.push({ id: d.id, titulo: String(a.titulo || ''), texto: [a.resumen, a.categoria, a.contenido].filter(Boolean).join(' ').replace(/<[^>]+>/g, ' ').slice(0, 4000), foto: img, publicado: a.publicado === true });
         if (!sinAcentos(a.titulo).includes('captacion')) return;
         servicios.push({ titulo: String(a.titulo || ''), contenido: String(a.contenido || '').slice(0, 1500) });
       });
@@ -114,13 +113,21 @@ function seleccionar(cat, textoUsuario, idActual, max = 30) {
 
 /* ---------- Blogs relacionados con la pregunta ---------- */
 const ID_BLOG_CAPTACION = new URLSearchParams(BLOG_CAPTACION.split('?')[1] || '').get('id');
+const SINONIMOS = [
+  [/haitian|migrant|inmigr|extranjer|venezolan|colombian|pasaporte|residen/, ['extranjero', 'residencia', 'pasaporte', 'requisito']],
+  [/rent|alquil/, ['alquiler', 'inquilino', 'contrato']],
+  [/hipotec|prestamo|financ|banco/, ['hipoteca', 'financiamiento', 'banco']]
+];
 const raiz = w => (w.length > 5 ? w.replace(/(es|s)$/, '') : w);
 function blogsRelevantes(consulta, respuesta, max = 3) {
   if (!blogs.length) return [];
-  const pal = [...new Set(sinAcentos(consulta).split(/[^a-z0-9ñ]+/).filter(w => w.length >= 4 && !IGNORAR.has(w)).map(raiz))];
+  const base = sinAcentos(consulta);
+  const pal = [...new Set(base.split(/[^a-z0-9ñ]+/).filter(w => w.length >= 4 && !IGNORAR.has(w)).map(raiz))];
+  SINONIMOS.forEach(([disparo, extra]) => { if (disparo.test(base)) pal.push(...extra); }); // temas relacionados aunque usen otras palabras
   if (!pal.length) return [];
-  const docs = blogs.map(b => ({ b, t: sinAcentos(b.titulo), c: sinAcentos(b.texto) }));
+  const docs = blogs.filter(b => b.publicado).map(b => ({ b, t: sinAcentos(b.titulo), c: sinAcentos(b.texto) }));
   const N = docs.length;
+  if (!N) return [];
   const peso = Object.fromEntries(pal.map(w => {
     const df = docs.filter(d => d.t.includes(w) || d.c.includes(w)).length;
     return [w, !df || (N >= 3 && df / N > 0.6) ? 0 : Math.log(1 + N / df)]; // palabras que salen en casi todos no cuentan
