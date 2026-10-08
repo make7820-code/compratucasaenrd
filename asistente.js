@@ -26,6 +26,7 @@ const guardar = () => {
 
 let catalogo = null, cargando = null;
 let servicios = []; // artículos del blog sobre el servicio de captación (se leen de Firestore)
+let blogs = [];     // todos los artículos publicados del blog (para recomendar según la pregunta)
 
 /* ---------- Datos ---------- */
 const num = v => parseFloat(String(v ?? '').replace(/[^0-9]/g, '')) || 0;
@@ -79,10 +80,12 @@ function cargarCatalogo() {
     // Servicio de captación: se lee del blog (colección articulosBlog) para que siempre esté actualizado
     try {
       const snapB = await getDocs(collection(db, 'articulosBlog'));
-      servicios = [];
+      servicios = []; blogs = [];
       snapB.forEach(d => {
         const a = d.data();
         if (a.publicado === false) return;
+        const img = [a.imagen, a.portada, a.imagenPortada, a.foto, a.image, a.img].flat().find(x => typeof x === 'string' && x) || '';
+        blogs.push({ id: d.id, titulo: String(a.titulo || ''), texto: String(a.contenido || '').replace(/<[^>]+>/g, ' ').slice(0, 4000), foto: img });
         if (!sinAcentos(a.titulo).includes('captacion')) return;
         servicios.push({ titulo: String(a.titulo || ''), contenido: String(a.contenido || '').slice(0, 1500) });
       });
@@ -107,6 +110,32 @@ function seleccionar(cat, textoUsuario, idActual, max = 30) {
     return { p, pts, i };
   });
   return puntuada.sort((a, b) => b.pts - a.pts || a.i - b.i).slice(0, max).map(x => x.p);
+}
+
+/* ---------- Blogs relacionados con la pregunta ---------- */
+const ID_BLOG_CAPTACION = new URLSearchParams(BLOG_CAPTACION.split('?')[1] || '').get('id');
+const raiz = w => (w.length > 5 ? w.replace(/(es|s)$/, '') : w);
+function blogsRelevantes(consulta, respuesta, max = 3) {
+  if (!blogs.length) return [];
+  const pal = [...new Set(sinAcentos(consulta).split(/[^a-z0-9ñ]+/).filter(w => w.length >= 4 && !IGNORAR.has(w)).map(raiz))];
+  if (!pal.length) return [];
+  const docs = blogs.map(b => ({ b, t: sinAcentos(b.titulo), c: sinAcentos(b.texto) }));
+  const N = docs.length;
+  const peso = Object.fromEntries(pal.map(w => {
+    const df = docs.filter(d => d.t.includes(w) || d.c.includes(w)).length;
+    return [w, !df || (N >= 3 && df / N > 0.6) ? 0 : Math.log(1 + N / df)]; // palabras que salen en casi todos no cuentan
+  }));
+  const yaTiene = /\[\[\s*blog\s*\]\]/i.test(respuesta || '');
+  return docs.map(d => {
+    let score = 0, enTitulo = 0, enTexto = 0;
+    pal.forEach(w => {
+      if (!peso[w]) return;
+      if (d.t.includes(w)) { score += 3 * peso[w]; enTitulo++; }
+      else if (d.c.includes(w)) { score += peso[w]; enTexto++; }
+    });
+    return { b: d.b, score, ok: enTitulo >= 1 || enTexto >= 2 };
+  }).filter(x => x.ok && !(yaTiene && x.b.id === ID_BLOG_CAPTACION))
+    .sort((a, b) => b.score - a.score).slice(0, max).map(x => x.b);
 }
 
 /* ---------- Interfaz ---------- */
@@ -138,6 +167,8 @@ const css = `
 .ia-wa:hover{filter:brightness(1.1)}
 .ia-blog{display:block;margin-top:8px;padding:10px 12px;border-radius:10px;background:var(--bg-card,#121214);border:1px solid #3b82f6;color:#93c5fd;font-weight:700;font-size:13px;text-align:center;text-decoration:none;white-space:normal}
 .ia-blog:hover{background:rgba(59,130,246,.15)}
+.ia-lbl{margin-top:10px;font-size:12px;font-weight:700;color:#93c5fd}
+.ia-bcard .ia-ico{width:64px;height:52px;border-radius:8px;flex:none;background:rgba(59,130,246,.15);display:flex;align-items:center;justify-content:center;font-size:24px}
 #ia-form{display:flex;gap:8px;padding:10px;border-top:1px solid var(--border-color,rgba(255,255,255,.1))}
 #ia-form input{flex:1;min-width:0;padding:10px 12px;border-radius:12px;border:1px solid var(--border-color,rgba(255,255,255,.15));background:var(--bg-input,#1f1f23);color:inherit;font-size:14px;font-family:inherit}
 #ia-form button{border:0;border-radius:12px;padding:0 16px;background:#3b82f6;color:#fff;font-weight:700;cursor:pointer}
@@ -150,8 +181,18 @@ const el = (tag, props = {}, ...hijos) => {
 };
 
 function render(contenedor, texto) {
+  let hayBlogs = false;
   texto.split(/\[\[([^\]]+)\]\]/g).forEach((parte, i) => {
     if (i % 2 === 0) { if (parte.trim()) contenedor.append(parte); return; }
+    if (/^b:/i.test(parte.trim())) { // tarjeta de un artículo del blog recomendado
+      const b = blogs.find(x => x.id === parte.trim().slice(2));
+      if (!b) return;
+      if (!hayBlogs) { hayBlogs = true; contenedor.append(el('div', { className: 'ia-lbl', textContent: '📚 Artículos del blog que te pueden ayudar:' })); }
+      contenedor.append(el('a', { className: 'ia-card ia-bcard', href: 'blog-detalle.html?id=' + encodeURIComponent(b.id) },
+        b.foto ? el('img', { src: b.foto, alt: '' }) : el('div', { className: 'ia-ico', textContent: '📰' }),
+        el('div', {}, el('b', { textContent: b.titulo || 'Artículo' }), el('span', { textContent: 'Leer artículo →' }))));
+      return;
+    }
     if (parte.trim().toLowerCase() === 'blog') { // enlace al artículo del servicio de captación
       contenedor.append(el('a', { className: 'ia-blog', href: BLOG_CAPTACION, textContent: '📰 Ver el servicio de captación completo' }));
       return;
@@ -230,9 +271,11 @@ function iniciar() {
       const data = await r.json();
       if (!r.ok || !data.reply) throw new Error((data.error || 'error') + (data.detalle ? ' — ' + data.detalle : ''));
       historial.push({ role: 'model', text: data.reply });
-      visibles.push({ clase: 'ia-bot', texto: data.reply });
+      const extra = blogsRelevantes(texto, data.reply).map(b => '[[b:' + b.id + ']]').join('');
+      const visible = data.reply + (extra ? '\n\n' + extra : '');
+      visibles.push({ clase: 'ia-bot', texto: visible });
       guardar();
-      espera.textContent = ''; render(espera, data.reply);
+      espera.textContent = ''; render(espera, visible);
     } catch (e) {
       console.error('Asistente:', e); // abre F12 > Consola para ver la causa exacta
       historial.pop();
