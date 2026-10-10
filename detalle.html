@@ -141,6 +141,14 @@
         display: block;
       }
 
+      /* Cuando el video de TikTok está cargado en la galería principal,
+         se deja crecer la caja para que el embed no se recorte. */
+      .property-gallery.gallery-video-mode:has(.tiktok-embed) {
+        height: auto;
+        min-height: 400px;
+        overflow: visible;
+      }
+
       .gallery-nav-btn {
         position: absolute;
         top: 50%;
@@ -1404,7 +1412,8 @@
       // Genera el HTML del reproductor de video embebido dentro de la página.
       // Prioridad: 1) video propio subido a Storage (siempre se puede reproducir nativo),
       // 2) link externo, detectando la plataforma para embeberlo cuando es posible
-      //    (YouTube = iframe directo; Instagram/TikTok = su propio script de embed oficial).
+      //    (YouTube = iframe directo; Instagram = su script de embed oficial;
+      //    TikTok = carga bajo demanda, solo cuando el usuario hace clic).
       // Si no se puede embeber (plataforma no reconocida), se deja el botón de enlace como respaldo.
       function generarEmbedVideo(videoArchivo, videoUrl) {
         if (videoArchivo) {
@@ -1424,10 +1433,20 @@
           return `<blockquote class="instagram-media" data-instgrm-permalink="${videoUrl}" style="margin:0; width:100%;"></blockquote>`;
         }
 
-        // TikTok
+        // TikTok (carga bajo demanda para evitar el "overload-protect" y los 503)
         if (videoUrl.includes('tiktok.com')) {
-          cargarScriptEmbedUnaVez('https://www.tiktok.com/embed.js', 'tiktokEmbed');
-          return `<blockquote class="tiktok-embed" cite="${videoUrl}" style="margin:0; width:100%; min-height:500px;"><section></section></blockquote>`;
+          const idMatch = videoUrl.match(/\/video\/(\d+)/);
+          // Links cortos (vm.tiktok.com / tiktok.com/t/...) no traen el ID del video:
+          // no se pueden embeber, queda solo el botón "Ver Video" como respaldo.
+          if (!idMatch) return '';
+          return `
+            <div class="tiktok-lazy" data-url="${videoUrl}" data-id="${idMatch[1]}"
+                 style="display:flex; align-items:center; justify-content:center; min-height:200px; width:100%; background:#18181b; border-radius:12px;">
+              <button type="button" class="tiktok-lazy-btn"
+                      style="background:#18181b; color:#fff; border:1px solid rgba(255,255,255,0.2); padding:12px 20px; border-radius:12px; font-weight:700; cursor:pointer;">
+                ▶ Cargar video de TikTok
+              </button>
+            </div>`;
         }
 
         // Plataforma no reconocida: no hay embed, pero el botón "Ver Video" (que se
@@ -1435,7 +1454,7 @@
         return '';
       }
 
-      // Carga (una sola vez por página) el script oficial de embed de Instagram/TikTok,
+      // Carga (una sola vez por página) el script oficial de embed de Instagram,
       // y si ya estaba cargado, le pide reprocesar los blockquotes recién insertados.
       function cargarScriptEmbedUnaVez(src, globalCheck) {
         const yaExiste = document.querySelector(`script[src="${src}"]`);
@@ -1449,6 +1468,28 @@
         script.async = true;
         document.body.appendChild(script);
       }
+
+      // Carga del video de TikTok solo cuando el usuario hace clic en el botón.
+      // Así no se dispara el script de TikTok al abrir la página (evita el error
+      // "overload-protect triggered" y reduce errores 503 del servidor de TikTok).
+      document.addEventListener('click', (e) => {
+        const btn = e.target.closest('.tiktok-lazy-btn');
+        if (!btn) return;
+        const box = btn.closest('.tiktok-lazy');
+        if (!box) return;
+
+        box.style.display = 'block';
+        box.style.background = 'transparent';
+        box.innerHTML = `<blockquote class="tiktok-embed" cite="${box.dataset.url}" data-video-id="${box.dataset.id}" style="margin:0; max-width:100%; min-width:0;"><section></section></blockquote>`;
+
+        // El script se crea una sola vez, justo después del clic
+        if (!document.querySelector('script[src="https://www.tiktok.com/embed.js"]')) {
+          const script = document.createElement('script');
+          script.src = 'https://www.tiktok.com/embed.js';
+          script.async = true;
+          document.body.appendChild(script);
+        }
+      });
 
       function mostrarError(container) {
         container.innerHTML = `
