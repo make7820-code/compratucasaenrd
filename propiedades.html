@@ -1135,6 +1135,27 @@
         }
       })();
     </script>
+
+    <style>
+      .share-check{display:none;position:absolute;top:10px;right:10px;z-index:5;background:rgba(0,0,0,.72);color:#fff;font-size:12px;padding:6px 10px;border-radius:20px;cursor:pointer;gap:6px;align-items:center}
+      .share-check input{width:16px;height:16px;accent-color:#25d366;cursor:pointer}
+      body.share-on .share-check{display:flex}
+      .property-actions-top{top:48px !important}
+      #shareToolbar{display:none;margin:0 0 14px}
+      body.share-on #shareToolbar{display:block}
+      #shareToolbar button{background:#25d366;color:#fff;border:0;border-radius:8px;padding:9px 14px;font-weight:600;cursor:pointer}
+      #shareBar{display:none;position:fixed;left:0;right:0;bottom:0;z-index:9999;background:#111;color:#fff;padding:12px 16px;gap:14px;align-items:center;justify-content:center;flex-wrap:wrap;box-shadow:0 -4px 16px rgba(0,0,0,.4)}
+      #shareBar.on{display:flex}
+      #shareBar button{border:0;border-radius:8px;padding:9px 14px;font-weight:600;cursor:pointer}
+      #shareBar .b-copy{background:#3f3f46;color:#fff}
+      #shareBar .b-wa{background:#25d366;color:#fff}
+      #shareBar .b-clr{background:transparent;color:#a1a1aa}
+      body.share-view .filters-sidebar,body.share-view .pagination-controls-wrap,body.share-view .counter-badge,body.share-view .agent-result-card{display:none !important}
+      #shareHeader{display:flex;gap:16px;align-items:center;padding:18px;margin:0 0 18px;border-radius:14px;background:#18181b;color:#fff;border:1px solid #27272a;grid-column:1/-1}
+      #shareHeader img{width:64px;height:64px;border-radius:50%;object-fit:cover}
+      #shareHeader h2{margin:0 0 4px;font-size:20px}
+      #shareHeader a{display:inline-block;margin-top:8px;background:#25d366;color:#fff;padding:8px 14px;border-radius:8px;text-decoration:none;font-weight:600}
+    </style>
 </head>
 <body>
     <!-- ================= TRADUCTOR DE PÁGINA (Google Translate oculto) ================= -->
@@ -1557,6 +1578,9 @@
       window.addEventListener('DOMContentLoaded', async () => {
         // ================= CARGA DE PROPIEDADES =================
         const propertiesGrid = document.getElementById('propertiesGrid');
+        const __qs = new URLSearchParams(location.search);
+        const SEL_IDS = (__qs.get('ids') || '').split(',').map(s => s.trim()).filter(Boolean);
+        const MODO_SEL = SEL_IDS.length > 0;
         let querySnapshot = null;
         const posiblesColecciones = ["propiedades", "properties", "inmuebles"];
 
@@ -1816,7 +1840,11 @@
                  data-amueblado="${esAmueblado ? '1' : '0'}"
                  data-premium="${esPremium ? '1' : '0'}"
                  data-negociable="${esNegociable ? '1' : '0'}"
-                 data-agent="${propAgenteNombre.toLowerCase()}">
+                 data-agent="${propAgenteNombre.toLowerCase()}"
+                 data-agent-name="${propAgenteNombre.replace(/"/g, '&quot;')}"
+                 data-agent-wa="${(prop.agenteWhatsapp || '').toString().replace(/[^0-9]/g, '')}"
+                 data-agent-foto="${propAgenteFoto}"
+                 data-agent-rol="${propAgenteRol}">
 
               <div class="property-img-container" data-current-slide="0" data-total-slides="${totalSlidesTarjeta}">
                 <span class="property-badge-top" style="background: ${badgeBg}; ${propOffer === 'Alquiler' ? 'color:#1a1a1a;' : ''}">${propOffer}</span>
@@ -1838,6 +1866,7 @@
                 ` : ''}
 
                 <div class="property-actions-top">
+                  <label class="share-check" onclick="event.stopPropagation()"><input type="checkbox" class="share-cb" data-id="${propId}"> Agregar al envío</label>
                   <button class="property-action-icon btn-favorito-card" data-id="${propId}" title="Guardar en Favoritos">
                     ${esFavorito ? '❤️' : '🤍'}
                   </button>
@@ -2271,15 +2300,17 @@
             let cumpleExtranjeros = !soloExtranjerosActivo || extranjeros;
             let cumpleAmueblado = !soloAmuebladoActivo || amueblado;
 
-            return cumpleFavoritos && cumplePremium && cumpleTexto && cumplePrecio && cumpleProv && cumpleMun && cumpleDis && cumpleTipo && cumpleOferta && cumpleHabs && cumpleExtranjeros && cumpleAmueblado;
+            if (MODO_SEL) return SEL_IDS.includes(cardId);
+             return cumpleFavoritos && cumplePremium && cumpleTexto && cumplePrecio && cumpleProv && cumpleMun && cumpleDis && cumpleTipo && cumpleOferta && cumpleHabs && cumpleExtranjeros && cumpleAmueblado;
           });
 
+          window.__coincidentesIds = coincidentes.map(c => c.getAttribute('data-id'));
           const totalPaginas = Math.max(1, Math.ceil(coincidentes.length / ITEMS_POR_PAGINA_PROPIEDADES));
           if (paginaActualPropiedades > totalPaginas) paginaActualPropiedades = totalPaginas;
 
           const inicio = (paginaActualPropiedades - 1) * ITEMS_POR_PAGINA_PROPIEDADES;
           const fin = inicio + ITEMS_POR_PAGINA_PROPIEDADES;
-          const paginaVisible = coincidentes.slice(inicio, fin);
+          const paginaVisible = MODO_SEL ? coincidentes : coincidentes.slice(inicio, fin);
 
           propertyCards.forEach(card => { card.style.display = 'none'; });
           paginaVisible.forEach(card => { card.style.display = 'block'; });
@@ -2291,7 +2322,7 @@
             propCounterNum.textContent = coincidentes.length;
           }
 
-          renderizarControlesPaginacionPropiedades(coincidentes.length, totalPaginas);
+          if (!MODO_SEL) renderizarControlesPaginacionPropiedades(coincidentes.length, totalPaginas);
 
           // Muestra la(s) tarjeta(s) de "Agente" solo cuando el texto buscado
           // (2+ caracteres) coincide con el nombre de algún agente.
@@ -2491,7 +2522,92 @@
 
         /* Ejecuta el filtrado/paginación una vez al cargar, para que desde
            el inicio solo se muestren 9 propiedades (3x3) por página */
+
         ejecutarFiltros();
+
+        // ================= COMPARTIR SELECCIÓN =================
+        (async () => {
+          const EMPRESA = { nombre: 'Compra tu casa en RD', wa: '18498572321', foto: 'assets/mi-logo.png' };
+          const cfg = await import('./firebase-config.js').catch(() => ({}));
+          const grid = document.getElementById('propertiesGrid');
+
+          // ---------- VISTA DEL CLIENTE (solo lectura) ----------
+          if (MODO_SEL) {
+            document.body.classList.add('share-view');
+            const cards = Array.from(document.querySelectorAll('.property-card')).filter(c => SEL_IDS.includes(c.dataset.id));
+            let ag = { nombre: '', wa: '', foto: '' };
+            const uid = __qs.get('agente');
+            if (uid && cfg.getDoc && cfg.doc) {
+              try {
+                const s = await cfg.getDoc(cfg.doc(cfg.db, 'usuarios', uid));
+                if (s.exists()) {
+                  const d = s.data();
+                  ag = { nombre: d.nombre || d.displayName || d.name || '', wa: (d.whatsapp || d.telefono || d.phone || '').toString().replace(/[^0-9]/g, ''), foto: d.fotoPerfil || d.foto || '' };
+                }
+              } catch (e) { console.warn('Agente no disponible', e); }
+            }
+            const c0 = cards.find(c => c.dataset.agentWa || c.dataset.agentName) || cards[0];
+            const esEmp = c0 && ['admin', 'superadmin', ''].includes(c0.dataset.agentRol || '');
+            if (!ag.nombre) ag.nombre = (c0 && !esEmp && c0.dataset.agentName) || EMPRESA.nombre;
+            if (!ag.wa) ag.wa = (c0 && !esEmp && c0.dataset.agentWa) || EMPRESA.wa;
+            if (!ag.foto) ag.foto = (c0 && !esEmp && c0.dataset.agentFoto) || EMPRESA.foto;
+            const msg = encodeURIComponent('Hola ' + ag.nombre + ', vi la selección de propiedades que me preparaste y quiero más información.');
+            const h = document.createElement('div');
+            h.id = 'shareHeader';
+            h.innerHTML = '<img src="' + ag.foto + '" alt="" onerror="this.src=\'assets/mi-logo.png\'"><div><h2>Selección preparada para ti</h2><div>' + cards.length + (cards.length === 1 ? ' propiedad' : ' propiedades') + ' · por ' + ag.nombre.replace(/</g, '&lt;') + '</div><a target="_blank" href="https://wa.me/' + ag.wa + '?text=' + msg + '">📱 Escribir por WhatsApp</a></div>';
+            grid.insertAdjacentElement('afterbegin', h);
+            return;
+          }
+
+          // ---------- VISTA DEL AGENTE ----------
+          const sel = new Set();
+          const bar = document.createElement('div');
+          bar.id = 'shareBar';
+          bar.innerHTML = '<span id="shareCount"></span><button class="b-copy">Copiar link</button><button class="b-wa">Enviar por WhatsApp</button><button class="b-clr">Limpiar</button>';
+          document.body.appendChild(bar);
+          const tb = document.createElement('div');
+          tb.id = 'shareToolbar';
+          tb.innerHTML = '<button>✅ Seleccionar todas las del filtro actual</button>';
+          grid.parentNode.insertBefore(tb, document.getElementById('paginacionPropiedadesWrapTop'));
+
+          const sync = () => {
+            document.querySelectorAll('.share-cb').forEach(cb => { cb.checked = sel.has(cb.dataset.id); });
+            document.getElementById('shareCount').textContent = sel.size + (sel.size === 1 ? ' seleccionada' : ' seleccionadas') + ' ·';
+            bar.classList.toggle('on', sel.size > 0);
+          };
+          const link = () => {
+            const uid = cfg.auth && cfg.auth.currentUser ? cfg.auth.currentUser.uid : '';
+            return location.origin + location.pathname + '?ids=' + Array.from(sel).join(',') + (uid ? '&agente=' + uid : '');
+          };
+          const sector = () => {
+            const d = document.getElementById('filterDistrito'), m = document.getElementById('filterMunicipio');
+            return (d && d.value) || (m && m.value) || '';
+          };
+          document.addEventListener('change', e => {
+            if (!e.target.classList.contains('share-cb')) return;
+            e.target.checked ? sel.add(e.target.dataset.id) : sel.delete(e.target.dataset.id);
+            sync();
+          });
+          tb.querySelector('button').onclick = () => { (window.__coincidentesIds || []).forEach(id => sel.add(id)); sync(); };
+          bar.querySelector('.b-clr').onclick = () => { sel.clear(); sync(); };
+          bar.querySelector('.b-copy').onclick = async e => {
+            try { await navigator.clipboard.writeText(link()); e.target.textContent = '¡Copiado!'; }
+            catch (_) { prompt('Copia el link:', link()); }
+            setTimeout(() => e.target.textContent = 'Copiar link', 1800);
+          };
+          bar.querySelector('.b-wa').onclick = () => {
+            const s = sector();
+            const txt = 'Hola, te comparto una selección de ' + sel.size + (sel.size === 1 ? ' propiedad' : ' propiedades') + (s ? ' en ' + s : '') + ' que creo que te pueden interesar: ' + link();
+            window.open('https://wa.me/?text=' + encodeURIComponent(txt), '_blank');
+          };
+
+          // Mostrar herramientas solo a usuarios logueados (o con ?compartir=1)
+          const activar = () => { document.body.classList.add('share-on'); sync(); };
+          if (__qs.get('compartir') === '1') activar();
+          if (cfg.auth && cfg.auth.onAuthStateChanged) {
+            cfg.auth.onAuthStateChanged(u => { if (u) activar(); });
+          }
+        })();
       });
     </script>
 
