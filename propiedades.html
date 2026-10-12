@@ -1137,16 +1137,18 @@
     </script>
 
     <style>
-      .share-check{display:none;position:absolute;top:10px;right:10px;z-index:5;background:rgba(0,0,0,.72);color:#fff;font-size:12px;padding:6px 10px;border-radius:20px;cursor:pointer;gap:6px;align-items:center}
-      .share-check input{width:16px;height:16px;accent-color:#25d366;cursor:pointer}
+      .share-check{display:none;align-items:center;gap:10px;padding:12px 16px;border-top:1px solid rgba(128,128,128,.25);font-size:14px;font-weight:600;cursor:pointer;user-select:none;transition:background .15s}
+      .share-check:hover{background:rgba(37,211,102,.08)}
+      .share-check input{width:18px;height:18px;accent-color:#25d366;cursor:pointer;margin:0}
+      .share-check:has(input:checked){background:rgba(37,211,102,.14);color:#16a34a}
       body.share-on .share-check{display:flex}
-      .property-actions-top{top:48px !important}
-      #shareToolbar{display:none;margin:0 0 14px}
-      body.share-on #shareToolbar{display:block}
-      #shareToolbar button{background:#25d366;color:#fff;border:0;border-radius:8px;padding:9px 14px;font-weight:600;cursor:pointer}
+      #shareToolbar{display:none;margin:0 0 14px;padding:12px 16px;border:1px solid rgba(128,128,128,.3);border-radius:10px;align-items:center;gap:10px;font-size:14px}
+      body.share-on #shareToolbar{display:flex}
+      #shareToolbar input{width:18px;height:18px;accent-color:#25d366;cursor:pointer}
+      #shareToolbar label{display:flex;align-items:center;gap:10px;cursor:pointer;font-weight:600}
       #shareBar{display:none;position:fixed;left:0;right:0;bottom:0;z-index:9999;background:#111;color:#fff;padding:12px 16px;gap:14px;align-items:center;justify-content:center;flex-wrap:wrap;box-shadow:0 -4px 16px rgba(0,0,0,.4)}
       #shareBar.on{display:flex}
-      #shareBar button{border:0;border-radius:8px;padding:9px 14px;font-weight:600;cursor:pointer}
+      #shareBar button{border:0;border-radius:8px;padding:10px 18px;font-weight:600;font-size:14px;cursor:pointer}
       #shareBar .b-copy{background:#3f3f46;color:#fff}
       #shareBar .b-wa{background:#25d366;color:#fff}
       #shareBar .b-clr{background:transparent;color:#a1a1aa}
@@ -1866,7 +1868,6 @@
                 ` : ''}
 
                 <div class="property-actions-top">
-                  <label class="share-check" onclick="event.stopPropagation()"><input type="checkbox" class="share-cb" data-id="${propId}"> Agregar al envío</label>
                   <button class="property-action-icon btn-favorito-card" data-id="${propId}" title="Guardar en Favoritos">
                     ${esFavorito ? '❤️' : '🤍'}
                   </button>
@@ -1892,6 +1893,7 @@
                 ${esNegociable ? `<div class="property-negociable-pill">🤝 Precio Negociable</div>` : ''}
                 ${propUnidadesDisponibles > 1 ? `<div class="property-negociable-pill" style="background: rgba(59, 130, 246, 0.12); border-color: rgba(59, 130, 246, 0.5); color: #3b82f6;">🏘️ ${propUnidadesDisponibles} unidades disponibles</div>` : ''}
               </div>
+              <label class="share-check" onclick="event.stopPropagation()"><input type="checkbox" class="share-cb" data-id="${propId}"><span>Agregar al envío</span></label>
             </div>
           `;
           propertiesGrid.insertAdjacentHTML('beforeend', cardHtml);
@@ -2305,6 +2307,7 @@
           });
 
           window.__coincidentesIds = coincidentes.map(c => c.getAttribute('data-id'));
+          if (window.__onFiltrado) window.__onFiltrado();
           const totalPaginas = Math.max(1, Math.ceil(coincidentes.length / ITEMS_POR_PAGINA_PROPIEDADES));
           if (paginaActualPropiedades > totalPaginas) paginaActualPropiedades = totalPaginas;
 
@@ -2567,13 +2570,14 @@
           document.body.appendChild(bar);
           const tb = document.createElement('div');
           tb.id = 'shareToolbar';
-          tb.innerHTML = '<button>✅ Seleccionar todas las del filtro actual</button>';
+          tb.innerHTML = '<label><input type="checkbox" id="selAllFiltro"><span id="selAllTxt"></span></label>';
           grid.parentNode.insertBefore(tb, document.getElementById('paginacionPropiedadesWrapTop'));
 
           const sync = () => {
             document.querySelectorAll('.share-cb').forEach(cb => { cb.checked = sel.has(cb.dataset.id); });
             document.getElementById('shareCount').textContent = sel.size + (sel.size === 1 ? ' seleccionada' : ' seleccionadas') + ' ·';
             bar.classList.toggle('on', sel.size > 0);
+            if (window.__onFiltrado) window.__onFiltrado();
           };
           const link = () => {
             const uid = cfg.auth && cfg.auth.currentUser ? cfg.auth.currentUser.uid : '';
@@ -2588,7 +2592,18 @@
             e.target.checked ? sel.add(e.target.dataset.id) : sel.delete(e.target.dataset.id);
             sync();
           });
-          tb.querySelector('button').onclick = () => { (window.__coincidentesIds || []).forEach(id => sel.add(id)); sync(); };
+          const selAll = tb.querySelector('#selAllFiltro');
+          const refrescarTb = () => {
+            const ids = window.__coincidentesIds || [];
+            const n = ids.length;
+            document.getElementById('selAllTxt').textContent = 'Seleccionar las ' + n + (n === 1 ? ' propiedad' : ' propiedades') + ' de este filtro (todas las páginas)';
+            selAll.checked = n > 0 && ids.every(id => sel.has(id));
+          };
+          window.__onFiltrado = refrescarTb;
+          selAll.onchange = () => {
+            (window.__coincidentesIds || []).forEach(id => selAll.checked ? sel.add(id) : sel.delete(id));
+            sync();
+          };
           bar.querySelector('.b-clr').onclick = () => { sel.clear(); sync(); };
           bar.querySelector('.b-copy').onclick = async e => {
             try { await navigator.clipboard.writeText(link()); e.target.textContent = '¡Copiado!'; }
