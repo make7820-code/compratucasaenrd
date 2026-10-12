@@ -1142,11 +1142,13 @@
       .share-check input{width:18px;height:18px;accent-color:#25d366;cursor:pointer;margin:0}
       .share-check:has(input:checked){background:rgba(37,211,102,.14);color:#16a34a}
       body.share-on .share-check{display:flex}
-      #shareToolbar{display:none;margin:0 0 8px;padding:0;border:0;align-items:center;font-size:12px;opacity:.7;transition:opacity .15s}
-      #shareToolbar:hover{opacity:1}
-      body.share-on #shareToolbar{display:inline-flex}
-      #shareToolbar input{width:14px;height:14px;accent-color:#25d366;cursor:pointer}
-      #shareToolbar label{display:flex;align-items:center;gap:7px;cursor:pointer;font-weight:500}
+      #filtersCol{width:320px;flex-shrink:0;display:flex;flex-direction:column;gap:12px}
+      #filtersCol .filters-sidebar{width:100%;box-sizing:border-box}
+      @media(max-width:900px){#filtersCol{width:100%}}
+      #shareToolbar{display:none;box-sizing:border-box;width:100%;padding:12px 18px;background:var(--bg-card);border:1px solid var(--border-color);border-radius:14px;align-items:center;font-size:13px}
+      body.share-on #shareToolbar{display:flex}
+      #shareToolbar input{width:16px;height:16px;accent-color:#25d366;cursor:pointer;margin:0}
+      #shareToolbar label{display:flex;align-items:center;gap:10px;cursor:pointer;font-weight:600;width:100%}
       #shareBar{display:none;position:fixed;left:0;right:0;bottom:0;z-index:9999;background:#111;color:#fff;padding:12px 16px;gap:14px;align-items:center;justify-content:center;flex-wrap:wrap;box-shadow:0 -4px 16px rgba(0,0,0,.4)}
       #shareBar.on{display:flex}
       #shareBar button{border:0;border-radius:8px;padding:10px 18px;font-weight:600;font-size:14px;cursor:pointer}
@@ -2572,7 +2574,12 @@
           const tb = document.createElement('div');
           tb.id = 'shareToolbar';
           tb.innerHTML = '<label><input type="checkbox" id="selAllFiltro"><span id="selAllTxt"></span></label>';
-          grid.parentNode.insertBefore(tb, document.getElementById('paginacionPropiedadesWrapTop'));
+          const aside = document.querySelector('.filters-sidebar');
+          const col = document.createElement('div');
+          col.id = 'filtersCol';
+          aside.parentNode.insertBefore(col, aside);
+          col.appendChild(tb);
+          col.appendChild(aside);
 
           const sync = () => {
             document.querySelectorAll('.share-cb').forEach(cb => { cb.checked = sel.has(cb.dataset.id); });
