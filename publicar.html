@@ -2812,7 +2812,7 @@
           btn.innerHTML = '<span>🏠</span> Ver Activas';
           btn.style.borderColor = '#f59e0b';
           tituloSeccion.innerHTML = '<span>🗄️ Propiedades Archivadas</span>';
-          if(toolbar) toolbar.style.display = 'none';
+          if(toolbar) toolbar.style.display = 'flex';
           if (btnExcel) btnExcel.innerHTML = '<span>📊</span> Descargar Excel (Archivadas)';
         } else {
           const totalArchivadas = await actualizarContadorArchivadas();
@@ -2821,6 +2821,14 @@
           if (btnExcel) btnExcel.innerHTML = '<span>📊</span> Descargar Excel';
           tituloSeccion.innerHTML = '<span>📋 Propiedades Activas</span>';
           if(toolbar) toolbar.style.display = 'flex';
+        }
+        // Al cambiar de vista se limpia el buscador y se ajusta el placeholder
+        const inputBusqueda = document.getElementById('inputFiltroBusqueda');
+        if (inputBusqueda) {
+          inputBusqueda.value = '';
+          inputBusqueda.placeholder = mostrandoArchivadas
+            ? 'Buscar en archivadas por título, ubicación o agente...'
+            : 'Buscar por título, ubicación o agente...';
         }
         renderizarPublicaciones();
       }
@@ -3275,7 +3283,7 @@
           }
 
           if (listaPropiedades.length === 0) {
-            contenedor.innerHTML = `<p style="color: var(--text-muted); text-align: center; grid-column: 1 / -1; padding: 40px;">${mostrandoArchivadas ? 'No hay propiedades archivadas.' : 'No se encontraron propiedades publicadas.'}</p>`;
+            contenedor.innerHTML = `<p style="color: var(--text-muted); text-align: center; grid-column: 1 / -1; padding: 40px;">${filtro.trim() !== '' ? 'No se encontraron propiedades' + (mostrandoArchivadas ? ' archivadas' : '') + ' con esa búsqueda.' : (mostrandoArchivadas ? 'No hay propiedades archivadas.' : 'No se encontraron propiedades publicadas.')}</p>`;
             renderizarControlesPaginacionGestion();
             return;
           }
