@@ -340,6 +340,12 @@
         font-size: clamp(15px, 2.6vw, 22px);
       }
 
+      /* Amueblado / Sin amueblar: hasta 4 líneas de precio, más compactas */
+      .property-price-main-wrap.multi-precio .property-price-main {
+        font-size: clamp(13px, 2.2vw, 18px);
+        white-space: normal;
+      }
+
       /* Cuadrícula de Especificaciones */
       .property-specs-grid {
         display: grid;
@@ -1093,6 +1099,46 @@
                </div>`
             : '';
 
+          // Dos precios (Amueblado / Sin amueblar): el precio principal es el AMUEBLADO
+          // y se muestran también los precios "sin amueblar" guardados al publicar.
+          const formatearPrecioExtra = (raw, monedaCampo) => {
+            if (!raw) return '';
+            const m = (monedaCampo || '').toUpperCase();
+            const esDolarExtra = m === 'USD' ||
+                                 raw.toString().toUpperCase().includes('USD') ||
+                                 raw.toString().includes('US$') ||
+                                 raw.toString().startsWith('$');
+            const num = parseFloat(raw.toString().replace(/[^0-9]/g, '')) || 0;
+            return `${esDolarExtra ? '$ ' : 'RD$ '}${num.toLocaleString('es-DO')}`;
+          };
+          const precioSinAmueblarFormateado = formatearPrecioExtra(selectedProperty.precioSinAmueblar, selectedProperty.monedaSinAmueblar);
+          const precioAlquilerSinAmueblarFormateado = formatearPrecioExtra(selectedProperty.precioAlquilerSinAmueblar, selectedProperty.monedaAlquilerSinAmueblar);
+          const mostrarDosPrecios = esAmueblado && selectedProperty.dosPreciosAmueblado === true && !!precioSinAmueblarFormateado;
+
+          let filasPrecio = [];
+          if (mostrarDosPrecios) {
+            if (esOperacionCombinada && precioAlquilerFormateado) {
+              filasPrecio.push(['#10b981', '🏷️ Venta amueblada', finalPriceFormatted]);
+              filasPrecio.push(['#10b981', '🏷️ Venta sin amueblar', precioSinAmueblarFormateado]);
+              filasPrecio.push(['#f59e0b', '🔑 Alquiler amueblado', precioAlquilerFormateado]);
+              if (precioAlquilerSinAmueblarFormateado) {
+                filasPrecio.push(['#f59e0b', '🔑 Alquiler sin amueblar', precioAlquilerSinAmueblarFormateado]);
+              }
+            } else {
+              filasPrecio.push([priceColor, '🛋️ Amueblado', finalPriceFormatted]);
+              filasPrecio.push([priceColor, '🪑 Sin amueblar', precioSinAmueblarFormateado]);
+            }
+          }
+          const claseWrapPrecio = mostrarDosPrecios
+            ? ' multi-precio'
+            : (esOperacionCombinada && precioAlquilerFormateado ? ' doble-precio' : '');
+          const preciosHeaderHtml = mostrarDosPrecios
+            ? filasPrecio.map(f => `<div class="property-price-main" style="color: ${f[0]};">${f[1]}: ${f[2]}</div>`).join('')
+            : (esOperacionCombinada && precioAlquilerFormateado
+                ? `<div class="property-price-main" style="color: #10b981;">🏷️ Venta: ${finalPriceFormatted}</div>
+                   <div class="property-price-main" style="color: #f59e0b;">🔑 Alquiler: ${precioAlquilerFormateado}</div>`
+                : `<div class="property-price-main" style="color: ${priceColor};">${finalPriceFormatted}</div>`);
+
           // Verificación de Precio Negociable
           const rawNegociable = selectedProperty.negociable;
           const esNegociable = rawNegociable === true || rawNegociable === "true" || rawNegociable === "si" || rawNegociable === "sí" || rawNegociable === 1 || rawNegociable === "on";
@@ -1271,13 +1317,8 @@
                   <h1 class="property-title-main">${title}</h1>
                   <p class="property-location-main">📍 ${location}</p>
                 </div>
-                <div class="property-price-main-wrap${esOperacionCombinada && precioAlquilerFormateado ? ' doble-precio' : ''}">
-                  ${esOperacionCombinada && precioAlquilerFormateado ? `
-                    <div class="property-price-main" style="color: #10b981;">🏷️ Venta: ${finalPriceFormatted}</div>
-                    <div class="property-price-main" style="color: #f59e0b;">🔑 Alquiler: ${precioAlquilerFormateado}</div>
-                  ` : `
-                    <div class="property-price-main" style="color: ${priceColor};">${finalPriceFormatted}</div>
-                  `}
+                <div class="property-price-main-wrap${claseWrapPrecio}">
+                  ${preciosHeaderHtml}
                 </div>
               </div>
 
