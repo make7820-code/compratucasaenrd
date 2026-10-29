@@ -1312,7 +1312,9 @@
                 <h4 class="preview-card-title" id="previewTitulo">Título de la propiedad</h4>
                 <p class="preview-card-loc" id="previewUbicacion">📍 Selecciona ubicación</p>
                 <div class="preview-card-price" id="previewPrecio">$ 0</div>
+                <div class="preview-card-price" id="previewPrecioSin" style="display:none; font-size: 13px; opacity: 0.85;"></div>
                 <div class="preview-card-price" id="previewPrecioAlquiler" style="display:none; font-size: 13px; opacity: 0.85;"></div>
+                <div class="preview-card-price" id="previewPrecioAlquilerSin" style="display:none; font-size: 13px; opacity: 0.85;"></div>
                 <p class="preview-card-desc" id="previewDescripcion"></p>
                 <div class="preview-card-meta">
                   <span id="previewHabs">🛏️ 0 Hab</span>
@@ -1406,7 +1408,7 @@
               </div>
             </div>
             <div class="publish-form-group" id="grupoPrecioAlquiler" style="display:none;">
-              <label>💰 Precio de Alquiler</label>
+              <label id="labelPrecioAlquiler">💰 Precio de Alquiler</label>
               <div style="display: flex; gap: 8px;">
                 <input type="number" id="propPrecioAlquiler" class="publish-control" placeholder="Ej. 1200" style="flex: 2;">
                 <select id="propMonedaAlquiler" class="publish-control" style="flex: 1;">
@@ -1455,6 +1457,38 @@
                 <input type="checkbox" id="propNegociable">
                 <span style="font-size: 13px; font-weight: 600; color: #22c55e;">🤝 Precio Negociable</span>
               </label>
+            </div>
+          </div>
+
+          <!-- DOS PRECIOS: Amueblado / Sin amueblar (solo aparece si marcas "Propiedad Amueblada") -->
+          <div id="bloqueDosPrecios" style="display:none;">
+            <div class="publish-form-group">
+              <label class="checkbox-container" style="border-color: rgba(139, 92, 246, 0.8); background: rgba(139, 92, 246, 0.08);">
+                <input type="checkbox" id="propDosPrecios">
+                <span style="font-size: 13px; font-weight: 600; color: #8b5cf6;">🛋️ Ofrecer dos precios: Amueblado y Sin amueblar</span>
+              </label>
+            </div>
+            <div class="form-grid-2" id="gruposPreciosSinAmueblar" style="display:none;">
+              <div class="publish-form-group">
+                <label id="labelPrecioSinAmueblar">🪑 Precio Sin Amueblar</label>
+                <div style="display: flex; gap: 8px;">
+                  <input type="number" id="propPrecioSinAmueblar" class="publish-control" placeholder="Ej. 130000" min="0" style="flex: 2;">
+                  <select id="propMonedaSinAmueblar" class="publish-control" style="flex: 1;">
+                    <option value="USD">USD ($)</option>
+                    <option value="DOP">DOP (RD$)</option>
+                  </select>
+                </div>
+              </div>
+              <div class="publish-form-group" id="grupoPrecioAlquilerSinAmueblar" style="display:none;">
+                <label>🔑 Precio de Alquiler Sin Amueblar</label>
+                <div style="display: flex; gap: 8px;">
+                  <input type="number" id="propPrecioAlquilerSinAmueblar" class="publish-control" placeholder="Ej. 1000" min="0" style="flex: 2;">
+                  <select id="propMonedaAlquilerSinAmueblar" class="publish-control" style="flex: 1;">
+                    <option value="USD">USD ($)</option>
+                    <option value="DOP">DOP (RD$)</option>
+                  </select>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -2114,6 +2148,58 @@
         if (inputPrecioAlquiler) inputPrecioAlquiler.required = false; // nunca obligatorio: si no se llena, no se muestra en el listado
         if (!esCombinada && inputPrecioAlquiler) inputPrecioAlquiler.value = '';
 
+        window.actualizarDosPrecios();
+      };
+
+      /* =========================================================
+         DOS PRECIOS (Amueblado / Sin amueblar)
+         Solo disponible cuando la propiedad está marcada como amueblada.
+         El precio principal pasa a ser el precio AMUEBLADO y aparece un
+         campo extra para el precio SIN AMUEBLAR (y uno adicional para el
+         alquiler cuando la operación es "Venta & Alquiler").
+      ========================================================= */
+      window.actualizarDosPrecios = function() {
+        const chkAmueblado = document.getElementById('propAmueblado');
+        const chkDos = document.getElementById('propDosPrecios');
+        const bloque = document.getElementById('bloqueDosPrecios');
+        const grupos = document.getElementById('gruposPreciosSinAmueblar');
+        const grupoAlqSin = document.getElementById('grupoPrecioAlquilerSinAmueblar');
+        const inputSin = document.getElementById('propPrecioSinAmueblar');
+        const inputAlqSin = document.getElementById('propPrecioAlquilerSinAmueblar');
+        if (!chkAmueblado || !chkDos || !bloque) { actualizarVistaPrevia(); return; }
+
+        const op = (document.getElementById('propOperacion').value || 'Venta').toLowerCase();
+        const esCombinada = op.includes('venta') && op.includes('alquiler');
+        const esAmueblado = chkAmueblado.checked;
+        if (!esAmueblado) chkDos.checked = false;
+        const dos = esAmueblado && chkDos.checked;
+
+        bloque.style.display = esAmueblado ? '' : 'none';
+        grupos.style.display = dos ? '' : 'none';
+        grupoAlqSin.style.display = (dos && esCombinada) ? '' : 'none';
+        inputSin.required = dos;
+
+        if (!dos) { inputSin.value = ''; }
+        if (!dos || !esCombinada) { inputAlqSin.value = ''; }
+
+        // Al activar los dos precios, las monedas de los campos nuevos
+        // arrancan igual que las del precio principal (se pueden cambiar).
+        if (dos && !chkDos.dataset.monedasInicializadas) {
+          document.getElementById('propMonedaSinAmueblar').value = document.getElementById('propMoneda').value;
+          document.getElementById('propMonedaAlquilerSinAmueblar').value = document.getElementById('propMonedaAlquiler').value;
+          chkDos.dataset.monedasInicializadas = '1';
+        }
+        if (!dos) delete chkDos.dataset.monedasInicializadas;
+
+        // Etiquetas claras: el precio principal es el AMUEBLADO
+        const sufijo = dos ? ' Amueblado' : '';
+        const labelPrincipal = document.getElementById('labelPrecioVenta');
+        const labelAlquiler = document.getElementById('labelPrecioAlquiler');
+        const labelSin = document.getElementById('labelPrecioSinAmueblar');
+        if (labelPrincipal) labelPrincipal.textContent = (esCombinada ? 'Precio de Venta' : 'Precio') + sufijo;
+        if (labelAlquiler) labelAlquiler.textContent = '💰 Precio de Alquiler' + sufijo;
+        if (labelSin) labelSin.textContent = esCombinada ? '🪑 Precio de Venta Sin Amueblar' : '🪑 Precio Sin Amueblar';
+
         actualizarVistaPrevia();
       };
 
@@ -2167,6 +2253,33 @@
           previewPrecioAlquilerEl.style.display = '';
         } else {
           previewPrecioAlquilerEl.style.display = 'none';
+        }
+
+        // Dos precios (Amueblado / Sin amueblar)
+        const chkDosPrev = document.getElementById('propDosPrecios');
+        const dosPreciosActivo = amueblado && chkDosPrev && chkDosPrev.checked;
+        const previewSinEl = document.getElementById('previewPrecioSin');
+        const previewAlqSinEl = document.getElementById('previewPrecioAlquilerSin');
+        previewSinEl.style.display = 'none';
+        previewAlqSinEl.style.display = 'none';
+        if (dosPreciosActivo) {
+          const fmtMoneda = (valor, mon) => `${mon === 'USD' ? '$' : 'RD$'} ${Number(valor).toLocaleString()}`;
+          const sinVal = document.getElementById('propPrecioSinAmueblar').value;
+          const sinMon = document.getElementById('propMonedaSinAmueblar').value;
+          const alqSinVal = document.getElementById('propPrecioAlquilerSinAmueblar').value;
+          const alqSinMon = document.getElementById('propMonedaAlquilerSinAmueblar').value;
+
+          if (esCombinadaParaPrecio) {
+            document.getElementById('previewPrecio').textContent = `🏷️ Venta amueblada: ${precioFmt}`;
+            if (sinVal) { previewSinEl.textContent = `🏷️ Venta sin amueblar: ${fmtMoneda(sinVal, sinMon)}`; previewSinEl.style.display = ''; }
+            if (precioAlquiler) {
+              previewPrecioAlquilerEl.textContent = `🔑 Alquiler amueblado: ${fmtMoneda(precioAlquiler, monedaAlquiler)}`;
+            }
+            if (alqSinVal) { previewAlqSinEl.textContent = `🔑 Alquiler sin amueblar: ${fmtMoneda(alqSinVal, alqSinMon)}`; previewAlqSinEl.style.display = ''; }
+          } else {
+            document.getElementById('previewPrecio').textContent = `🛋️ Amueblado: ${precioFmt}`;
+            if (sinVal) { previewSinEl.textContent = `🪑 Sin amueblar: ${fmtMoneda(sinVal, sinMon)}`; previewSinEl.style.display = ''; }
+          }
         }
 
         const previewBadgeUnidadesEl = document.getElementById('previewBadgeUnidades');
@@ -2237,8 +2350,8 @@
       }
 
       function inicializarVistaPreviaListeners() {
-        const idsInputEvent = ['propTitulo', 'propPrecio', 'propPrecioAlquiler', 'propUnidadesDisponibles', 'propHabitaciones', 'propBanos', 'propNivel', 'propParqueos', 'propDescripcion'];
-        const idsChangeEvent = ['propTipoPropiedad', 'propDistribucion', 'propOperacion', 'propMoneda', 'propMonedaAlquiler', 'propExtranjeros', 'propAmueblado', 'propPremium', 'propNegociable'];
+        const idsInputEvent = ['propTitulo', 'propPrecio', 'propPrecioAlquiler', 'propPrecioSinAmueblar', 'propPrecioAlquilerSinAmueblar', 'propUnidadesDisponibles', 'propHabitaciones', 'propBanos', 'propNivel', 'propParqueos', 'propDescripcion'];
+        const idsChangeEvent = ['propTipoPropiedad', 'propDistribucion', 'propOperacion', 'propMoneda', 'propMonedaAlquiler', 'propMonedaSinAmueblar', 'propMonedaAlquilerSinAmueblar', 'propExtranjeros', 'propPremium', 'propNegociable'];
 
         idsInputEvent.forEach(id => {
           const el = document.getElementById(id);
@@ -2247,6 +2360,12 @@
         idsChangeEvent.forEach(id => {
           const el = document.getElementById(id);
           if (el) el.addEventListener('change', actualizarVistaPrevia);
+        });
+
+        // Amueblado y "dos precios" también muestran/ocultan los campos de precio extra
+        ['propAmueblado', 'propDosPrecios'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.addEventListener('change', window.actualizarDosPrecios);
         });
 
         document.querySelectorAll('.extra-checkbox').forEach(chk => {
@@ -2733,6 +2852,8 @@
               'Parqueos': prop.parqueos ?? 'N/D',
               'Precio': prop.precio || 'N/D',
               'Precio Alquiler': prop.precioAlquiler || 'N/D',
+              'Precio Sin Amueblar': prop.precioSinAmueblar || 'N/D',
+              'Precio Alquiler Sin Amueblar': prop.precioAlquilerSinAmueblar || 'N/D',
               'Operación': prop.operacion || 'N/D',
               'Unidades Disponibles': prop.unidadesDisponibles || 1,
               'Tipo': prop.tipo || 'N/D',
@@ -2920,6 +3041,26 @@
 
           document.getElementById('propExtranjeros').checked = !!editarObj.extranjeros;
           document.getElementById('propAmueblado').checked = !!editarObj.amueblado;
+
+          // Dos precios (Amueblado / Sin amueblar)
+          const dosPreciosGuardado = !!editarObj.amueblado && editarObj.dosPreciosAmueblado === true && !!editarObj.precioSinAmueblar;
+          document.getElementById('propDosPrecios').checked = dosPreciosGuardado;
+          document.getElementById('propDosPrecios').dataset.monedasInicializadas = dosPreciosGuardado ? '1' : '';
+          if (!dosPreciosGuardado) delete document.getElementById('propDosPrecios').dataset.monedasInicializadas;
+          const cargarPrecioExtra = (valorGuardado, monedaGuardada, idInput, idMoneda) => {
+            const str = String(valorGuardado || '');
+            document.getElementById(idInput).value = str.replace(/[^0-9.]/g, '');
+            if (monedaGuardada) {
+              document.getElementById(idMoneda).value = monedaGuardada;
+            } else if (str.includes('RD') || str.includes('DOP')) {
+              document.getElementById(idMoneda).value = 'DOP';
+            } else if (str) {
+              document.getElementById(idMoneda).value = 'USD';
+            }
+          };
+          cargarPrecioExtra(dosPreciosGuardado ? editarObj.precioSinAmueblar : '', editarObj.monedaSinAmueblar, 'propPrecioSinAmueblar', 'propMonedaSinAmueblar');
+          cargarPrecioExtra(dosPreciosGuardado ? editarObj.precioAlquilerSinAmueblar : '', editarObj.monedaAlquilerSinAmueblar, 'propPrecioAlquilerSinAmueblar', 'propMonedaAlquilerSinAmueblar');
+
           document.getElementById('propPremium').checked = !!editarObj.premium;
           document.getElementById('propNegociable').checked = !!editarObj.negociable;
 
@@ -3053,6 +3194,20 @@
           }
         }
 
+        // Dos precios (Amueblado / Sin amueblar): si está activado, los precios "sin amueblar" son obligatorios.
+        if (document.getElementById('propAmueblado').checked && document.getElementById('propDosPrecios').checked) {
+          if (!document.getElementById('propPrecioSinAmueblar').value) {
+            alert("Activaste los dos precios: debes completar también el Precio Sin Amueblar.");
+            document.getElementById('propPrecioSinAmueblar').focus();
+            return;
+          }
+          if (operacionCheck.includes('venta') && operacionCheck.includes('alquiler') && !document.getElementById('propPrecioAlquilerSinAmueblar').value) {
+            alert("Activaste los dos precios: debes completar también el Precio de Alquiler Sin Amueblar.");
+            document.getElementById('propPrecioAlquilerSinAmueblar').focus();
+            return;
+          }
+        }
+
         // Seguridad: si se está editando, solo el dueño de la publicación o un admin pueden guardar cambios.
         if (editId) {
           const propOriginal = cachePropiedadesActuales[editId];
@@ -3125,6 +3280,16 @@
             ? `${monedaAlquilerVal === 'USD' ? '$' : 'RD$'} ${Number(precioAlquilerVal).toLocaleString()}`
             : '';
 
+          // Dos precios (Amueblado / Sin amueblar): solo aplica si la propiedad está amueblada.
+          // El precio principal (precio / precioAlquiler) es el AMUEBLADO; estos son los "sin amueblar".
+          const dosPreciosVal = document.getElementById('propAmueblado').checked && document.getElementById('propDosPrecios').checked;
+          const precioSinVal = dosPreciosVal ? document.getElementById('propPrecioSinAmueblar').value : '';
+          const monedaSinVal = document.getElementById('propMonedaSinAmueblar').value;
+          const precioSinFmt = precioSinVal ? `${monedaSinVal === 'USD' ? '$' : 'RD$'} ${Number(precioSinVal).toLocaleString()}` : '';
+          const precioAlqSinVal = (dosPreciosVal && esOperacionCombinada) ? document.getElementById('propPrecioAlquilerSinAmueblar').value : '';
+          const monedaAlqSinVal = document.getElementById('propMonedaAlquilerSinAmueblar').value;
+          const precioAlqSinFmt = precioAlqSinVal ? `${monedaAlqSinVal === 'USD' ? '$' : 'RD$'} ${Number(precioAlqSinVal).toLocaleString()}` : '';
+
           // Determina a nombre de quién queda publicada la propiedad:
           // - Agente normal: siempre a nombre de sí mismo.
           // - Admin/superadmin: por defecto a nombre de la empresa, PERO puede elegir
@@ -3167,6 +3332,11 @@
             moneda: monedaVal,
             precioAlquiler: precioAlquilerFmt,
             monedaAlquiler: precioAlquilerFmt ? monedaAlquilerVal : '',
+            dosPreciosAmueblado: !!(dosPreciosVal && precioSinFmt),
+            precioSinAmueblar: precioSinFmt,
+            monedaSinAmueblar: precioSinFmt ? monedaSinVal : '',
+            precioAlquilerSinAmueblar: precioAlqSinFmt,
+            monedaAlquilerSinAmueblar: precioAlqSinFmt ? monedaAlqSinVal : '',
             unidadesDisponibles: parseInt(document.getElementById('propUnidadesDisponibles').value, 10) || 1,
             agente: nombreAgenteFinal,
             agenteWhatsapp: (document.getElementById('propAgenteWhatsapp').value || '').replace(/[^0-9]/g, '') || '18498572321',
@@ -3464,7 +3634,7 @@
               <div class="card-body-content" onclick="window.location.href='detalle.html?id=${prop.id}'">
                 <div class="card-title-row">
                   <h4 class="card-prop-title">${prop.titulo}</h4>
-                  <span class="card-prop-price">${prop.precio}${prop.precioAlquiler ? ` <br><small style="opacity:0.8; font-weight:600;">🔑 ${prop.precioAlquiler}</small>` : ''}</span>
+                  <span class="card-prop-price">${prop.precio}${prop.precioAlquiler ? ` <br><small style="opacity:0.8; font-weight:600;">🔑 ${prop.precioAlquiler}</small>` : ''}${(prop.dosPreciosAmueblado && prop.precioSinAmueblar) ? ` <br><small style="opacity:0.8; font-weight:600;">🪑 Sin amueblar: ${prop.precioSinAmueblar}${prop.precioAlquilerSinAmueblar ? ` · 🔑 ${prop.precioAlquilerSinAmueblar}` : ''}</small>` : ''}</span>
                 </div>
                 <p class="card-prop-ubicacion">📍 ${prop.ubicacion}</p>
                 ${esModoAdmin ? `<p class="card-prop-ubicacion" style="opacity:0.8;">🧑‍💼 Agente: ${prop.agente || 'N/D'}</p>` : ''}
