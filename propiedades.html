@@ -1744,6 +1744,44 @@
           const rawAmueblado = prop.amueblado !== undefined ? prop.amueblado : prop.furnished;
           const esAmueblado = rawAmueblado === true || rawAmueblado === "true" || rawAmueblado === "si" || rawAmueblado === "sí" || rawAmueblado === 1 || rawAmueblado === "on";
 
+          /* Dos precios (Amueblado / Sin amueblar): el precio principal es el
+             AMUEBLADO y se muestran también los precios "sin amueblar" guardados */
+          const formatearPrecioExtraCard = (raw, monedaCampo) => {
+            if (!raw) return '';
+            const m = (monedaCampo || '').toUpperCase();
+            const esDolarExtra = m === 'USD' ||
+                                 raw.toString().toUpperCase().includes('USD') ||
+                                 raw.toString().includes('US$') ||
+                                 raw.toString().startsWith('$');
+            const num = parseFloat(raw.toString().replace(/[^0-9]/g, '')) || 0;
+            return { texto: (esDolarExtra ? '$ ' : 'RD$ ') + num.toLocaleString('es-DO'), num };
+          };
+          const sinAmueblarObj = formatearPrecioExtraCard(prop.precioSinAmueblar, prop.monedaSinAmueblar);
+          const alquilerSinAmueblarObj = formatearPrecioExtraCard(prop.precioAlquilerSinAmueblar, prop.monedaAlquilerSinAmueblar);
+          const mostrarDosPrecios = esAmueblado && prop.dosPreciosAmueblado === true && !!sinAmueblarObj;
+          const propSinAmueblarNum = mostrarDosPrecios ? sinAmueblarObj.num : 0;
+
+          let propPreciosHtml;
+          if (mostrarDosPrecios) {
+            const filasPrecio = [];
+            if (propPrecioAlquilerFmt) {
+              filasPrecio.push(['🏷️ Venta amueblada', propPrice]);
+              filasPrecio.push(['🏷️ Venta sin amueblar', sinAmueblarObj.texto]);
+              filasPrecio.push(['🔑 Alquiler amueblado', propPrecioAlquilerFmt]);
+              if (alquilerSinAmueblarObj) filasPrecio.push(['🔑 Alquiler sin amueblar', alquilerSinAmueblarObj.texto]);
+            } else {
+              filasPrecio.push(['🛋️ Amueblado', propPrice]);
+              filasPrecio.push(['🪑 Sin amueblar', sinAmueblarObj.texto]);
+            }
+            propPreciosHtml = filasPrecio.map((f, i) =>
+              `<div style="font-size: ${i === 0 ? '17px' : '15px'}; line-height: 1.35; ${i === 0 ? '' : 'opacity: 0.9;'}">${f[0]}: ${f[1]}</div>`
+            ).join('');
+          } else if (propPrecioAlquilerFmt) {
+            propPreciosHtml = `<span>🏷️ Venta: ${propPrice}</span><br><span style="font-size: 0.75em; opacity: 0.85;">🔑 Alquiler: ${propPrecioAlquilerFmt}</span>`;
+          } else {
+            propPreciosHtml = propPrice;
+          }
+
           const rawPremium = prop.premium;
           const esPremium = rawPremium === true || rawPremium === "true" || rawPremium === "si" || rawPremium === "sí" || rawPremium === 1 || rawPremium === "on";
 
@@ -1836,6 +1874,7 @@
                  data-type="${propType}" 
                  data-offer="${propOffer}" 
                  data-price="${propPriceNum}" 
+                 data-price-alt="${propSinAmueblarNum}"
                  data-habs="${propHabs}"
                  data-banos="${propBanos}"
                  data-parqueos="${propParqueos}"
@@ -1882,7 +1921,7 @@
                 <h3 class="property-title"><a href="detalle.html?id=${propId}">${propTitle}</a></h3>
                 <p class="property-location">📍 ${propLocation}</p>
                 <div class="property-price">
-                  ${propPrecioAlquilerFmt ? `<span>🏷️ Venta: ${propPrice}</span><br><span style="font-size: 0.75em; opacity: 0.85;">🔑 Alquiler: ${propPrecioAlquilerFmt}</span>` : propPrice}
+                  ${propPreciosHtml}
                 </div>
                 ${propDescripcion ? `<p class="property-desc-preview">${propDescripcion}</p>` : ''}
                 <div class="footer-info property-footer-info">
@@ -2271,6 +2310,7 @@
             const type = card.getAttribute('data-type');
             const offer = card.getAttribute('data-offer');
             const price = parseFloat(card.getAttribute('data-price')) || 0;
+            const priceAlt = parseFloat(card.getAttribute('data-price-alt')) || 0;
             const habs = card.getAttribute('data-habs');
             const banos = card.getAttribute('data-banos');
             const parqueos = card.getAttribute('data-parqueos');
@@ -2294,7 +2334,7 @@
               amueblado,
               extranjeros
             });
-            let cumplePrecio = price >= pMin && price <= pMax;
+            let cumplePrecio = (price >= pMin && price <= pMax) || (priceAlt > 0 && priceAlt >= pMin && priceAlt <= pMax);
             let cumpleProv = provVal === '' || location.includes(provVal);
             let cumpleMun = munVal === '' || location.includes(munVal);
             let cumpleDis = disVal === '' || location.includes(disVal);
