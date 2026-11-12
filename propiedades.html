@@ -329,9 +329,10 @@
       }
 
       /* ================= DESCARGA DE FOTOS/VIDEOS (solo roles autorizados) ================= */
-      .btn-descargar-card { display: none; }
-      body.puede-descargar .btn-descargar-card { display: inline-flex; align-items: center; justify-content: center; }
-      body.share-view .btn-descargar-card { display: none !important; }
+      /* Oculto por defecto (con !important para que .property-action-icon no lo anule) */
+      .btn-descargar-card, .property-action-icon.btn-descargar-card { display: none !important; }
+      body.puede-descargar .property-action-icon.btn-descargar-card { display: flex !important; align-items: center; justify-content: center; }
+      body.share-view .property-action-icon.btn-descargar-card { display: none !important; }
       .toast-descarga {
         position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%);
         background: #18181b; color: #fff; border: 1px solid rgba(255,255,255,0.15);
