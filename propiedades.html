@@ -340,6 +340,14 @@
         box-shadow: 0 10px 30px rgba(0,0,0,0.4); max-width: 90vw; text-align: center;
       }
 
+      /* ================= PROTECCIÓN CONTRA GUARDAR FOTOS/VIDEOS ================= */
+      .property-card img, .property-card video {
+        -webkit-touch-callout: none;   /* iOS: quita el menú "Guardar imagen" al mantener presionado */
+        -webkit-user-select: none; user-select: none;
+        -webkit-user-drag: none;
+      }
+      .property-card img { pointer-events: none; } /* la imagen no recibe toques/arrastre; el clic lo recibe la tarjeta */
+
       /* ================= TARJETA DE "AGENTE" (resultado de búsqueda por nombre) ================= */
       .agent-result-card {
         grid-column: 1 / -1;
@@ -1835,7 +1843,7 @@
           if (propVideoArchivo) {
             videoSlideHtml = `
               <div class="property-carousel-slide">
-                <video src="${propVideoArchivo}" controls preload="none" style="width:100%; height:100%; object-fit:cover; background:#000;"></video>
+                <video src="${propVideoArchivo}" controls controlsList="nodownload noplaybackrate" disablePictureInPicture disableRemotePlayback oncontextmenu="return false" preload="none" style="width:100%; height:100%; object-fit:cover; background:#000;"></video>
               </div>
             `;
           } else if (ytMatchCard) {
@@ -1860,7 +1868,7 @@
           listaImagenes.forEach((imgUrl, index) => {
             slidesHtml += `
               <div class="property-carousel-slide">
-                <img src="${imgUrl}" alt="${propTitle}" onerror="this.src='assets/puerto-marina.png'">
+                <img src="${imgUrl}" alt="${propTitle}" draggable="false" oncontextmenu="return false" onerror="this.src='assets/puerto-marina.png'">
               </div>
             `;
             dotsHtml += `
@@ -2826,6 +2834,15 @@
           }, true);
         })();
       });
+    </script>
+
+    <script>
+      // Bloquea clic derecho / mantener presionado y arrastrar sobre fotos y videos de las propiedades
+      (function () {
+        const dentroDeMedia = (e) => e.target && e.target.closest && e.target.closest('.property-card img, .property-card video, .property-card .carousel, .property-card [class*="slide"]');
+        ['contextmenu', 'dragstart'].forEach(ev =>
+          document.addEventListener(ev, (e) => { if (dentroDeMedia(e)) e.preventDefault(); }, true));
+      })();
     </script>
 
     <!-- Campanita de notificaciones y menú de perfil (compartido con comunidad.html e index.html) -->
