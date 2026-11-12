@@ -328,6 +328,17 @@
         box-shadow: 0 15px 35px rgba(0,0,0,0.3);
       }
 
+      /* ================= DESCARGA DE FOTOS/VIDEOS (solo roles autorizados) ================= */
+      .btn-descargar-card { display: none; }
+      body.puede-descargar .btn-descargar-card { display: inline-flex; align-items: center; justify-content: center; }
+      body.share-view .btn-descargar-card { display: none !important; }
+      .toast-descarga {
+        position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%);
+        background: #18181b; color: #fff; border: 1px solid rgba(255,255,255,0.15);
+        padding: 12px 20px; border-radius: 12px; font-size: 14px; z-index: 99999;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.4); max-width: 90vw; text-align: center;
+      }
+
       /* ================= TARJETA DE "AGENTE" (resultado de búsqueda por nombre) ================= */
       .agent-result-card {
         grid-column: 1 / -1;
@@ -1861,6 +1872,15 @@
             dotsHtml += `<span class="property-dot ${listaImagenes.length === 0 ? 'active' : ''}" data-index="${listaImagenes.length}">🎥</span>`;
           }
 
+          // Guarda las fotos reales y el video (si es un archivo propio) para el botón de descarga.
+          // Los links de YouTube no se pueden descargar, y la foto de relleno tampoco cuenta.
+          window.__mediaProps = window.__mediaProps || {};
+          window.__mediaProps[propId] = {
+            titulo: propTitle,
+            fotos: listaImagenes.filter(u => u && !String(u).includes('assets/puerto-marina.png')),
+            video: propVideoArchivo || null
+          };
+
           const totalSlidesTarjeta = listaImagenes.length + (videoSlideHtml ? 1 : 0);
           const showControls = totalSlidesTarjeta > 1;
 
@@ -1913,6 +1933,7 @@
                   <button class="property-action-icon btn-favorito-card" data-id="${propId}" title="Guardar en Favoritos">
                     ${esFavorito ? '❤️' : '🤍'}
                   </button>
+                  <button class="property-action-icon btn-descargar-card" data-id="${propId}" title="Descargar fotos y videos">⬇️</button>
                 </div>
               </div>
 
@@ -2670,6 +2691,138 @@
           if (cfg.auth && cfg.auth.onAuthStateChanged) {
             cfg.auth.onAuthStateChanged(u => { if (u) activar(); });
           }
+        })();
+
+        // ================= DESCARGA DE FOTOS Y VIDEOS (solo por rol) =================
+        // Solo estos roles ven el botón ⬇️ en las tarjetas. El rol se lee de usuarios/{uid}.rol
+        (async () => {
+          const ROLES_DESCARGA = ['agente', 'agentepro', 'admin', 'superadmin'];
+          const cfg = await import('./firebase-config.js').catch(() => ({}));
+
+          if (cfg.auth && cfg.auth.onAuthStateChanged && cfg.getDoc && cfg.doc) {
+            cfg.auth.onAuthStateChanged(async u => {
+              document.body.classList.remove('puede-descargar');
+              if (!u) return;
+              try {
+                const snap = await cfg.getDoc(cfg.doc(cfg.db, 'usuarios', u.uid));
+                const d = snap.exists() ? snap.data() : {};
+                const rol = String(d.rol || d.role || '').toLowerCase().trim();
+                if (ROLES_DESCARGA.includes(rol)) document.body.classList.add('puede-descargar');
+              } catch (e) {
+                console.warn('No se pudo verificar el rol del usuario', e);
+              }
+            });
+          }
+
+          const toast = (texto) => {
+            const t = document.createElement('div');
+            t.className = 'toast-descarga';
+            t.textContent = texto;
+            document.body.appendChild(t);
+            setTimeout(() => t.remove(), 4500);
+          };
+
+          const limpiarNombre = (txt) => (txt || 'propiedad').toString()
+            .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+            .replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-+|-+$/g, '').toLowerCase().slice(0, 50) || 'propiedad';
+
+          const extension = (url, def) => {
+            try {
+              const m = new URL(url, location.href).pathname.match(/\.(jpe?g|png|webp|gif|mp4|mov|webm)$/i);
+              return m ? '.' + m[1].toLowerCase() : def;
+            } catch (_) { return def; }
+          };
+
+          const guardarBlob = (blob, nombre) => {
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = nombre;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+          };
+
+          const cargarJSZip = () => new Promise((resolve) => {
+            if (window.JSZip) return resolve(window.JSZip);
+            const sc = document.createElement('script');
+            sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+            sc.onload = () => resolve(window.JSZip);
+            sc.onerror = () => resolve(null);
+            document.head.appendChild(sc);
+          });
+
+          async function descargarMedia(btn) {
+            // Doble verificación: si no tiene el rol, no se hace nada
+            if (!document.body.classList.contains('puede-descargar')) return;
+            const m = window.__mediaProps && window.__mediaProps[btn.dataset.id];
+            if (!m) return;
+
+            const base = limpiarNombre(m.titulo);
+            const archivos = [];
+            m.fotos.forEach((u, i) => archivos.push({ url: u, nombre: base + '-foto-' + (i + 1) + extension(u, '.jpg') }));
+            if (m.video) archivos.push({ url: m.video, nombre: base + '-video' + extension(m.video, '.mp4') });
+
+            if (!archivos.length) {
+              toast('Esta propiedad no tiene fotos ni videos para descargar.');
+              return;
+            }
+
+            const textoOriginal = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = '⏳';
+            const descargados = [];
+            const fallidos = [];
+
+            for (const f of archivos) {
+              try {
+                const resp = await fetch(f.url, { mode: 'cors' });
+                if (!resp.ok) throw new Error('HTTP ' + resp.status);
+                descargados.push({ nombre: f.nombre, blob: await resp.blob() });
+              } catch (err) {
+                console.warn('No se pudo descargar', f.url, err);
+                fallidos.push(f);
+              }
+            }
+
+            if (descargados.length === 1) {
+              guardarBlob(descargados[0].blob, descargados[0].nombre);
+            } else if (descargados.length > 1) {
+              const JSZip = await cargarJSZip();
+              if (JSZip) {
+                const zip = new JSZip();
+                descargados.forEach(d => zip.file(d.nombre, d.blob));
+                guardarBlob(await zip.generateAsync({ type: 'blob' }), base + '.zip');
+              } else {
+                // Sin JSZip: se descargan uno por uno
+                for (const d of descargados) {
+                  guardarBlob(d.blob, d.nombre);
+                  await new Promise(r => setTimeout(r, 400));
+                }
+              }
+            }
+
+            // Lo que el servidor no dejó descargar directo (CORS) se abre en otra pestaña
+            if (fallidos.length) {
+              fallidos.forEach((f, i) => setTimeout(() => window.open(f.url, '_blank'), i * 400));
+              toast(fallidos.length + (fallidos.length === 1 ? ' archivo se abrió' : ' archivos se abrieron') +
+                ' en otra pestaña (el servidor no permite descarga directa). Guárdalo(s) desde ahí.');
+            } else {
+              toast('Descarga lista: ' + descargados.length + (descargados.length === 1 ? ' archivo' : ' archivos') + '.');
+            }
+
+            btn.disabled = false;
+            btn.textContent = textoOriginal;
+          }
+
+          // Captura el clic antes que el resto de la tarjeta (carrusel / link al detalle)
+          document.addEventListener('click', (e) => {
+            const btn = e.target.closest && e.target.closest('.btn-descargar-card');
+            if (!btn) return;
+            e.preventDefault();
+            e.stopPropagation();
+            descargarMedia(btn);
+          }, true);
         })();
       });
     </script>
