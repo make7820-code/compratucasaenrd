@@ -1585,6 +1585,7 @@
     <script type="module">
       import { db, collection, getDocs } from './firebase-config.js';
       import { descargarTodoMarcado } from './marca-agua.js';
+      import { obtenerMarcaAgente } from './marca-agente.js';
 
       // Reemplaza la miniatura de YouTube (facade) por el iframe real solo al hacer clic,
       // para no cargar decenas de iframes de golpe en el listado de propiedades.
@@ -1884,6 +1885,8 @@
           window.__mediaProps = window.__mediaProps || {};
           window.__mediaProps[propId] = {
             titulo: propTitle,
+            // Solo las publicadas por agente/agentepro pueden llevar marca de agua propia
+            agenteUid: (prop.creadorRol === 'agente' || prop.creadorRol === 'agentepro') ? (prop.creadoPorUid || '') : '',
             fotos: listaImagenes.filter(u => u && !String(u).includes('assets/puerto-marina.png')),
             video: propVideoArchivo || null
           };
@@ -2703,7 +2706,7 @@
         // ================= DESCARGA DE FOTOS Y VIDEOS (todos, siempre con marca de agua) =================
         // La lógica de la marca vive en marca-agua.js. Se captura el clic antes que el resto
         // de la tarjeta (carrusel / link al detalle).
-        document.addEventListener('click', (e) => {
+        document.addEventListener('click', async (e) => {
           const btn = e.target.closest && e.target.closest('.btn-descargar-card');
           if (!btn) return;
           e.preventDefault();
@@ -2711,7 +2714,9 @@
           if (btn.disabled) return;
           const m = window.__mediaProps && window.__mediaProps[btn.dataset.id];
           if (!m) return;
-          descargarTodoMarcado(m, btn);
+          // Marca de agua del agente (null = se usa la de la empresa)
+          const marcaAgente = m.agenteUid ? await obtenerMarcaAgente(m.agenteUid) : null;
+          descargarTodoMarcado({ ...m, marcaAgente }, btn, marcaAgente);
         }, true);
       });
     </script>
