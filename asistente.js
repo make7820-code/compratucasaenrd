@@ -149,7 +149,7 @@ function blogsRelevantes(consulta, respuesta, max = 3) {
 const css = `
 #ia-btn{position:fixed;right:18px;bottom:18px;z-index:9998;width:56px;height:56px;border-radius:50%;border:0;cursor:pointer;
   background:#3b82f6;color:#fff;font-size:26px;box-shadow:0 8px 24px rgba(59,130,246,.45)}
-#ia-panel{position:fixed;right:18px;bottom:86px;z-index:9999;width:370px;max-width:calc(100vw - 24px);height:540px;max-height:calc(100vh - 110px);
+#ia-panel{position:fixed;right:18px;bottom:86px;z-index:9999;width:370px;max-width:calc(100vw - 24px);height:540px;max-height:calc(100vh - 110px);max-height:calc(100dvh - 110px);
   display:none;flex-direction:column;background:var(--bg-card,#121214);color:var(--text-main,#fff);border:1px solid var(--border-color,rgba(255,255,255,.1));
   border-radius:18px;box-shadow:0 20px 50px rgba(0,0,0,.45);overflow:hidden;font-family:inherit}
 #ia-panel.abierto{display:flex}
@@ -179,7 +179,13 @@ const css = `
 #ia-form{display:flex;gap:8px;padding:10px;border-top:1px solid var(--border-color,rgba(255,255,255,.1))}
 #ia-form input{flex:1;min-width:0;padding:10px 12px;border-radius:12px;border:1px solid var(--border-color,rgba(255,255,255,.15));background:var(--bg-input,#1f1f23);color:inherit;font-size:14px;font-family:inherit}
 #ia-form button{border:0;border-radius:12px;padding:0 16px;background:#3b82f6;color:#fff;font-weight:700;cursor:pointer}
-#ia-btn:focus-visible,#ia-form button:focus-visible,#ia-form input:focus-visible{outline:2px solid #93c5fd;outline-offset:2px}`;
+#ia-btn:focus-visible,#ia-form button:focus-visible,#ia-form input:focus-visible{outline:2px solid #93c5fd;outline-offset:2px}
+/* Móvil y app Android: el panel ocupa casi toda la pantalla y se adapta solo al teclado */
+@media (max-width:600px){
+  #ia-panel{left:8px;right:8px;top:8px;bottom:8px;width:auto;max-width:none;height:auto;max-height:none;border-radius:16px}
+  #ia-form input{font-size:16px}
+  #ia-msgs{min-height:0}
+}`;
 
 const el = (tag, props = {}, ...hijos) => {
   const e = Object.assign(document.createElement(tag), props);
