@@ -468,6 +468,26 @@
         border-radius: 999px;
       }
 
+      /* Botones de descarga (siempre con marca de agua) */
+      .gallery-dl-btn {
+        position: absolute; bottom: 16px; left: 16px; z-index: 3;
+        background: rgba(0, 0, 0, 0.7); color: #fff; border: none;
+        padding: 8px 14px; border-radius: 10px; font-size: 13px; font-weight: 700;
+        cursor: pointer; transition: background 0.2s;
+      }
+      .gallery-dl-btn:hover { background: #3b82f6; }
+      .gallery-dl-btn:disabled, .thumb-dl-btn:disabled, .video-dl-btn:disabled { opacity: 0.7; cursor: wait; }
+      .gallery-thumb-item { position: relative; }
+      .thumb-dl-btn {
+        position: absolute; right: 3px; bottom: 3px; width: 24px; height: 24px;
+        border-radius: 50%; border: none; background: rgba(0, 0, 0, 0.75); color: #fff;
+        font-size: 12px; cursor: pointer; display: flex; align-items: center;
+        justify-content: center; padding: 0; transition: background 0.2s;
+      }
+      .thumb-dl-btn:hover { background: #3b82f6; }
+      .video-dl-btn { background: #3b82f6; }
+      .video-dl-btn:hover { background: #2563eb; }
+
       /* Barra lateral de contacto */
       .property-sidebar {
         display: flex;
@@ -973,6 +993,7 @@
     <script type="module">
       import { db, doc, getDoc } from './firebase-config.js';
       import { resolverUbicacion, montarMapa, urlAbrirUbicacion } from './ubicacion-mapa.js';
+      import { descargarFotoMarcada, descargarVideoMarcado, limpiarNombre } from './marca-agua.js';
 
       window.addEventListener('DOMContentLoaded', async () => {
         const urlParams = new URLSearchParams(window.location.search);
@@ -1261,11 +1282,18 @@
           // no se repite el video en la barra lateral.
           const videoEnGaleriaPrincipal = imgs.length === 0 && !!embedVideoHtml;
 
+          // Botón para descargar el video (solo si es un archivo propio; los links de
+          // YouTube/Instagram/TikTok no se pueden descargar). Siempre sale con marca de agua.
+          const botonDescargarVideoHtml = videoArchivo
+            ? `<button type="button" id="btnDescargarVideo" class="video-link-btn video-dl-btn" style="margin-top:10px;"><span>⬇️</span> Descargar video</button>`
+            : '';
+          const botonesVideoHtml = botonVerVideoHtml + botonDescargarVideoHtml;
+
           // Cuando el video ocupa la galería principal, esa caja tiene "overflow: hidden"
-          // y altura fija, así que el botón de "Ver Video" se coloca aparte, justo debajo
-          // de la galería, para que siempre sea visible.
-          const botonVerVideoExternoHtml = (videoEnGaleriaPrincipal && botonVerVideoHtml) ? `
-            <div style="margin: -14px 0 24px 0;">${botonVerVideoHtml}</div>
+          // y altura fija, así que los botones se colocan aparte, justo debajo de la
+          // galería, para que siempre sean visibles.
+          const botonVerVideoExternoHtml = (videoEnGaleriaPrincipal && botonesVideoHtml) ? `
+            <div style="margin: -14px 0 24px 0;">${botonesVideoHtml}</div>
           ` : '';
 
           const videoWidgetHtml = (embedVideoHtml && !videoEnGaleriaPrincipal) ? `
@@ -1274,14 +1302,14 @@
                 <span>🎥</span> Video de la propiedad
               </div>
               ${embedVideoHtml}
-              ${botonVerVideoHtml}
+              ${botonesVideoHtml}
             </div>
-          ` : (!embedVideoHtml && botonVerVideoHtml) ? `
+          ` : (!embedVideoHtml && botonesVideoHtml) ? `
             <div class="property-video-box">
               <div class="property-video-title">
                 <span>🎥</span> Video de la propiedad
               </div>
-              ${botonVerVideoHtml}
+              ${botonesVideoHtml}
             </div>
           ` : '';
           const description = selectedProperty.descripcion || selectedProperty.description || selectedProperty.detalles || 'Sin descripción detallada.';
@@ -1340,6 +1368,8 @@
                     <button class="gallery-nav-btn gallery-next" id="nextImgBtn">&#10095;</button>
                     <div class="gallery-counter"><span id="currentImgIndex">1</span> / ${imgs.length}</div>
                   ` : ''}
+
+                  ${imgs.length > 0 ? `<button type="button" class="gallery-dl-btn" id="dlFotoActual" title="Descargar esta foto">⬇️ Descargar foto</button>` : ''}
                 `}
               </div>
 
@@ -1350,6 +1380,7 @@
                   ${imgs.map((src, i) => `
                     <div class="gallery-thumb-item${i === 0 ? ' active' : ''}" data-index="${i}">
                       <img src="${src}" alt="${title} miniatura ${i + 1}" onerror="this.src='assets/puerto-marina.png'">
+                      <button type="button" class="thumb-dl-btn" data-index="${i}" title="Descargar esta foto">⬇️</button>
                     </div>
                   `).join('')}
                 </div>
@@ -1471,6 +1502,33 @@
               goToImage(Number(item.dataset.index));
             });
           });
+
+          // Descargas una por una (siempre con marca de agua)
+          const baseNombre = limpiarNombre(title);
+          const btnDlFoto = document.getElementById('dlFotoActual');
+          if (btnDlFoto) {
+            btnDlFoto.addEventListener('click', (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              descargarFotoMarcada(imgs[currentIndex], `${baseNombre}-foto-${currentIndex + 1}`, btnDlFoto);
+            });
+          }
+          document.querySelectorAll('.thumb-dl-btn').forEach(b => {
+            b.addEventListener('click', (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              const i = Number(b.dataset.index);
+              descargarFotoMarcada(imgs[i], `${baseNombre}-foto-${i + 1}`, b);
+            });
+          });
+          const btnDlVideo = document.getElementById('btnDescargarVideo');
+          if (btnDlVideo && videoArchivo) {
+            btnDlVideo.addEventListener('click', (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              descargarVideoMarcado(videoArchivo, `${baseNombre}-video`, btnDlVideo);
+            });
+          }
 
           // Modal de Zoom
           const modal = document.getElementById('imageModal');
