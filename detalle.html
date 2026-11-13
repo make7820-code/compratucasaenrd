@@ -430,6 +430,29 @@
       .ub-etiqueta-calle::before { display: none; }
       .ub-pin { background: transparent; border: none; }
 
+      /* ===== Requisitos ===== */
+      .property-requisitos-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .property-requisitos-list li {
+        position: relative;
+        padding-left: 24px;
+        font-size: 15px;
+        line-height: 1.5;
+      }
+      .property-requisitos-list li::before {
+        content: "✓";
+        position: absolute;
+        left: 0;
+        color: #10b981;
+        font-weight: 800;
+      }
+
       /* ===== Sección de Extras / Comodidades (destacada) ===== */
       .property-extras-section {
         margin-top: 30px;
@@ -1315,6 +1338,20 @@
           ` : '';
           const description = selectedProperty.descripcion || selectedProperty.description || selectedProperty.detalles || 'Sin descripción detallada.';
 
+          // Requisitos: si la propiedad no tiene (publicaciones antiguas o campo vacío), se usa el valor por defecto.
+          const REQUISITOS_POR_DEFECTO = '3 depósitos\n3000 de contrato\nUn garante dominicano';
+          const requisitosTexto = (selectedProperty.requisitos || '').toString().trim() || REQUISITOS_POR_DEFECTO;
+          const escaparHtmlReq = (t) => t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+          const requisitosLineas = requisitosTexto.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+          const requisitosSectionHtml = `
+            <div class="property-description-section">
+              <h3>📋 Requisitos</h3>
+              <ul class="property-requisitos-list">
+                ${requisitosLineas.map(l => `<li>${escaparHtmlReq(l)}</li>`).join('')}
+              </ul>
+            </div>
+          `;
+
           // Datos del agente que publicó esta propiedad (si la publicación no tiene agente asignado,
           // se usa el contacto general del sitio como respaldo).
           // Si quien publicó era admin o superadmin (o es una publicación antigua sin ese dato
@@ -1416,6 +1453,8 @@
                 <h3>Acerca de esta propiedad</h3>
                 <p>${description}</p>
               </div>
+
+              ${requisitosSectionHtml}
 
               <div class="property-description-section property-map-section" id="seccionMapaUbicacion" translate="no">
                 <h3>📍 Ubicación</h3>
