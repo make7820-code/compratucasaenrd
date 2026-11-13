@@ -597,6 +597,36 @@
           font-size: 16px;
         }
       }
+
+      /* Interruptor de notificaciones push */
+      .switch-push {
+        width: 46px;
+        height: 26px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        background: #3f3f46;
+        position: relative;
+        cursor: pointer;
+        padding: 0;
+        flex-shrink: 0;
+        transition: background 0.2s;
+      }
+      .switch-push::after {
+        content: '';
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: #fff;
+        transition: left 0.2s;
+      }
+      .switch-push.on { background: #22c55e; border-color: #22c55e; }
+      .switch-push.on::after { left: 22px; }
+      .switch-push:disabled { opacity: 0.6; cursor: wait; }
+      body.light-mode .switch-push:not(.on) { background: #d4d4d8; border-color: rgba(0,0,0,0.12); }
+      .push-msg { font-size: 12px; color: #9ca3af; margin-top: 6px; line-height: 1.4; }
     </style>
 </head>
 <body>
@@ -816,8 +846,9 @@
                 </div>
                 <div class="pref-toggle-row">
                   <span style="font-size: 14px;">Notificaciones Push</span>
-                  <span class="toggle-switch-off">✖</span>
+                  <button type="button" class="switch-push" id="switchPush" role="switch" aria-checked="false" aria-label="Notificaciones push"></button>
                 </div>
+                <div class="push-msg" id="pushMsg"></div>
                 <div style="margin-top: 20px; text-align: center;">
                   <a href="#" style="color: #60a5fa; font-size: 14px; text-decoration: none;" onclick="alert('Gestionar preferencias')">Gestionar Preferencias</a>
                 </div>
@@ -1659,6 +1690,45 @@
         alert("Has cerrado sesión correctamente.");
         window.location.href = 'index.html';
       }
+    </script>
+
+    <!-- Interruptor de Notificaciones Push (funciona dentro de la app Android) -->
+    <script>
+      (function () {
+        const interruptor = document.getElementById('switchPush');
+        const mensaje = document.getElementById('pushMsg');
+        if (!interruptor || !mensaje) return;
+
+        const puente = window.AndroidNotificaciones; // lo agrega la app Android
+
+        function pintar(activo) {
+          interruptor.classList.toggle('on', !!activo);
+          interruptor.setAttribute('aria-checked', activo ? 'true' : 'false');
+          interruptor.disabled = false;
+          mensaje.textContent = activo
+            ? 'Recibirás un aviso cuando se publique una propiedad nueva o baje de precio.'
+            : 'No recibirás avisos de propiedades nuevas ni de bajas de precio.';
+        }
+
+        // La app llama a esta función cuando termina de activar o desactivar
+        window.notificacionesAppCambio = pintar;
+
+        if (!puente) {
+          interruptor.style.opacity = '0.5';
+          mensaje.textContent = 'Las notificaciones push funcionan dentro de la app de Compra tu casa en RD para Android.';
+          return;
+        }
+
+        pintar(puente.estaActivado());
+
+        interruptor.addEventListener('click', () => {
+          const quiere = !interruptor.classList.contains('on');
+          interruptor.disabled = true;
+          if (quiere) { puente.activar(); } else { puente.desactivar(); }
+          // Por si la app no responde, se vuelve a leer el estado real
+          setTimeout(() => pintar(puente.estaActivado()), 20000);
+        });
+      })();
     </script>
 
     <!-- Menú hamburguesa (móvil) -->
