@@ -57,9 +57,18 @@ document.addEventListener('DOMContentLoaded', () => {
           (NOTIFICAR_AL_AUTOR || p.creadoPorUid !== user.uid) &&
           p.fechaCreacion && p.fechaCreacion > desde
         );
-      console.log(`[Notificaciones] propiedades leídas: ${snap.size}, nuevas para este usuario: ${newProps.length}`);
+      lastPropsError = "";
+      console.log(`[Notificaciones] propiedades leídas: ${snap.size}, nuevas para este usuario: ${newProps.length}, desde: ${desde}`);
+      snap.docs.slice(0, 3).forEach(d => {
+        const x = d.data();
+        console.log("[Notificaciones] muestra:", d.id, "| titulo:", x.titulo, "| fechaCreacion:", x.fechaCreacion, "| archivada:", x.archivada, "| creadoPorUid:", x.creadoPorUid);
+      });
       rerender();
-    }, (err) => console.error("[Notificaciones] Error al leer 'propiedades':", err));
+    }, (err) => {
+      console.error("[Notificaciones] Error al leer 'propiedades':", err);
+      lastPropsError = (err && (err.code || err.message)) || "error desconocido";
+      rerender();
+    });
 
     // Escuchar mensajes en tiempo real para las notificaciones globales
     const q = query(collection(db, "mensajes"), where("userId", "==", user.uid));
@@ -101,6 +110,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 });
+
+let notifOpen = false; // la campana queda abierta/cerrada por clic, y se conserva aunque se actualice la lista
+let outsideClickBound = false;
+let lastPropsError = ""; // se muestra en la campana si falla la lectura de propiedades
 
 function esc(v) {
   return String(v ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
@@ -149,7 +162,7 @@ function renderGlobalNavbar(container, userId, displayName, avatarSrc, unreadCon
         <div id="notificationListContent" style="max-height: 320px; overflow-y: auto;">
           ${
             !hasUnread
-            ? '<div style="padding: 20px; text-align: center; color: #71717a; font-size: 12px;">No hay notificaciones nuevas</div>'
+            ? '<div style="padding: 20px; text-align: center; color: #71717a; font-size: 12px;">No hay notificaciones nuevas' + (lastPropsError ? `<div style="margin-top:8px; color:#ef4444;">⚠️ No se pudieron leer las propiedades: ${esc(lastPropsError)}</div>` : '') + '</div>'
             : visibleProps.map(p => {
                 const img = (Array.isArray(p.imagenes) && p.imagenes[0]) || 'assets/puerto-marina.png';
                 const price = formatPropPrice(p);
@@ -209,17 +222,33 @@ function renderGlobalNavbar(container, userId, displayName, avatarSrc, unreadCon
     </div>
   `;
 
-  // Control del menú desplegable de notificaciones al pasar el ratón o hacer clic
+  // Campanita: un clic abre y se queda abierta; otro clic la cierra
   const notificationBellBtn = document.getElementById('notificationBellBtn');
   const notificationDropdown = document.getElementById('notificationDropdown');
-  
+
   if (notificationBellBtn && notificationDropdown) {
-    notificationBellBtn.addEventListener('mouseenter', () => { 
-      notificationDropdown.style.display = 'block'; 
+    notificationDropdown.style.display = notifOpen ? 'block' : 'none';
+
+    notificationBellBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      notifOpen = !notifOpen;
+      notificationDropdown.style.display = notifOpen ? 'block' : 'none';
+      const pm = document.getElementById('profileMenu');
+      if (notifOpen && pm) pm.style.display = 'none';
     });
-    
-    notificationBellBtn.parentElement.addEventListener('mouseleave', () => { 
-      notificationDropdown.style.display = 'none'; 
+
+    // Evita que los clics dentro de la lista la cierren
+    notificationDropdown.addEventListener('click', (e) => e.stopPropagation());
+  }
+
+  // Clic fuera de la campana: se cierra (se registra una sola vez)
+  if (!outsideClickBound) {
+    outsideClickBound = true;
+    document.addEventListener('click', () => {
+      if (!notifOpen) return;
+      notifOpen = false;
+      const dd = document.getElementById('notificationDropdown');
+      if (dd) dd.style.display = 'none';
     });
   }
 
@@ -232,6 +261,7 @@ function renderGlobalNavbar(container, userId, displayName, avatarSrc, unreadCon
       addSeenProps(userId, visibleProps.map(p => p.id));
       const bellIconSpan = document.getElementById('bellIconSpan');
       if (bellIconSpan) bellIconSpan.classList.remove('bell-ringing');
+      notifOpen = false;
       notificationDropdown.style.display = 'none';
       // Recargamos o re-renderizamos visualmente el contenedor de la lista
       const listContent = document.getElementById('notificationListContent');
@@ -270,6 +300,11 @@ function renderGlobalNavbar(container, userId, displayName, avatarSrc, unreadCon
   if (profileBtn && profileMenu) {
     profileBtn.addEventListener('click', (e) => {
       e.stopPropagation();
+      if (notifOpen) {
+        notifOpen = false;
+        const dd = document.getElementById('notificationDropdown');
+        if (dd) dd.style.display = 'none';
+      }
       profileMenu.style.display = profileMenu.style.display === 'block' ? 'none' : 'block';
     });
     document.addEventListener('click', () => { profileMenu.style.display = 'none'; });
