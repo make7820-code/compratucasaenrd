@@ -1,6 +1,6 @@
 import { auth, db } from './firebase-config.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { collection, query, where, orderBy, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 document.addEventListener('DOMContentLoaded', () => {
   const authContainer = document.getElementById('authContainer');
@@ -34,6 +34,36 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (e) {
       console.error("Error al cargar perfil en navbar:", e);
     }
+
+    // Estado combinado de la campanita: mensajes sin leer + propiedades nuevas
+    let unreadConvs = [];
+    let newProps = [];
+    const rerender = () => renderGlobalNavbar(authContainer, user.uid, displayName, avatarSrc, unreadConvs, newProps, savedTheme);
+
+    // Fecha base: solo se notifican propiedades publicadas DESPUÉS de la primera vez
+    // que este usuario entra, para no llenar la campana con propiedades antiguas.
+    const baselineKey = `props_baseline_${user.uid}`;
+    let baseline = null;
+    try {
+      baseline = localStorage.getItem(baselineKey);
+      if (!baseline) {
+        baseline = new Date().toISOString();
+        localStorage.setItem(baselineKey, baseline);
+      }
+    } catch (e) { baseline = new Date().toISOString(); }
+
+    // Escuchar en tiempo real las últimas propiedades publicadas
+    const qProps = query(collection(db, "propiedades"), orderBy("fechaCreacion", "desc"), limit(15));
+    onSnapshot(qProps, (snap) => {
+      newProps = snap.docs
+        .map(d => ({ id: d.id, ...d.data() }))
+        .filter(p =>
+          p.archivada !== true &&
+          p.creadoPorUid !== user.uid &&       // no avisar al que la publicó
+          p.fechaCreacion && p.fechaCreacion > baseline
+        );
+      rerender();
+    }, (err) => console.error("Error al escuchar propiedades nuevas:", err));
 
     // Escuchar mensajes en tiempo real para las notificaciones globales
     const q = query(collection(db, "mensajes"), where("userId", "==", user.uid));
@@ -69,40 +99,82 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const convs = Array.from(conversationsMap.values());
       // Consideramos no leídos aquellos donde el último mensaje NO sea del usuario ('user') Y que no se haya marcado como leído en mensajes.html
-      const unreadConvs = convs.filter(c => c.sender && c.sender !== 'user' && !c.leido);
+      unreadConvs = convs.filter(c => c.sender && c.sender !== 'user' && !c.leido);
       
-      renderGlobalNavbar(authContainer, user.uid, displayName, avatarSrc, unreadConvs, savedTheme);
+      rerender();
     });
   });
 });
 
-function renderGlobalNavbar(container, userId, displayName, avatarSrc, unreadConvs, savedTheme) {
+function esc(v) {
+  return String(v ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+}
+
+function getSeenProps(userId) {
+  try { return new Set(JSON.parse(localStorage.getItem(`props_seen_${userId}`) || '[]')); }
+  catch (e) { return new Set(); }
+}
+
+function addSeenProps(userId, ids) {
+  try {
+    const seen = getSeenProps(userId);
+    ids.forEach(id => seen.add(id));
+    localStorage.setItem(`props_seen_${userId}`, JSON.stringify(Array.from(seen).slice(-100)));
+  } catch (e) { /* sin almacenamiento disponible */ }
+}
+
+function formatPropPrice(p) {
+  const main = p.precio || p.precioAlquiler;
+  const cur = p.precio ? (p.moneda || '') : (p.monedaAlquiler || p.moneda || '');
+  return main ? `${cur} ${main}`.trim() : '';
+}
+
+function renderGlobalNavbar(container, userId, displayName, avatarSrc, unreadConvs, newProps, savedTheme) {
   // Solo ocultamos los mensajes que ya existían cuando se marcó "leído" la última vez;
   // los que lleguen después de esa marca de tiempo sí vuelven a sonar.
   const clearedAt = parseInt(sessionStorage.getItem(`notifications_cleared_at_${userId}`) || '0', 10);
   const visibleUnread = unreadConvs.filter(c => c.timestamp > clearedAt);
-  const hasUnread = visibleUnread.length > 0;
+  const seenProps = getSeenProps(userId);
+  const visibleProps = (newProps || []).filter(p => !seenProps.has(p.id));
+  const totalUnread = visibleUnread.length + visibleProps.length;
+  const hasUnread = totalUnread > 0;
 
   container.innerHTML = `
     <div style="position: relative; display: inline-flex; align-items: center;">
       <button id="notificationBellBtn" style="background: none; border: none; cursor: pointer; font-size: 20px; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; padding: 0; position: relative; line-height: 1;">
         <span id="bellIconSpan" class="${hasUnread ? 'bell-ringing' : ''}" style="display: inline-block; margin-top: 2px;">🔔</span>
+        ${hasUnread ? `<span style="position:absolute; top:2px; right:0; min-width:16px; height:16px; padding:0 4px; border-radius:999px; background:#ef4444; color:#fff; font-size:10px; font-weight:700; display:flex; align-items:center; justify-content:center; line-height:1;">${totalUnread > 9 ? '9+' : totalUnread}</span>` : ''}
       </button>
       <div id="notificationDropdown" class="notification-dropdown">
         <div style="padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.08); font-weight: 700; font-size: 13px; color: #fff; display: flex; justify-content: space-between; align-items: center;">
-          <span>Notificaciones de Mensajes</span>
-          ${visibleUnread.length > 0 ? '<button id="markAllReadBtn" style="background:none; border:none; color:#3b82f6; font-size:11px; cursor:pointer; font-weight:600;">Marcar leídos</button>' : ''}
+          <span>Notificaciones</span>
+          ${hasUnread ? '<button id="markAllReadBtn" style="background:none; border:none; color:#3b82f6; font-size:11px; cursor:pointer; font-weight:600;">Marcar leídos</button>' : ''}
         </div>
-        <div id="notificationListContent" style="max-height: 250px; overflow-y: auto;">
+        <div id="notificationListContent" style="max-height: 320px; overflow-y: auto;">
           ${
-            visibleUnread.length === 0
-            ? '<div style="padding: 20px; text-align: center; color: #71717a; font-size: 12px;">No hay mensajes nuevos</div>'
-            : visibleUnread.map(c => `
-                <div class="notification-item" data-prop="${c.propertyId}" style="display: flex; align-items: center; gap: 10px; padding: 10px 16px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.04);">
-                  <img src="${c.propertyImage}" style="width: 32px; height: 32px; border-radius: 6px; object-fit: cover;" onerror="this.src='assets/puerto-marina.png'">
+            !hasUnread
+            ? '<div style="padding: 20px; text-align: center; color: #71717a; font-size: 12px;">No hay notificaciones nuevas</div>'
+            : visibleProps.map(p => {
+                const img = (Array.isArray(p.imagenes) && p.imagenes[0]) || 'assets/puerto-marina.png';
+                const price = formatPropPrice(p);
+                const meta = [p.operacion, price].filter(Boolean).join(' · ');
+                return `
+                <div class="notification-item" data-newprop="${esc(p.id)}" style="display: flex; align-items: center; gap: 10px; padding: 10px 16px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.04);">
+                  <img src="${esc(img)}" style="width: 44px; height: 44px; border-radius: 8px; object-fit: cover; flex-shrink: 0;" onerror="this.src='assets/puerto-marina.png'">
                   <div style="overflow: hidden;">
-                    <div style="font-size: 13px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${c.propertyTitle}</div>
-                    <div style="font-size: 11px; color: #a1a1aa; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${c.lastMessage}</div>
+                    <div style="font-size: 10px; font-weight: 700; color: #ef4444; text-transform: uppercase; letter-spacing: 0.4px;">🏠 Nueva propiedad</div>
+                    <div style="font-size: 13px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${esc(p.titulo)}</div>
+                    <div style="font-size: 11px; color: #a1a1aa; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${esc(meta)}</div>
+                    <div style="font-size: 11px; color: #a1a1aa; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">📍 ${esc(p.ubicacion)}</div>
+                  </div>
+                </div>`;
+              }).join('')
+              + visibleUnread.map(c => `
+                <div class="notification-item" data-prop="${esc(c.propertyId)}" style="display: flex; align-items: center; gap: 10px; padding: 10px 16px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.04);">
+                  <img src="${esc(c.propertyImage)}" style="width: 32px; height: 32px; border-radius: 6px; object-fit: cover;" onerror="this.src='assets/puerto-marina.png'">
+                  <div style="overflow: hidden;">
+                    <div style="font-size: 13px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">💬 ${esc(c.propertyTitle)}</div>
+                    <div style="font-size: 11px; color: #a1a1aa; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${esc(c.lastMessage)}</div>
                   </div>
                 </div>
               `).join('')
@@ -161,12 +233,13 @@ function renderGlobalNavbar(container, userId, displayName, avatarSrc, unreadCon
     markAllReadBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       sessionStorage.setItem(`notifications_cleared_at_${userId}`, Date.now().toString());
+      addSeenProps(userId, visibleProps.map(p => p.id));
       const bellIconSpan = document.getElementById('bellIconSpan');
       if (bellIconSpan) bellIconSpan.classList.remove('bell-ringing');
       notificationDropdown.style.display = 'none';
       // Recargamos o re-renderizamos visualmente el contenedor de la lista
       const listContent = document.getElementById('notificationListContent');
-      if(listContent) listContent.innerHTML = '<div style="padding: 20px; text-align: center; color: #71717a; font-size: 12px;">No hay mensajes nuevos</div>';
+      if(listContent) listContent.innerHTML = '<div style="padding: 20px; text-align: center; color: #71717a; font-size: 12px;">No hay notificaciones nuevas</div>';
       if(markAllReadBtn) markAllReadBtn.style.display = 'none';
     });
   }
@@ -175,6 +248,13 @@ function renderGlobalNavbar(container, userId, displayName, avatarSrc, unreadCon
   const notificationItems = container.querySelectorAll('.notification-item');
   notificationItems.forEach(item => {
     item.addEventListener('click', () => {
+      // Propiedad nueva: se marca como vista y se abre su detalle
+      const newPropId = item.getAttribute('data-newprop');
+      if (newPropId) {
+        addSeenProps(userId, [newPropId]);
+        window.location.href = `detalle.html?id=${encodeURIComponent(newPropId)}`;
+        return;
+      }
       sessionStorage.setItem(`notifications_cleared_at_${userId}`, Date.now().toString());
       const propId = item.getAttribute('data-prop');
       window.location.href = `mensajes.html?propiedadId=${propId}`;
@@ -229,7 +309,14 @@ function renderGlobalNavbar(container, userId, displayName, avatarSrc, unreadCon
     cerrarBtn.addEventListener('click', async () => {
       const { signOut } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js");
       await signOut(auth);
+      // Conservamos el registro de propiedades ya vistas para que no vuelvan a sonar al re-entrar
+      const keep = {};
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith('props_')) keep[k] = localStorage.getItem(k);
+      }
       localStorage.clear();
+      Object.entries(keep).forEach(([k, v]) => localStorage.setItem(k, v));
       sessionStorage.clear();
       window.location.href = 'index.html';
     });
