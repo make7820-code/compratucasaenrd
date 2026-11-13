@@ -40,17 +40,12 @@ document.addEventListener('DOMContentLoaded', () => {
     let newProps = [];
     const rerender = () => renderGlobalNavbar(authContainer, user.uid, displayName, avatarSrc, unreadConvs, newProps, savedTheme);
 
-    // Fecha base: solo se notifican propiedades publicadas DESPUÉS de la primera vez
-    // que este usuario entra, para no llenar la campana con propiedades antiguas.
-    const baselineKey = `props_baseline_${user.uid}`;
-    let baseline = null;
-    try {
-      baseline = localStorage.getItem(baselineKey);
-      if (!baseline) {
-        baseline = new Date().toISOString();
-        localStorage.setItem(baselineKey, baseline);
-      }
-    } catch (e) { baseline = new Date().toISOString(); }
+    // Se notifican las propiedades publicadas en los últimos DIAS_VENTANA días
+    // (las que el usuario ya abrió o marcó como leídas no vuelven a aparecer).
+    const DIAS_VENTANA = 7;
+    // true = quien publica también recibe su propia notificación (útil para probar). Pon false cuando ya funcione.
+    const NOTIFICAR_AL_AUTOR = true;
+    const desde = new Date(Date.now() - DIAS_VENTANA * 24 * 60 * 60 * 1000).toISOString();
 
     // Escuchar en tiempo real las últimas propiedades publicadas
     const qProps = query(collection(db, "propiedades"), orderBy("fechaCreacion", "desc"), limit(15));
@@ -59,11 +54,12 @@ document.addEventListener('DOMContentLoaded', () => {
         .map(d => ({ id: d.id, ...d.data() }))
         .filter(p =>
           p.archivada !== true &&
-          p.creadoPorUid !== user.uid &&       // no avisar al que la publicó
-          p.fechaCreacion && p.fechaCreacion > baseline
+          (NOTIFICAR_AL_AUTOR || p.creadoPorUid !== user.uid) &&
+          p.fechaCreacion && p.fechaCreacion > desde
         );
+      console.log(`[Notificaciones] propiedades leídas: ${snap.size}, nuevas para este usuario: ${newProps.length}`);
       rerender();
-    }, (err) => console.error("Error al escuchar propiedades nuevas:", err));
+    }, (err) => console.error("[Notificaciones] Error al leer 'propiedades':", err));
 
     // Escuchar mensajes en tiempo real para las notificaciones globales
     const q = query(collection(db, "mensajes"), where("userId", "==", user.uid));
