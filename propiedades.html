@@ -328,11 +328,8 @@
         box-shadow: 0 15px 35px rgba(0,0,0,0.3);
       }
 
-      /* ================= DESCARGA DE FOTOS/VIDEOS (solo roles autorizados) ================= */
-      /* Oculto por defecto (con !important para que .property-action-icon no lo anule) */
-      .btn-descargar-card, .property-action-icon.btn-descargar-card { display: none !important; }
-      body.puede-descargar .property-action-icon.btn-descargar-card { display: flex !important; align-items: center; justify-content: center; }
-      body.share-view .property-action-icon.btn-descargar-card { display: none !important; }
+      /* ================= DESCARGA DE FOTOS/VIDEOS (todos, siempre con marca de agua) ================= */
+      /* El botón de descarga es visible para todo el mundo; los archivos siempre salen con marca de agua */
       .toast-descarga {
         position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%);
         background: #18181b; color: #fff; border: 1px solid rgba(255,255,255,0.15);
@@ -1587,6 +1584,7 @@
     <!-- SCRIPT -->
     <script type="module">
       import { db, collection, getDocs } from './firebase-config.js';
+      import { descargarTodoMarcado } from './marca-agua.js';
 
       // Reemplaza la miniatura de YouTube (facade) por el iframe real solo al hacer clic,
       // para no cargar decenas de iframes de golpe en el listado de propiedades.
@@ -2702,238 +2700,19 @@
           }
         })();
 
-        // ================= DESCARGA DE FOTOS Y VIDEOS (solo por rol) =================
-        // Solo estos roles ven el botón ⬇️ en las tarjetas. El rol se lee de usuarios/{uid}.rol
-        (async () => {
-          const ROLES_DESCARGA = ['agente', 'agentepro', 'admin', 'superadmin'];
-          const cfg = await import('./firebase-config.js').catch(() => ({}));
-
-          if (cfg.auth && cfg.auth.onAuthStateChanged && cfg.getDoc && cfg.doc) {
-            cfg.auth.onAuthStateChanged(async u => {
-              document.body.classList.remove('puede-descargar');
-              if (!u) return;
-              try {
-                const snap = await cfg.getDoc(cfg.doc(cfg.db, 'usuarios', u.uid));
-                const d = snap.exists() ? snap.data() : {};
-                const rol = String(d.rol || d.role || '').toLowerCase().trim();
-                if (ROLES_DESCARGA.includes(rol)) document.body.classList.add('puede-descargar');
-              } catch (e) {
-                console.warn('No se pudo verificar el rol del usuario', e);
-              }
-            });
-          }
-
-          const toast = (texto) => {
-            const t = document.createElement('div');
-            t.className = 'toast-descarga';
-            t.textContent = texto;
-            document.body.appendChild(t);
-            setTimeout(() => t.remove(), 4500);
-          };
-
-          const limpiarNombre = (txt) => (txt || 'propiedad').toString()
-            .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-            .replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-+|-+$/g, '').toLowerCase().slice(0, 50) || 'propiedad';
-
-          const extension = (url, def) => {
-            try {
-              const m = new URL(url, location.href).pathname.match(/\.(jpe?g|png|webp|gif|mp4|mov|webm)$/i);
-              return m ? '.' + m[1].toLowerCase() : def;
-            } catch (_) { return def; }
-          };
-
-          const guardarBlob = (blob, nombre) => {
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = nombre;
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            setTimeout(() => URL.revokeObjectURL(a.href), 10000);
-          };
-
-          const cargarJSZip = () => new Promise((resolve) => {
-            if (window.JSZip) return resolve(window.JSZip);
-            const sc = document.createElement('script');
-            sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
-            sc.onload = () => resolve(window.JSZip);
-            sc.onerror = () => resolve(null);
-            document.head.appendChild(sc);
-          });
-
-          /* =========================================================
-             MARCA DE AGUA de la empresa en las FOTOS descargadas
-             - Logo grande y semitransparente al centro + dominio abajo a la derecha.
-             - Si el logo no carga, se usa el nombre de la empresa en texto.
-             - Si algo falla, se entrega la foto original (la descarga nunca se rompe).
-             Para cambiar la apariencia, edita las constantes de MARCA.
-          ========================================================= */
-          const MARCA = {
-            logo: 'assets/mi-logo.png',
-            texto: 'Compra tu casa en RD',
-            dominio: 'compratucasard.com',
-            opacidadCentro: 0.30,   // 0 = invisible, 1 = sólido
-            anchoCentro: 0.38,      // ancho del logo como fracción del ancho de la foto
-            maxLado: 4096           // límite de tamaño para no agotar la memoria en celulares
-          };
-
-          let logoMarcaPromesa = null;
-          const cargarLogoMarca = () => {
-            if (!logoMarcaPromesa) {
-              logoMarcaPromesa = new Promise((resolve) => {
-                const img = new Image();
-                img.onload = () => resolve(img);
-                img.onerror = () => resolve(null);
-                img.src = MARCA.logo;
-              });
-            }
-            return logoMarcaPromesa;
-          };
-
-          const cargarImagenDeBlob = (blob) => new Promise((resolve, reject) => {
-            const url = URL.createObjectURL(blob);
-            const img = new Image();
-            img.onload = () => { URL.revokeObjectURL(url); resolve(img); };
-            img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('imagen no válida')); };
-            img.src = url;
-          });
-
-          async function ponerMarcaDeAgua(blob, nombre) {
-            try {
-              const foto = await cargarImagenDeBlob(blob);
-              const escala = Math.min(1, MARCA.maxLado / Math.max(foto.naturalWidth, foto.naturalHeight));
-              const w = Math.round(foto.naturalWidth * escala);
-              const h = Math.round(foto.naturalHeight * escala);
-              const canvas = document.createElement('canvas');
-              canvas.width = w;
-              canvas.height = h;
-              const ctx = canvas.getContext('2d');
-              ctx.drawImage(foto, 0, 0, w, h);
-
-              const logo = await cargarLogoMarca();
-
-              // Marca central
-              ctx.save();
-              ctx.globalAlpha = MARCA.opacidadCentro;
-              if (logo) {
-                const lw = w * MARCA.anchoCentro;
-                const lh = lw * (logo.naturalHeight / logo.naturalWidth);
-                ctx.drawImage(logo, (w - lw) / 2, (h - lh) / 2, lw, lh);
-              } else {
-                ctx.fillStyle = '#ffffff';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.font = '700 ' + Math.round(w * 0.06) + 'px Inter, Arial, sans-serif';
-                ctx.shadowColor = 'rgba(0,0,0,0.6)';
-                ctx.shadowBlur = w * 0.01;
-                ctx.fillText(MARCA.texto, w / 2, h / 2);
-              }
-              ctx.restore();
-
-              // Dominio abajo a la derecha
-              ctx.save();
-              const fs = Math.max(14, Math.round(w * 0.026));
-              ctx.font = '700 ' + fs + 'px Inter, Arial, sans-serif';
-              ctx.textAlign = 'right';
-              ctx.textBaseline = 'bottom';
-              ctx.globalAlpha = 0.85;
-              ctx.fillStyle = '#ffffff';
-              ctx.shadowColor = 'rgba(0,0,0,0.7)';
-              ctx.shadowBlur = fs * 0.4;
-              ctx.fillText(MARCA.dominio, w - fs, h - fs * 0.8);
-              ctx.restore();
-
-              const esPng = /\.png$/i.test(nombre);
-              const tipo = esPng ? 'image/png' : 'image/jpeg';
-              const salida = await new Promise((res) => canvas.toBlob(res, tipo, 0.92));
-              if (!salida) throw new Error('no se pudo generar la imagen');
-              const nuevoNombre = esPng ? nombre : nombre.replace(/\.[a-z0-9]+$/i, '') + '.jpg';
-              return { blob: salida, nombre: nuevoNombre };
-            } catch (err) {
-              console.warn('No se pudo aplicar la marca de agua, se entrega la foto original:', err);
-              return { blob, nombre };
-            }
-          }
-
-          async function descargarMedia(btn) {
-            // Doble verificación: si no tiene el rol, no se hace nada
-            if (!document.body.classList.contains('puede-descargar')) return;
-            const m = window.__mediaProps && window.__mediaProps[btn.dataset.id];
-            if (!m) return;
-
-            const base = limpiarNombre(m.titulo);
-            const archivos = [];
-            m.fotos.forEach((u, i) => archivos.push({ url: u, esFoto: true, nombre: base + '-foto-' + (i + 1) + extension(u, '.jpg') }));
-            if (m.video) archivos.push({ url: m.video, nombre: base + '-video' + extension(m.video, '.mp4') });
-
-            if (!archivos.length) {
-              toast('Esta propiedad no tiene fotos ni videos para descargar.');
-              return;
-            }
-
-            const textoOriginal = btn.textContent;
-            btn.disabled = true;
-            btn.textContent = '⏳';
-            const descargados = [];
-            const fallidos = [];
-
-            for (const f of archivos) {
-              try {
-                const resp = await fetch(f.url, { mode: 'cors' });
-                if (!resp.ok) throw new Error('HTTP ' + resp.status);
-                let blobFinal = await resp.blob();
-                let nombreFinal = f.nombre;
-                if (f.esFoto) {
-                  const marcada = await ponerMarcaDeAgua(blobFinal, nombreFinal);
-                  blobFinal = marcada.blob;
-                  nombreFinal = marcada.nombre;
-                }
-                descargados.push({ nombre: nombreFinal, blob: blobFinal });
-              } catch (err) {
-                console.warn('No se pudo descargar', f.url, err);
-                fallidos.push(f);
-              }
-            }
-
-            if (descargados.length === 1) {
-              guardarBlob(descargados[0].blob, descargados[0].nombre);
-            } else if (descargados.length > 1) {
-              const JSZip = await cargarJSZip();
-              if (JSZip) {
-                const zip = new JSZip();
-                descargados.forEach(d => zip.file(d.nombre, d.blob));
-                guardarBlob(await zip.generateAsync({ type: 'blob' }), base + '.zip');
-              } else {
-                // Sin JSZip: se descargan uno por uno
-                for (const d of descargados) {
-                  guardarBlob(d.blob, d.nombre);
-                  await new Promise(r => setTimeout(r, 400));
-                }
-              }
-            }
-
-            // Lo que el servidor no dejó descargar directo (CORS) se abre en otra pestaña
-            if (fallidos.length) {
-              fallidos.forEach((f, i) => setTimeout(() => window.open(f.url, '_blank'), i * 400));
-              toast(fallidos.length + (fallidos.length === 1 ? ' archivo se abrió' : ' archivos se abrieron') +
-                ' en otra pestaña (el servidor no permite descarga directa). Guárdalo(s) desde ahí.');
-            } else {
-              toast('Descarga lista: ' + descargados.length + (descargados.length === 1 ? ' archivo' : ' archivos') + '.');
-            }
-
-            btn.disabled = false;
-            btn.textContent = textoOriginal;
-          }
-
-          // Captura el clic antes que el resto de la tarjeta (carrusel / link al detalle)
-          document.addEventListener('click', (e) => {
-            const btn = e.target.closest && e.target.closest('.btn-descargar-card');
-            if (!btn) return;
-            e.preventDefault();
-            e.stopPropagation();
-            descargarMedia(btn);
-          }, true);
-        })();
+        // ================= DESCARGA DE FOTOS Y VIDEOS (todos, siempre con marca de agua) =================
+        // La lógica de la marca vive en marca-agua.js. Se captura el clic antes que el resto
+        // de la tarjeta (carrusel / link al detalle).
+        document.addEventListener('click', (e) => {
+          const btn = e.target.closest && e.target.closest('.btn-descargar-card');
+          if (!btn) return;
+          e.preventDefault();
+          e.stopPropagation();
+          if (btn.disabled) return;
+          const m = window.__mediaProps && window.__mediaProps[btn.dataset.id];
+          if (!m) return;
+          descargarTodoMarcado(m, btn);
+        }, true);
       });
     </script>
 
