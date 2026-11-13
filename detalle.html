@@ -994,6 +994,7 @@
       import { db, doc, getDoc } from './firebase-config.js';
       import { resolverUbicacion, montarMapa, urlAbrirUbicacion } from './ubicacion-mapa.js';
       import { descargarFotoMarcada, descargarVideoMarcado, limpiarNombre } from './marca-agua.js';
+      import { obtenerMarcaAgente } from './marca-agente.js';
 
       window.addEventListener('DOMContentLoaded', async () => {
         const urlParams = new URLSearchParams(window.location.search);
@@ -1503,30 +1504,38 @@
             });
           });
 
-          // Descargas una por una (siempre con marca de agua)
+          // Descargas una por una (siempre con marca de agua).
+          // Si la publicó un agente/agentepro con marca propia, se usa la de él; si no, la de la empresa.
+          const marcaDelAgente = () => {
+            const creadoPorAgente = selectedProperty.creadorRol === 'agente' || selectedProperty.creadorRol === 'agentepro';
+            return creadoPorAgente ? obtenerMarcaAgente(selectedProperty.creadoPorUid) : Promise.resolve(null);
+          };
           const baseNombre = limpiarNombre(title);
           const btnDlFoto = document.getElementById('dlFotoActual');
           if (btnDlFoto) {
-            btnDlFoto.addEventListener('click', (e) => {
+            btnDlFoto.addEventListener('click', async (e) => {
               e.preventDefault();
               e.stopPropagation();
-              descargarFotoMarcada(imgs[currentIndex], `${baseNombre}-foto-${currentIndex + 1}`, btnDlFoto);
+              const marcaAg = await marcaDelAgente();
+              descargarFotoMarcada(imgs[currentIndex], `${baseNombre}-foto-${currentIndex + 1}`, btnDlFoto, marcaAg);
             });
           }
           document.querySelectorAll('.thumb-dl-btn').forEach(b => {
-            b.addEventListener('click', (e) => {
+            b.addEventListener('click', async (e) => {
               e.preventDefault();
               e.stopPropagation();
               const i = Number(b.dataset.index);
-              descargarFotoMarcada(imgs[i], `${baseNombre}-foto-${i + 1}`, b);
+              const marcaAg = await marcaDelAgente();
+              descargarFotoMarcada(imgs[i], `${baseNombre}-foto-${i + 1}`, b, marcaAg);
             });
           });
           const btnDlVideo = document.getElementById('btnDescargarVideo');
           if (btnDlVideo && videoArchivo) {
-            btnDlVideo.addEventListener('click', (e) => {
+            btnDlVideo.addEventListener('click', async (e) => {
               e.preventDefault();
               e.stopPropagation();
-              descargarVideoMarcado(videoArchivo, `${baseNombre}-video`, btnDlVideo);
+              const marcaAg = await marcaDelAgente();
+              descargarVideoMarcado(videoArchivo, `${baseNombre}-video`, btnDlVideo, marcaAg);
             });
           }
 
