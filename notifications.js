@@ -226,12 +226,38 @@ function renderGlobalNavbar(container, userId, displayName, avatarSrc, unreadCon
   const notificationBellBtn = document.getElementById('notificationBellBtn');
   const notificationDropdown = document.getElementById('notificationDropdown');
 
+  // En pantallas pequeñas (celular/app) el menú se ancla a la pantalla, centrado y con márgenes,
+  // para que no quede cortado a la izquierda.
+  function positionDropdown() {
+    if (!notificationDropdown || !notificationBellBtn) return;
+    const st = notificationDropdown.style;
+    if (window.innerWidth <= 768) {
+      const top = Math.round(notificationBellBtn.getBoundingClientRect().bottom + 8);
+      st.setProperty('position', 'fixed', 'important');
+      st.setProperty('left', '10px', 'important');
+      st.setProperty('right', '10px', 'important');
+      st.setProperty('top', top + 'px', 'important');
+      st.setProperty('width', 'auto', 'important');
+      st.setProperty('max-width', 'none', 'important');
+      st.setProperty('transform', 'none', 'important');
+      st.setProperty('margin', '0', 'important');
+      st.setProperty('z-index', '2000', 'important');
+      const list = document.getElementById('notificationListContent');
+      if (list) list.style.maxHeight = 'min(60vh, 360px)';
+    } else {
+      ['position', 'left', 'right', 'top', 'width', 'max-width', 'transform', 'margin', 'z-index']
+        .forEach(prop => st.removeProperty(prop));
+    }
+  }
+
   if (notificationBellBtn && notificationDropdown) {
+    positionDropdown();
     notificationDropdown.style.display = notifOpen ? 'block' : 'none';
 
     notificationBellBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       notifOpen = !notifOpen;
+      positionDropdown();
       notificationDropdown.style.display = notifOpen ? 'block' : 'none';
       const pm = document.getElementById('profileMenu');
       if (notifOpen && pm) pm.style.display = 'none';
@@ -239,11 +265,13 @@ function renderGlobalNavbar(container, userId, displayName, avatarSrc, unreadCon
 
     // Evita que los clics dentro de la lista la cierren
     notificationDropdown.addEventListener('click', (e) => e.stopPropagation());
+    window.__notifReposition = positionDropdown;
   }
 
   // Clic fuera de la campana: se cierra (se registra una sola vez)
   if (!outsideClickBound) {
     outsideClickBound = true;
+    window.addEventListener('resize', () => { if (typeof window.__notifReposition === 'function') window.__notifReposition(); });
     document.addEventListener('click', () => {
       if (!notifOpen) return;
       notifOpen = false;
