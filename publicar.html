@@ -1539,6 +1539,18 @@
             </div>
           </div>
 
+          <!-- APARTADO: PIN EN EL MAPA (alimenta el minimapa de detalle.html) -->
+          <div class="publish-form-group form-group-full">
+            <label>📌 Pin en el mapa (opcional)</label>
+            <div id="mapaSelectorPin" style="height: 260px; border-radius: 12px; overflow: hidden; border: 1px solid rgba(128,128,128,0.35); isolation: isolate;"></div>
+            <input type="hidden" id="propLat">
+            <input type="hidden" id="propLng">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-top:8px; flex-wrap:wrap;">
+              <span id="estadoPinUbicacion" style="font-size:13px; opacity:0.85;">Toca el mapa para marcar el punto exacto. Si pegas un enlace largo de Google Maps o Waze, el pin se coloca solo.</span>
+              <button type="button" class="btn-copiar-link" onclick="quitarPinUbicacion()">🗑️ Quitar pin</button>
+            </div>
+          </div>
+
           <div class="form-section-heading" style="margin-top: 20px;"><span>🏠</span> Detalles, Redes y Multimedia</div>
           <div class="form-grid-2">
             <div class="publish-form-group">
@@ -1694,6 +1706,7 @@
     <!-- SCRIPTS CON CONTROL DE ACCESO ESTRICTO Y VERSIONES UNIFICADAS DE FIREBASE (10.12.0) -->
     <script type="module">
       import { auth, db, storage } from './firebase-config.js';
+      import { extraerCoordsDeLink, geocodificarSector, montarSelectorPin } from './ubicacion-mapa.js';
       import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
       import { 
         collection, 
@@ -2954,12 +2967,64 @@
         renderizarPublicaciones();
       }
 
+      /* =========================================================
+         PIN DE UBICACIÓN (minimapa de detalle.html)
+      ========================================================= */
+      let selectorPin = null;
+      let selectorPinPromesa = null;
+      const TEXTO_PIN_INICIAL = 'Toca el mapa para marcar el punto exacto. Si pegas un enlace largo de Google Maps o Waze, el pin se coloca solo.';
+
+      function asegurarSelectorPin() {
+        const cont = document.getElementById('mapaSelectorPin');
+        if (!cont) return Promise.resolve(null);
+        if (!selectorPinPromesa) {
+          selectorPinPromesa = montarSelectorPin(cont, {
+            onChange: (lat, lng) => fijarPinUbicacion(lat, lng, 'Pin marcado manualmente en el mapa.')
+          }).then(c => { selectorPin = c; return c; }).catch(() => null);
+        }
+        return selectorPinPromesa;
+      }
+
+      function fijarPinUbicacion(lat, lng, mensaje) {
+        document.getElementById('propLat').value = Number(lat).toFixed(6);
+        document.getElementById('propLng').value = Number(lng).toFixed(6);
+        const estado = document.getElementById('estadoPinUbicacion');
+        if (estado) estado.textContent = '✅ ' + mensaje;
+      }
+
+      window.quitarPinUbicacion = function() {
+        document.getElementById('propLat').value = '';
+        document.getElementById('propLng').value = '';
+        const estado = document.getElementById('estadoPinUbicacion');
+        if (estado) estado.textContent = TEXTO_PIN_INICIAL;
+        if (selectorPin) selectorPin.quitar();
+      };
+
+      const campoLinkUbicacion = document.getElementById('propLinkUbicacion');
+      if (campoLinkUbicacion) {
+        campoLinkUbicacion.addEventListener('input', async () => {
+          const link = campoLinkUbicacion.value.trim();
+          const estado = document.getElementById('estadoPinUbicacion');
+          if (!link) return;
+          const c = extraerCoordsDeLink(link);
+          if (c) {
+            const sel = await asegurarSelectorPin();
+            fijarPinUbicacion(c.lat, c.lng, 'Pin colocado con las coordenadas del enlace.');
+            if (sel) sel.setPos(c.lat, c.lng);
+          } else if (estado && !document.getElementById('propLat').value) {
+            estado.textContent = '⚠️ Este enlace no trae coordenadas (enlace corto). Toca el mapa para marcar el punto; si no, se mostrará la zona del sector.';
+          }
+        });
+      }
+
       window.abrirModalPublicar = function(editarObj = null) {
         const modal = document.getElementById('modalPublicar');
         if(modal) modal.style.display = 'flex';
         const form = document.getElementById('formPublicarPropiedad');
         if(form) form.reset();
         document.getElementById('propEditId').value = '';
+        window.quitarPinUbicacion();
+        asegurarSelectorPin().then(c => { if (c) c.refrescar(); });
         imagenesEditandoActuales = [];
         previewImgUrl = '';
         renderizarMiniaturasEdicion();
@@ -3082,6 +3147,16 @@
           document.getElementById('propParqueos').value = editarObj.parqueos || '';
           document.getElementById('propMetros').value = editarObj.metros || '';
           document.getElementById('propLinkUbicacion').value = editarObj.linkUbicacion || '';
+          {
+            const latEd = parseFloat(editarObj.lat);
+            const lngEd = parseFloat(editarObj.lng);
+            if (Number.isFinite(latEd) && Number.isFinite(lngEd) && editarObj.ubicacionExacta !== false) {
+              asegurarSelectorPin().then(c => {
+                fijarPinUbicacion(latEd, lngEd, 'Pin guardado de esta propiedad.');
+                if (c) { c.setPos(latEd, lngEd); c.refrescar(); }
+              });
+            }
+          }
           document.getElementById('propLinkVideo').value = editarObj.linkVideo || '';
           document.getElementById('propDescripcion').value = editarObj.descripcion || '';
           
@@ -3265,6 +3340,22 @@
           const detalle = document.getElementById('propDireccionDetalle').value;
           const ubicacionCompleta = `${distrito}, ${municipio}, ${provincia} ${detalle ? ' - ' + detalle : ''}`;
 
+          // Coordenadas para el minimapa de detalle.html:
+          // 1) pin marcado en el mapa, 2) coordenadas del enlace, 3) zona del sector (aproximada).
+          let latGuardar = parseFloat(document.getElementById('propLat').value);
+          let lngGuardar = parseFloat(document.getElementById('propLng').value);
+          let ubicacionExacta = Number.isFinite(latGuardar) && Number.isFinite(lngGuardar);
+          if (!ubicacionExacta) {
+            const cEnlace = extraerCoordsDeLink(document.getElementById('propLinkUbicacion').value);
+            if (cEnlace) {
+              latGuardar = cEnlace.lat; lngGuardar = cEnlace.lng; ubicacionExacta = true;
+            } else {
+              const sector = await geocodificarSector({ distrito, municipio, provincia });
+              latGuardar = sector ? sector.lat : null;
+              lngGuardar = sector ? sector.lng : null;
+            }
+          }
+
           const precioVal = document.getElementById('propPrecio').value;
           const monedaVal = document.getElementById('propMoneda').value;
           const precioFmt = `${monedaVal === 'USD' ? '$' : 'RD$'} ${Number(precioVal).toLocaleString()}`;
@@ -3358,6 +3449,9 @@
             nivel: document.getElementById('propNivel').value || 'N/D',
             parqueos: document.getElementById('propParqueos').value || '0',
             metros: document.getElementById('propMetros').value || 'N/D',
+            lat: latGuardar,
+            lng: lngGuardar,
+            ubicacionExacta,
             linkUbicacion: document.getElementById('propLinkUbicacion').value || '',
             linkVideo: document.getElementById('propLinkVideo').value || '',
             videoArchivo: videoArchivoUrlFinal || '',
