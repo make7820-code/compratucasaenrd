@@ -1643,6 +1643,15 @@
             <textarea id="propDescripcion" class="publish-control" placeholder="Detalles de amenidades, acabados..." required></textarea>
           </div>
 
+          <!-- APARTADO: REQUISITOS -->
+          <div class="publish-form-group form-group-full">
+            <label>📋 Requisitos (alquiler / contrato)</label>
+            <textarea id="propRequisitos" class="publish-control" style="min-height: 80px;" placeholder="Ej. 2 depósitos, 1 mes de adelanto, carta de trabajo..."></textarea>
+            <span style="font-size: 12px; color: var(--text-muted); margin-top: 4px; display: block;">
+              Si lo dejas en blanco se usará por defecto: <strong>3 depósitos, 3000 de contrato y un garante dominicano</strong>. Escribe un requisito por línea.
+            </span>
+          </div>
+
           <button type="submit" class="publish-submit-btn">
             <span>🚀</span> Guardar Cambios en la Nube
           </button>
@@ -3159,6 +3168,7 @@
           }
           document.getElementById('propLinkVideo').value = editarObj.linkVideo || '';
           document.getElementById('propDescripcion').value = editarObj.descripcion || '';
+          document.getElementById('propRequisitos').value = editarObj.requisitos || '';
           
           if (editarObj.imagenes && Array.isArray(editarObj.imagenes)) {
             imagenesEditandoActuales = [...editarObj.imagenes];
@@ -3239,6 +3249,9 @@
       // Límite de publicaciones activas para el rol "agente" (gratuito/básico).
       // El rol "agentepro" y los administradores no tienen límite.
       const LIMITE_PROPIEDADES_AGENTE = 15;
+
+      // Requisitos que se guardan cuando el campo "Requisitos" queda en blanco.
+      const REQUISITOS_POR_DEFECTO = '3 depósitos\n3000 de contrato\nUn garante dominicano';
 
       // Cuenta cuántas propiedades ACTIVAS (no archivadas) tiene publicadas
       // el usuario actual, consultando Firestore en tiempo real.
@@ -3456,6 +3469,7 @@
             linkVideo: document.getElementById('propLinkVideo').value || '',
             videoArchivo: videoArchivoUrlFinal || '',
             descripcion: document.getElementById('propDescripcion').value,
+            requisitos: (document.getElementById('propRequisitos').value || '').trim() || REQUISITOS_POR_DEFECTO,
             imagenes: imagenesUrls,
             fechaActualizacion: new Date().toISOString()
           };
