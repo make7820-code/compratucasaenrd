@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const desde = new Date(Date.now() - DIAS_VENTANA * 24 * 60 * 60 * 1000).toISOString();
 
     // Escuchar en tiempo real las últimas propiedades publicadas
-    const qProps = query(collection(db, "propiedades"), orderBy("fechaCreacion", "desc"), limit(15));
+    const qProps = query(collection(db, "propiedades"), orderBy("fechaCreacion", "desc"), limit(50));
     onSnapshot(qProps, (snap) => {
       newProps = snap.docs
         .map(d => ({ id: d.id, ...d.data() }))
@@ -152,7 +152,7 @@ function renderGlobalNavbar(container, userId, displayName, avatarSrc, unreadCon
     <div style="position: relative; display: inline-flex; align-items: center;">
       <button id="notificationBellBtn" style="background: none; border: none; cursor: pointer; font-size: 20px; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; padding: 0; position: relative; line-height: 1;">
         <span id="bellIconSpan" class="${hasUnread ? 'bell-ringing' : ''}" style="display: inline-block; margin-top: 2px;">🔔</span>
-        ${hasUnread ? `<span id="notifBadge" style="position:absolute; top:2px; right:0; min-width:16px; height:16px; padding:0 4px; border-radius:999px; background:#ef4444; color:#fff; font-size:10px; font-weight:700; display:flex; align-items:center; justify-content:center; line-height:1;">${totalUnread > 9 ? '9+' : totalUnread}</span>` : ''}
+        ${hasUnread ? `<span id="notifBadge" style="position:absolute; top:2px; right:0; min-width:16px; height:16px; padding:0 4px; border-radius:999px; background:#ef4444; color:#fff; font-size:10px; font-weight:700; display:flex; align-items:center; justify-content:center; line-height:1;">${totalUnread}</span>` : ''}
       </button>
       <div id="notificationDropdown" class="notification-dropdown">
         <div style="padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.08); font-weight: 700; font-size: 13px; color: #fff; display: flex; justify-content: space-between; align-items: center;">
@@ -245,8 +245,27 @@ function renderGlobalNavbar(container, userId, displayName, avatarSrc, unreadCon
       const list = document.getElementById('notificationListContent');
       if (list) list.style.maxHeight = 'min(60vh, 360px)';
     } else {
-      ['position', 'left', 'right', 'top', 'width', 'max-width', 'transform', 'margin', 'z-index']
-        .forEach(prop => st.removeProperty(prop));
+      ['left', 'transform', 'margin'].forEach(prop => st.removeProperty(prop));
+      st.setProperty('position', 'absolute', 'important');
+      st.setProperty('right', '0', 'important');
+      st.setProperty('top', '46px', 'important');
+      st.setProperty('width', '340px', 'important');
+      st.setProperty('max-width', '90vw', 'important');
+      st.setProperty('height', 'auto', 'important');
+      st.setProperty('max-height', 'none', 'important');
+      st.setProperty('overflow', 'visible', 'important');
+      st.setProperty('z-index', '2000', 'important');
+      const list = document.getElementById('notificationListContent');
+      if (list) list.style.maxHeight = '380px';
+    }
+    const listEl = document.getElementById('notificationListContent');
+    if (listEl) {
+      listEl.style.setProperty('display', 'block', 'important');
+      listEl.style.setProperty('height', 'auto', 'important');
+      listEl.style.setProperty('min-height', '0', 'important');
+      listEl.style.setProperty('overflow-y', 'auto', 'important');
+      listEl.style.setProperty('opacity', '1', 'important');
+      listEl.style.setProperty('visibility', 'visible', 'important');
     }
   }
 
@@ -289,6 +308,8 @@ function renderGlobalNavbar(container, userId, displayName, avatarSrc, unreadCon
       addSeenProps(userId, visibleProps.map(p => p.id));
       const bellIconSpan = document.getElementById('bellIconSpan');
       if (bellIconSpan) bellIconSpan.classList.remove('bell-ringing');
+      const badgeEl = document.getElementById('notifBadge');
+      if (badgeEl) badgeEl.remove();
       notifOpen = false;
       notificationDropdown.style.display = 'none';
       // Recargamos o re-renderizamos visualmente el contenedor de la lista
@@ -304,7 +325,7 @@ function renderGlobalNavbar(container, userId, displayName, avatarSrc, unreadCon
     const badge = document.getElementById('notifBadge');
     if (badge) {
       if (remaining === 0) badge.remove();
-      else badge.textContent = remaining > 9 ? '9+' : String(remaining);
+      else badge.textContent = String(remaining);
     }
     if (remaining === 0) {
       const bell = document.getElementById('bellIconSpan');
