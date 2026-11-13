@@ -152,7 +152,7 @@ function renderGlobalNavbar(container, userId, displayName, avatarSrc, unreadCon
     <div style="position: relative; display: inline-flex; align-items: center;">
       <button id="notificationBellBtn" style="background: none; border: none; cursor: pointer; font-size: 20px; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; padding: 0; position: relative; line-height: 1;">
         <span id="bellIconSpan" class="${hasUnread ? 'bell-ringing' : ''}" style="display: inline-block; margin-top: 2px;">🔔</span>
-        ${hasUnread ? `<span style="position:absolute; top:2px; right:0; min-width:16px; height:16px; padding:0 4px; border-radius:999px; background:#ef4444; color:#fff; font-size:10px; font-weight:700; display:flex; align-items:center; justify-content:center; line-height:1;">${totalUnread > 9 ? '9+' : totalUnread}</span>` : ''}
+        ${hasUnread ? `<span id="notifBadge" style="position:absolute; top:2px; right:0; min-width:16px; height:16px; padding:0 4px; border-radius:999px; background:#ef4444; color:#fff; font-size:10px; font-weight:700; display:flex; align-items:center; justify-content:center; line-height:1;">${totalUnread > 9 ? '9+' : totalUnread}</span>` : ''}
       </button>
       <div id="notificationDropdown" class="notification-dropdown">
         <div style="padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.08); font-weight: 700; font-size: 13px; color: #fff; display: flex; justify-content: space-between; align-items: center;">
@@ -270,6 +270,24 @@ function renderGlobalNavbar(container, userId, displayName, avatarSrc, unreadCon
     });
   }
 
+  // Actualiza globito, campana y mensaje de "vacío" tras quitar una notificación
+  function refreshBellState() {
+    const remaining = container.querySelectorAll('.notification-item').length;
+    const badge = document.getElementById('notifBadge');
+    if (badge) {
+      if (remaining === 0) badge.remove();
+      else badge.textContent = remaining > 9 ? '9+' : String(remaining);
+    }
+    if (remaining === 0) {
+      const bell = document.getElementById('bellIconSpan');
+      if (bell) bell.classList.remove('bell-ringing');
+      const list = document.getElementById('notificationListContent');
+      if (list) list.innerHTML = '<div style="padding: 20px; text-align: center; color: #71717a; font-size: 12px;">No hay notificaciones nuevas</div>';
+      const mk = document.getElementById('markAllReadBtn');
+      if (mk) mk.style.display = 'none';
+    }
+  }
+
   // Redirección y marcado automático al hacer clic en una notificación específica
   const notificationItems = container.querySelectorAll('.notification-item');
   notificationItems.forEach(item => {
@@ -278,6 +296,8 @@ function renderGlobalNavbar(container, userId, displayName, avatarSrc, unreadCon
       const newPropId = item.getAttribute('data-newprop');
       if (newPropId) {
         addSeenProps(userId, [newPropId]);
+        item.remove();          // desaparece de la campanita al instante
+        refreshBellState();
         window.location.href = `detalle.html?id=${encodeURIComponent(newPropId)}`;
         return;
       }
