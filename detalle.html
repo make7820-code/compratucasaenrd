@@ -388,6 +388,48 @@
         font-size: 15px;
       }
 
+      /* ===== Minimapa de ubicación ===== */
+      .property-map-section { margin-top: 28px; }
+      .mini-mapa {
+        position: relative;
+        isolation: isolate;
+        height: 280px;
+        width: 100%;
+        border-radius: 16px;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: #18181b;
+      }
+      .mini-mapa-cargando { padding: 120px 16px 0; text-align: center; color: #a1a1aa; font-size: 14px; }
+      .mini-mapa-nota { margin-top: 10px; color: #d4d4d8; font-size: 14px; line-height: 1.5; }
+      .map-open-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 12px;
+        padding: 12px 20px;
+        border-radius: 12px;
+        background: #f59e0b;
+        color: #111;
+        font-weight: 700;
+        font-size: 15px;
+        text-decoration: none;
+        transition: transform 0.2s, background 0.2s;
+      }
+      .map-open-btn:hover { background: #d97706; transform: translateY(-2px); }
+      .ub-etiqueta-calle {
+        background: rgba(17, 17, 20, 0.92);
+        color: #fff;
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        border-radius: 6px;
+        font-weight: 700;
+        font-size: 12px;
+        padding: 2px 8px;
+        box-shadow: none;
+      }
+      .ub-etiqueta-calle::before { display: none; }
+      .ub-pin { background: transparent; border: none; }
+
       /* ===== Sección de Extras / Comodidades (destacada) ===== */
       .property-extras-section {
         margin-top: 30px;
@@ -930,6 +972,7 @@
     <!-- SCRIPT CON SOPORTE PARA VIDEO Y REDIRECCIÓN A MENSAJES.HTML -->
     <script type="module">
       import { db, doc, getDoc } from './firebase-config.js';
+      import { resolverUbicacion, montarMapa, urlAbrirUbicacion } from './ubicacion-mapa.js';
 
       window.addEventListener('DOMContentLoaded', async () => {
         const urlParams = new URLSearchParams(window.location.search);
@@ -1342,6 +1385,13 @@
                 <p>${description}</p>
               </div>
 
+              <div class="property-description-section property-map-section" id="seccionMapaUbicacion" translate="no">
+                <h3>📍 Ubicación</h3>
+                <div class="mini-mapa" id="miniMapaUbicacion"><div class="mini-mapa-cargando">Cargando mapa…</div></div>
+                <p class="mini-mapa-nota" id="miniMapaNota"></p>
+                <a href="#" id="btnAbrirUbicacion" class="map-open-btn" target="_blank" rel="noopener noreferrer" style="display:none;">🗺️ Abrir ubicación en el mapa</a>
+              </div>
+
               ${extrasSectionHtml}
             </div>
 
@@ -1369,6 +1419,8 @@
               </div>
             </div>
           `;
+
+          iniciarMiniMapa(selectedProperty);
 
           // Configuración del botón Enviar Mensaje (Redirección a mensajes.html)
           const btnEnviarMensaje = document.getElementById('btnEnviarMensaje');
@@ -1449,6 +1501,50 @@
           mostrarError(container);
         }
       });
+
+      // Minimapa de ubicación:
+      // - Con ubicación (pin guardado o coordenadas del enlace): marca la propiedad y resalta las 2 calles más cercanas.
+      // - Sin ubicación: muestra la zona aproximada del sector.
+      // El botón abre el enlace de ubicación de la propiedad (o Google Maps con el punto/sector si no hay enlace).
+      async function iniciarMiniMapa(prop) {
+        const seccion = document.getElementById('seccionMapaUbicacion');
+        const cont = document.getElementById('miniMapaUbicacion');
+        const nota = document.getElementById('miniMapaNota');
+        const btn = document.getElementById('btnAbrirUbicacion');
+        if (!seccion || !cont) return;
+
+        const ponerBoton = (url) => {
+          if (btn && url) { btn.href = url; btn.style.display = ''; }
+        };
+        ponerBoton(urlAbrirUbicacion(prop, null)); // enlace inmediato mientras carga el mapa
+
+        let ubi = null;
+        try { ubi = await resolverUbicacion(prop); } catch (e) { console.warn('Ubicación:', e); }
+
+        if (!ubi) {
+          cont.style.display = 'none';
+          nota.textContent = 'No se pudo mostrar el mapa de esta propiedad.';
+          if (!urlAbrirUbicacion(prop, null)) seccion.style.display = 'none';
+          return;
+        }
+        ponerBoton(urlAbrirUbicacion(prop, ubi));
+
+        try {
+          const calles = await montarMapa(cont, ubi);
+          if (ubi.exacta) {
+            nota.textContent = calles.length >= 2
+              ? `Calles cercanas: ${calles[0]} y ${calles[1]}.`
+              : calles.length === 1
+                ? `Calle cercana: ${calles[0]}.`
+                : 'Ubicación marcada en el mapa.';
+          } else {
+            nota.textContent = 'Ubicación aproximada: se muestra la zona del sector.';
+          }
+        } catch (e) {
+          console.warn('No se pudo cargar el mapa:', e);
+          cont.style.display = 'none';
+        }
+      }
 
       // Genera el HTML del reproductor de video embebido dentro de la página.
       // Prioridad: 1) video propio subido a Storage (siempre se puede reproducir nativo),
