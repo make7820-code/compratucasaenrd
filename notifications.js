@@ -6,6 +6,24 @@ document.addEventListener('DOMContentLoaded', () => {
   const authContainer = document.getElementById('authContainer');
   if (!authContainer) return;
 
+  // Estilos propios de la campanita (no dependen del CSS de cada página)
+  if (!document.getElementById('notif-panel-styles')) {
+    const st = document.createElement('style');
+    st.id = 'notif-panel-styles';
+    st.textContent = `
+      .notif-panel { display: none; position: absolute; right: 0; top: 46px; width: 340px; max-width: 92vw;
+        height: auto; max-height: none; background: #18181b; border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 2000; overflow: hidden; }
+      #notificationListContent { display: block; height: auto; max-height: 380px; overflow-y: auto; }
+      .notif-panel .notification-item:hover { background: rgba(255,255,255,0.06); }
+      @media (max-width: 768px) {
+        .notif-panel { position: fixed; left: 10px; right: 10px; top: var(--notif-top, 70px); width: auto; max-width: none; }
+        #notificationListContent { max-height: 60vh; }
+      }
+    `;
+    document.head.appendChild(st);
+  }
+
   // Aplicar el tema (claro/oscuro/sistema) guardado, igual que hacía cada página por separado
   const savedTheme = localStorage.getItem('site_theme') || 'dark';
   if (savedTheme === 'light') {
@@ -154,7 +172,7 @@ function renderGlobalNavbar(container, userId, displayName, avatarSrc, unreadCon
         <span id="bellIconSpan" class="${hasUnread ? 'bell-ringing' : ''}" style="display: inline-block; margin-top: 2px;">🔔</span>
         ${hasUnread ? `<span id="notifBadge" style="position:absolute; top:2px; right:0; min-width:16px; height:16px; padding:0 4px; border-radius:999px; background:#ef4444; color:#fff; font-size:10px; font-weight:700; display:flex; align-items:center; justify-content:center; line-height:1;">${totalUnread}</span>` : ''}
       </button>
-      <div id="notificationDropdown" class="notification-dropdown">
+      <div id="notificationDropdown" class="notif-panel">
         <div style="padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.08); font-weight: 700; font-size: 13px; color: #fff; display: flex; justify-content: space-between; align-items: center;">
           <span>Notificaciones</span>
           ${hasUnread ? '<button id="markAllReadBtn" style="background:none; border:none; color:#3b82f6; font-size:11px; cursor:pointer; font-weight:600;">Marcar leídos</button>' : ''}
@@ -230,43 +248,8 @@ function renderGlobalNavbar(container, userId, displayName, avatarSrc, unreadCon
   // para que no quede cortado a la izquierda.
   function positionDropdown() {
     if (!notificationDropdown || !notificationBellBtn) return;
-    const st = notificationDropdown.style;
-    if (window.innerWidth <= 768) {
-      const top = Math.round(notificationBellBtn.getBoundingClientRect().bottom + 8);
-      st.setProperty('position', 'fixed', 'important');
-      st.setProperty('left', '10px', 'important');
-      st.setProperty('right', '10px', 'important');
-      st.setProperty('top', top + 'px', 'important');
-      st.setProperty('width', 'auto', 'important');
-      st.setProperty('max-width', 'none', 'important');
-      st.setProperty('transform', 'none', 'important');
-      st.setProperty('margin', '0', 'important');
-      st.setProperty('z-index', '2000', 'important');
-      const list = document.getElementById('notificationListContent');
-      if (list) list.style.maxHeight = 'min(60vh, 360px)';
-    } else {
-      ['left', 'transform', 'margin'].forEach(prop => st.removeProperty(prop));
-      st.setProperty('position', 'absolute', 'important');
-      st.setProperty('right', '0', 'important');
-      st.setProperty('top', '46px', 'important');
-      st.setProperty('width', '340px', 'important');
-      st.setProperty('max-width', '90vw', 'important');
-      st.setProperty('height', 'auto', 'important');
-      st.setProperty('max-height', 'none', 'important');
-      st.setProperty('overflow', 'visible', 'important');
-      st.setProperty('z-index', '2000', 'important');
-      const list = document.getElementById('notificationListContent');
-      if (list) list.style.maxHeight = '380px';
-    }
-    const listEl = document.getElementById('notificationListContent');
-    if (listEl) {
-      listEl.style.setProperty('display', 'block', 'important');
-      listEl.style.setProperty('height', 'auto', 'important');
-      listEl.style.setProperty('min-height', '0', 'important');
-      listEl.style.setProperty('overflow-y', 'auto', 'important');
-      listEl.style.setProperty('opacity', '1', 'important');
-      listEl.style.setProperty('visibility', 'visible', 'important');
-    }
+    const top = Math.round(notificationBellBtn.getBoundingClientRect().bottom + 8);
+    notificationDropdown.style.setProperty('--notif-top', top + 'px');
   }
 
   if (notificationBellBtn && notificationDropdown) {
