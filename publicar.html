@@ -1400,7 +1400,7 @@
             <div class="publish-form-group" id="grupoPrecioVenta">
               <label id="labelPrecioVenta">Precio</label>
               <div style="display: flex; gap: 8px;">
-                <input type="number" id="propPrecio" class="publish-control" min="1000" placeholder="Ej. 150000" required style="flex: 2;">
+                <input type="text" inputmode="decimal" autocomplete="off" id="propPrecio" class="publish-control" placeholder="Ej. 150000" required style="flex: 2;">
                 <select id="propMoneda" class="publish-control" style="flex: 1;">
                   <option value="USD">USD ($)</option>
                   <option value="DOP">DOP (RD$)</option>
@@ -1410,7 +1410,7 @@
             <div class="publish-form-group" id="grupoPrecioAlquiler" style="display:none;">
               <label id="labelPrecioAlquiler">💰 Precio de Alquiler</label>
               <div style="display: flex; gap: 8px;">
-                <input type="number" id="propPrecioAlquiler" class="publish-control" min="1000" placeholder="Ej. 1200" style="flex: 2;">
+                <input type="text" inputmode="decimal" autocomplete="off" id="propPrecioAlquiler" class="publish-control" placeholder="Ej. 1200" style="flex: 2;">
                 <select id="propMonedaAlquiler" class="publish-control" style="flex: 1;">
                   <option value="USD">USD ($)</option>
                   <option value="DOP">DOP (RD$)</option>
@@ -1472,7 +1472,7 @@
               <div class="publish-form-group">
                 <label id="labelPrecioSinAmueblar">🪑 Precio Sin Amueblar</label>
                 <div style="display: flex; gap: 8px;">
-                  <input type="number" id="propPrecioSinAmueblar" class="publish-control" placeholder="Ej. 130000" min="1000" style="flex: 2;">
+                  <input type="text" inputmode="decimal" autocomplete="off" id="propPrecioSinAmueblar" class="publish-control" placeholder="Ej. 130000" style="flex: 2;">
                   <select id="propMonedaSinAmueblar" class="publish-control" style="flex: 1;">
                     <option value="USD">USD ($)</option>
                     <option value="DOP">DOP (RD$)</option>
@@ -1482,7 +1482,7 @@
               <div class="publish-form-group" id="grupoPrecioAlquilerSinAmueblar" style="display:none;">
                 <label>🔑 Precio de Alquiler Sin Amueblar</label>
                 <div style="display: flex; gap: 8px;">
-                  <input type="number" id="propPrecioAlquilerSinAmueblar" class="publish-control" placeholder="Ej. 1000" min="1000" style="flex: 2;">
+                  <input type="text" inputmode="decimal" autocomplete="off" id="propPrecioAlquilerSinAmueblar" class="publish-control" placeholder="Ej. 1000" style="flex: 2;">
                   <select id="propMonedaAlquilerSinAmueblar" class="publish-control" style="flex: 1;">
                     <option value="USD">USD ($)</option>
                     <option value="DOP">DOP (RD$)</option>
@@ -3512,10 +3512,14 @@
          REVISIÓN ANTES DE PUBLICAR
          - Panel en vivo: dice qué falta o que todo está correcto.
          - Al publicar: si falta algo obligatorio, NO deja guardar.
-         - Precio mínimo: 1000 (USD o RD$).
+         - Precio mínimo: 100 en USD y 1000 en RD$ (DOP).
          - Fotos: se revisan al elegirlas (formato, tamaño y contenido).
       ========================================================= */
-      const PRECIO_MINIMO = 1000;                    // mínimo permitido en USD y en RD$
+      const PRECIO_MINIMO_USD = 100;                 // mínimo permitido en USD
+      const PRECIO_MINIMO_DOP = 1000;                // mínimo permitido en RD$ (DOP)
+      const rvMinimo = (moneda) => (moneda === 'USD' ? PRECIO_MINIMO_USD : PRECIO_MINIMO_DOP);
+      const rvSimbolo = (moneda) => (moneda === 'USD' ? 'USD' : 'RD$');
+      const rvNumero = (txt) => Number(String(txt || '').replace(/[^0-9.]/g, ''));
       const FOTOS_RECOMENDADAS = 3;
       const IMG_MAX_MB = 10;
       const IMG_LADO_MIN = 400, IMG_LADO_MAX_MIN = 600; // lado corto >= 400 y lado largo >= 600
@@ -3555,12 +3559,14 @@
       })();
 
       // ---------- Reglas del formulario ----------
-      function rvPrecio(id, nombre, obligatorio, campo) {
+      function rvPrecio(id, nombre, obligatorio, campo, monedaId) {
         const raw = rvVal(id);
         if (!raw) return obligatorio ? { msg: `Falta ${nombre}.`, campo } : null;
-        const n = Number(raw);
-        if (!Number.isFinite(n) || n < PRECIO_MINIMO) {
-          return { msg: `${nombre[0].toUpperCase() + nombre.slice(1)} no puede ser menor de ${PRECIO_MINIMO.toLocaleString()} (ni en USD ni en RD$).`, campo };
+        const n = rvNumero(raw);
+        const moneda = rvVal(monedaId) || 'USD';
+        const min = rvMinimo(moneda);
+        if (!Number.isFinite(n) || n < min) {
+          return { msg: `${nombre[0].toUpperCase() + nombre.slice(1)} no puede ser menor de ${min.toLocaleString()} ${rvSimbolo(moneda)}.`, campo };
         }
         return null;
       }
@@ -3577,10 +3583,10 @@
         const dosPrecios = rvEl('propAmueblado') && rvEl('propAmueblado').checked && rvEl('propDosPrecios') && rvEl('propDosPrecios').checked;
 
         [
-          rvPrecio('propPrecio', combinada ? 'el precio de venta' : 'el precio', true, 'propPrecio'),
-          rvPrecio('propPrecioAlquiler', 'el precio de alquiler', combinada, 'propPrecioAlquiler'),
-          dosPrecios ? rvPrecio('propPrecioSinAmueblar', 'el precio sin amueblar', true, 'propPrecioSinAmueblar') : null,
-          (dosPrecios && combinada) ? rvPrecio('propPrecioAlquilerSinAmueblar', 'el precio de alquiler sin amueblar', true, 'propPrecioAlquilerSinAmueblar') : null
+          rvPrecio('propPrecio', combinada ? 'el precio de venta' : 'el precio', true, 'propPrecio', 'propMoneda'),
+          rvPrecio('propPrecioAlquiler', 'el precio de alquiler', combinada, 'propPrecioAlquiler', 'propMonedaAlquiler'),
+          dosPrecios ? rvPrecio('propPrecioSinAmueblar', 'el precio sin amueblar', true, 'propPrecioSinAmueblar', 'propMonedaSinAmueblar') : null,
+          (dosPrecios && combinada) ? rvPrecio('propPrecioAlquilerSinAmueblar', 'el precio de alquiler sin amueblar', true, 'propPrecioAlquilerSinAmueblar', 'propMonedaAlquilerSinAmueblar') : null
         ].forEach(e => { if (e) errores.push(e); });
 
         if (!rvVal('propProvincia')) add(errores, 'Selecciona la provincia.', 'propProvincia');
@@ -3639,22 +3645,33 @@
       }, 700);
 
       // ---------- Mensaje de error en vivo bajo los precios ----------
-      ['propPrecio', 'propPrecioAlquiler', 'propPrecioSinAmueblar', 'propPrecioAlquilerSinAmueblar'].forEach(id => {
+      [['propPrecio', 'propMoneda'], ['propPrecioAlquiler', 'propMonedaAlquiler'],
+       ['propPrecioSinAmueblar', 'propMonedaSinAmueblar'], ['propPrecioAlquilerSinAmueblar', 'propMonedaAlquilerSinAmueblar']].forEach(([id, monId]) => {
         const input = rvEl(id);
+        const selMon = rvEl(monId);
         if (!input) return;
         const aviso = document.createElement('small');
         aviso.className = 'rv-precio-error';
         aviso.style.display = 'none';
-        aviso.textContent = `El precio mínimo es ${PRECIO_MINIMO.toLocaleString()} (en USD o en RD$).`;
         input.parentElement.insertAdjacentElement('afterend', aviso);
         const validar = () => {
+          const moneda = (selMon && selMon.value) || 'USD';
+          const min = rvMinimo(moneda);
+          aviso.textContent = `El precio mínimo es ${min.toLocaleString()} ${rvSimbolo(moneda)}.`;
           const raw = input.value.trim();
-          const malo = raw !== '' && !(Number(raw) >= PRECIO_MINIMO);
+          const malo = raw !== '' && !(rvNumero(raw) >= min);
           aviso.style.display = malo ? 'block' : 'none';
           input.classList.toggle('rv-input-malo', malo);
         };
-        input.addEventListener('input', validar);
+        // Limpia comas, espacios y letras: "12,000" pasa a "12000"
+        input.addEventListener('input', () => {
+          const limpio = input.value.replace(/[^0-9.]/g, '').replace(/(\..*?)\./g, '$1');
+          if (limpio !== input.value) input.value = limpio;
+          validar();
+        });
         input.addEventListener('blur', validar);
+        if (selMon) selMon.addEventListener('change', validar);
+        validar();
       });
 
       // ---------- Revisión de fotos ----------
