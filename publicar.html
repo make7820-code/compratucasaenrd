@@ -1291,7 +1291,7 @@
           <button type="button" class="modal-close-btn" onclick="cerrarModalPublicar()">&times;</button>
         </div>
 
-        <form id="formPublicarPropiedad" onsubmit="guardarPropiedad(event)">
+        <form id="formPublicarPropiedad" onsubmit="guardarPropiedad(event)" novalidate>
           <!-- CAMPO OCULTO CRUCIAL PARA LA EDICIÓN -->
           <input type="hidden" id="propEditId" value="">
 
@@ -1400,7 +1400,7 @@
             <div class="publish-form-group" id="grupoPrecioVenta">
               <label id="labelPrecioVenta">Precio</label>
               <div style="display: flex; gap: 8px;">
-                <input type="number" id="propPrecio" class="publish-control" placeholder="Ej. 150000" required style="flex: 2;">
+                <input type="number" id="propPrecio" class="publish-control" min="1000" placeholder="Ej. 150000" required style="flex: 2;">
                 <select id="propMoneda" class="publish-control" style="flex: 1;">
                   <option value="USD">USD ($)</option>
                   <option value="DOP">DOP (RD$)</option>
@@ -1410,7 +1410,7 @@
             <div class="publish-form-group" id="grupoPrecioAlquiler" style="display:none;">
               <label id="labelPrecioAlquiler">💰 Precio de Alquiler</label>
               <div style="display: flex; gap: 8px;">
-                <input type="number" id="propPrecioAlquiler" class="publish-control" placeholder="Ej. 1200" style="flex: 2;">
+                <input type="number" id="propPrecioAlquiler" class="publish-control" min="1000" placeholder="Ej. 1200" style="flex: 2;">
                 <select id="propMonedaAlquiler" class="publish-control" style="flex: 1;">
                   <option value="USD">USD ($)</option>
                   <option value="DOP">DOP (RD$)</option>
@@ -1472,7 +1472,7 @@
               <div class="publish-form-group">
                 <label id="labelPrecioSinAmueblar">🪑 Precio Sin Amueblar</label>
                 <div style="display: flex; gap: 8px;">
-                  <input type="number" id="propPrecioSinAmueblar" class="publish-control" placeholder="Ej. 130000" min="0" style="flex: 2;">
+                  <input type="number" id="propPrecioSinAmueblar" class="publish-control" placeholder="Ej. 130000" min="1000" style="flex: 2;">
                   <select id="propMonedaSinAmueblar" class="publish-control" style="flex: 1;">
                     <option value="USD">USD ($)</option>
                     <option value="DOP">DOP (RD$)</option>
@@ -1482,7 +1482,7 @@
               <div class="publish-form-group" id="grupoPrecioAlquilerSinAmueblar" style="display:none;">
                 <label>🔑 Precio de Alquiler Sin Amueblar</label>
                 <div style="display: flex; gap: 8px;">
-                  <input type="number" id="propPrecioAlquilerSinAmueblar" class="publish-control" placeholder="Ej. 1000" min="0" style="flex: 2;">
+                  <input type="number" id="propPrecioAlquilerSinAmueblar" class="publish-control" placeholder="Ej. 1000" min="1000" style="flex: 2;">
                   <select id="propMonedaAlquilerSinAmueblar" class="publish-control" style="flex: 1;">
                     <option value="USD">USD ($)</option>
                     <option value="DOP">DOP (RD$)</option>
@@ -1651,6 +1651,9 @@
               Si lo dejas en blanco se usará por defecto: <strong>3 depósitos, 3000 de contrato y un garante dominicano</strong>. Escribe un requisito por línea.
             </span>
           </div>
+
+          <!-- Revisión automática: dice qué falta o si todo está correcto -->
+          <div id="panelRevision"></div>
 
           <button type="submit" class="publish-submit-btn">
             <span>🚀</span> Guardar Cambios en la Nube
@@ -3504,6 +3507,288 @@
           alert("Hubo un error al guardar la propiedad.");
         }
       }
+
+      /* =========================================================
+         REVISIÓN ANTES DE PUBLICAR
+         - Panel en vivo: dice qué falta o que todo está correcto.
+         - Al publicar: si falta algo obligatorio, NO deja guardar.
+         - Precio mínimo: 1000 (USD o RD$).
+         - Fotos: se revisan al elegirlas (formato, tamaño y contenido).
+      ========================================================= */
+      const PRECIO_MINIMO = 1000;                    // mínimo permitido en USD y en RD$
+      const FOTOS_RECOMENDADAS = 3;
+      const IMG_MAX_MB = 10;
+      const IMG_LADO_MIN = 400, IMG_LADO_MAX_MIN = 600; // lado corto >= 400 y lado largo >= 600
+      const NSFW_LIMITES = { Porn: 0.40, Hentai: 0.50, Sexy: 0.85 }; // más bajo = más estricto
+      const TIPOS_SIN_HABITACIONES = ['Solar', 'Terreno', 'Finca', 'Local', 'Oficina', 'Nave Industrial'];
+
+      const rvEl = (id) => document.getElementById(id);
+      const rvVal = (id) => ((rvEl(id) && rvEl(id).value) || '').toString().trim();
+      const rvVisible = (id) => { const e = rvEl(id); return !!(e && e.offsetParent !== null); };
+
+      // ---------- Estilos del panel y del aviso ----------
+      (function () {
+        const st = document.createElement('style');
+        st.textContent = `
+          #panelRevision { margin: 18px 0 14px; padding: 14px 16px; border-radius: 14px; border: 1px solid var(--card-border); background: var(--card-bg); }
+          #panelRevision .rv-titulo { font-weight: 800; font-size: 15px; margin-bottom: 6px; }
+          #panelRevision.ok { border-color: #22c55e; } #panelRevision.ok .rv-titulo { color: #22c55e; }
+          #panelRevision.error { border-color: #ef4444; } #panelRevision.error .rv-titulo { color: #ef4444; }
+          #panelRevision.aviso { border-color: #f59e0b; } #panelRevision.aviso .rv-titulo { color: #f59e0b; }
+          .rv-item { display: block; width: 100%; text-align: left; background: none; border: none; color: inherit; font: inherit; font-size: 13px; padding: 5px 0; cursor: pointer; line-height: 1.4; }
+          .rv-item:hover { text-decoration: underline; }
+          .rv-precio-error { display: block; color: #ef4444; font-size: 12px; margin-top: 4px; }
+          .rv-input-malo { border-color: #ef4444 !important; }
+          #estadoRevisionFotos { margin-top: 10px; font-size: 13px; line-height: 1.5; }
+          #estadoRevisionFotos .rv-malo { color: #ef4444; } #estadoRevisionFotos .rv-bueno { color: #22c55e; }
+          .rv-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 100000; display: flex; align-items: center; justify-content: center; padding: 16px; }
+          .rv-dialog { width: 100%; max-width: 460px; max-height: 85vh; overflow-y: auto; background: #18181b; color: #fff; border: 1px solid rgba(255,255,255,0.12); border-radius: 16px; padding: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+          body.light-mode .rv-dialog { background: #fff; color: #111; border-color: rgba(0,0,0,0.12); }
+          .rv-dialog h4 { margin: 0 0 10px; font-size: 17px; }
+          .rv-dialog .rv-sec { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; margin: 12px 0 4px; opacity: .7; }
+          .rv-botones { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
+          .rv-btn { flex: 1; min-width: 140px; padding: 11px 14px; border-radius: 10px; border: none; cursor: pointer; font: inherit; font-weight: 700; font-size: 14px; }
+          .rv-btn.pri { background: #ef4444; color: #fff; }
+          .rv-btn.sec { background: rgba(127,127,127,0.2); color: inherit; }
+        `;
+        document.head.appendChild(st);
+      })();
+
+      // ---------- Reglas del formulario ----------
+      function rvPrecio(id, nombre, obligatorio, campo) {
+        const raw = rvVal(id);
+        if (!raw) return obligatorio ? { msg: `Falta ${nombre}.`, campo } : null;
+        const n = Number(raw);
+        if (!Number.isFinite(n) || n < PRECIO_MINIMO) {
+          return { msg: `${nombre[0].toUpperCase() + nombre.slice(1)} no puede ser menor de ${PRECIO_MINIMO.toLocaleString()} (ni en USD ni en RD$).`, campo };
+        }
+        return null;
+      }
+
+      function revisarPublicacion() {
+        const errores = [], avisos = [];
+        const add = (lista, msg, campo) => lista.push({ msg, campo });
+
+        if (rvVal('propTitulo').length < 5) add(errores, 'Escribe el título de la propiedad (mínimo 5 letras).', 'propTitulo');
+        if (rvVisible('propAgente') && !rvVal('propAgente')) add(errores, 'Falta el nombre del agente.', 'propAgente');
+
+        const op = rvVal('propOperacion').toLowerCase();
+        const combinada = op.includes('venta') && op.includes('alquiler');
+        const dosPrecios = rvEl('propAmueblado') && rvEl('propAmueblado').checked && rvEl('propDosPrecios') && rvEl('propDosPrecios').checked;
+
+        [
+          rvPrecio('propPrecio', combinada ? 'el precio de venta' : 'el precio', true, 'propPrecio'),
+          rvPrecio('propPrecioAlquiler', 'el precio de alquiler', combinada, 'propPrecioAlquiler'),
+          dosPrecios ? rvPrecio('propPrecioSinAmueblar', 'el precio sin amueblar', true, 'propPrecioSinAmueblar') : null,
+          (dosPrecios && combinada) ? rvPrecio('propPrecioAlquilerSinAmueblar', 'el precio de alquiler sin amueblar', true, 'propPrecioAlquilerSinAmueblar') : null
+        ].forEach(e => { if (e) errores.push(e); });
+
+        if (!rvVal('propProvincia')) add(errores, 'Selecciona la provincia.', 'propProvincia');
+        if (!rvVal('propMunicipio')) add(errores, 'Selecciona el municipio.', 'propMunicipio');
+
+        const nuevas = (rvEl('propArchivos') && rvEl('propArchivos').files) ? rvEl('propArchivos').files.length : 0;
+        const totalFotos = imagenesEditandoActuales.length + nuevas;
+        if (totalFotos < 1) add(errores, 'Agrega al menos 1 foto de la propiedad.', 'zonaSubidaFotos');
+        else if (totalFotos < FOTOS_RECOMENDADAS) add(avisos, `Tienes ${totalFotos} foto(s). Se recomiendan ${FOTOS_RECOMENDADAS} o más para que se venda más rápido.`, 'zonaSubidaFotos');
+        if (nuevas > 0 && fotosSinVerificar) add(avisos, 'No se pudo revisar automáticamente el contenido de las fotos nuevas (sin conexión a la revisión). Asegúrate de que sean apropiadas.', 'zonaSubidaFotos');
+
+        if (rvVal('propDescripcion').length < 20) add(errores, 'Escribe una descripción (mínimo 20 letras).', 'propDescripcion');
+
+        // Sugerencias (no bloquean)
+        const rvDistrito = rvEl('propDistrito');
+        if (rvVal('propMunicipio') && rvDistrito && !rvDistrito.disabled && !rvDistrito.value) add(avisos, 'No elegiste el sector. Sin sector, esta propiedad no le llegará a quienes pidieron notificaciones de ese sector.', 'propDistrito');
+        if (!TIPOS_SIN_HABITACIONES.includes(rvVal('propTipoPropiedad'))) {
+          if (rvVisible('propHabitaciones') && rvVal('propHabitaciones') === '') add(avisos, 'Faltan las habitaciones.', 'propHabitaciones');
+          if (rvVisible('propBanos') && rvVal('propBanos') === '') add(avisos, 'Faltan los baños.', 'propBanos');
+        }
+        if (rvVisible('propMetros') && !rvVal('propMetros')) add(avisos, 'Faltan los metros cuadrados.', 'propMetros');
+        const hayPin = Number.isFinite(parseFloat(rvVal('propLat'))) && Number.isFinite(parseFloat(rvVal('propLng')));
+        if (!hayPin && !rvVal('propLinkUbicacion')) add(avisos, 'No marcaste el pin ni pegaste el link de ubicación; el mapa mostrará solo la zona aproximada.', 'propLinkUbicacion');
+
+        return { errores, avisos };
+      }
+
+      function rvIrACampo(id) {
+        const el = rvEl(id);
+        if (!el) return;
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        if (typeof el.focus === 'function' && el.tagName !== 'DIV') setTimeout(() => el.focus({ preventScroll: true }), 350);
+      }
+
+      // ---------- Panel en vivo ----------
+      let rvUltimoHtml = '';
+      function actualizarPanelRevision() {
+        const panel = rvEl('panelRevision');
+        if (!panel) return;
+        const { errores, avisos } = revisarPublicacion();
+        let clase, titulo;
+        if (errores.length) { clase = 'error'; titulo = `❌ Falta completar ${errores.length} cosa${errores.length > 1 ? 's' : ''} obligatoria${errores.length > 1 ? 's' : ''}`; }
+        else if (avisos.length) { clase = 'aviso'; titulo = `⚠️ Listo para publicar (con ${avisos.length} sugerencia${avisos.length > 1 ? 's' : ''})`; }
+        else { clase = 'ok'; titulo = '✅ Todo correcto, listo para publicar'; }
+        const fila = (e, icono) => `<button type="button" class="rv-item" data-campo="${e.campo}">${icono} ${e.msg}</button>`;
+        const html = `<div class="rv-titulo">${titulo}</div>` + errores.map(e => fila(e, '❌')).join('') + avisos.map(e => fila(e, '⚠️')).join('');
+        if (html === rvUltimoHtml && panel.className === clase) return;
+        rvUltimoHtml = html;
+        panel.className = clase;
+        panel.innerHTML = html;
+        panel.querySelectorAll('.rv-item').forEach(b => b.addEventListener('click', () => rvIrACampo(b.dataset.campo)));
+      }
+      setInterval(() => {
+        const m = rvEl('modalPublicar');
+        if (m && m.style.display === 'flex') actualizarPanelRevision();
+      }, 700);
+
+      // ---------- Mensaje de error en vivo bajo los precios ----------
+      ['propPrecio', 'propPrecioAlquiler', 'propPrecioSinAmueblar', 'propPrecioAlquilerSinAmueblar'].forEach(id => {
+        const input = rvEl(id);
+        if (!input) return;
+        const aviso = document.createElement('small');
+        aviso.className = 'rv-precio-error';
+        aviso.style.display = 'none';
+        aviso.textContent = `El precio mínimo es ${PRECIO_MINIMO.toLocaleString()} (en USD o en RD$).`;
+        input.parentElement.insertAdjacentElement('afterend', aviso);
+        const validar = () => {
+          const raw = input.value.trim();
+          const malo = raw !== '' && !(Number(raw) >= PRECIO_MINIMO);
+          aviso.style.display = malo ? 'block' : 'none';
+          input.classList.toggle('rv-input-malo', malo);
+        };
+        input.addEventListener('input', validar);
+        input.addEventListener('blur', validar);
+      });
+
+      // ---------- Revisión de fotos ----------
+      let promesaRevisionFotos = Promise.resolve();
+      let fotosSinVerificar = false;
+      let promesaModeloNSFW = null;
+
+      function rvCargarScript(src) {
+        return new Promise((ok, fallo) => {
+          const s = document.createElement('script');
+          s.src = src; s.onload = ok; s.onerror = () => fallo(new Error('No cargó ' + src));
+          document.head.appendChild(s);
+        });
+      }
+      function cargarModeloNSFW() {
+        if (!promesaModeloNSFW) {
+          promesaModeloNSFW = (async () => {
+            await rvCargarScript('https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.21.0/dist/tf.min.js');
+            await rvCargarScript('https://cdn.jsdelivr.net/npm/nsfwjs@2.4.2/dist/nsfwjs.min.js');
+            return await window.nsfwjs.load();
+          })().catch(e => { console.warn('Revisión de contenido no disponible:', e); return null; });
+        }
+        return promesaModeloNSFW;
+      }
+
+      async function analizarFoto(file) {
+        if (!/^image\//.test(file.type)) return { ok: false, motivo: 'no es una imagen' };
+        if (file.size > IMG_MAX_MB * 1024 * 1024) return { ok: false, motivo: `pesa más de ${IMG_MAX_MB} MB` };
+        const url = URL.createObjectURL(file);
+        try {
+          const img = new Image();
+          img.src = url;
+          try { await img.decode(); }
+          catch (e) { return { ok: false, motivo: 'no se pudo leer (usa JPG, PNG o WEBP)' }; }
+          const corto = Math.min(img.naturalWidth, img.naturalHeight), largo = Math.max(img.naturalWidth, img.naturalHeight);
+          if (corto < IMG_LADO_MIN || largo < IMG_LADO_MAX_MIN) return { ok: false, motivo: `es muy pequeña (mínimo ${IMG_LADO_MAX_MIN}x${IMG_LADO_MIN} px)` };
+
+          const modelo = await cargarModeloNSFW();
+          if (!modelo) return { ok: true, sinVerificar: true };
+          const preds = await modelo.classify(img);
+          const p = {}; preds.forEach(x => { p[x.className] = x.probability; });
+          if ((p.Porn || 0) >= NSFW_LIMITES.Porn || (p.Hentai || 0) >= NSFW_LIMITES.Hentai || (p.Sexy || 0) >= NSFW_LIMITES.Sexy) {
+            return { ok: false, motivo: 'contenido no permitido (desnudos o imágenes sexuales)' };
+          }
+          return { ok: true };
+        } catch (e) {
+          console.warn('Error al revisar la foto:', e);
+          return { ok: true, sinVerificar: true };
+        } finally {
+          URL.revokeObjectURL(url);
+        }
+      }
+
+      async function procesarFotosSeleccionadas(input) {
+        const zona = rvEl('zonaSubidaFotos');
+        let estado = rvEl('estadoRevisionFotos');
+        if (!estado && zona) { estado = document.createElement('div'); estado.id = 'estadoRevisionFotos'; zona.insertAdjacentElement('afterend', estado); }
+        const archivos = Array.from(input.files || []);
+        fotosSinVerificar = false;
+        if (!archivos.length) { if (estado) estado.innerHTML = ''; actualizarPanelRevision(); return; }
+
+        if (estado) estado.innerHTML = '⏳ Revisando las fotos...';
+        const aprobadas = [], rechazadas = [];
+        for (const f of archivos) {
+          const r = await analizarFoto(f);
+          if (r.ok) { aprobadas.push(f); if (r.sinVerificar) fotosSinVerificar = true; }
+          else rechazadas.push(`${f.name}: ${r.motivo}`);
+        }
+        if (rechazadas.length) {
+          const dt = new DataTransfer();
+          aprobadas.forEach(f => dt.items.add(f));
+          input.files = dt.files;
+        }
+        const texto = rvEl('textoArchivosFotos');
+        if (texto) texto.textContent = !aprobadas.length ? 'Ninguna foto seleccionada' : (aprobadas.length === 1 ? aprobadas[0].name : `${aprobadas.length} archivos seleccionados`);
+        previewImgUrl = aprobadas.length ? URL.createObjectURL(aprobadas[0]) : '';
+        actualizarVistaPrevia();
+
+        if (estado) {
+          estado.innerHTML =
+            (aprobadas.length ? `<div class="rv-bueno">✅ ${aprobadas.length} foto(s) aprobada(s).</div>` : '') +
+            rechazadas.map(m => `<div class="rv-malo">🚫 No se aceptó "${m.replace(/</g, '&lt;')}"</div>`).join('');
+        }
+        actualizarPanelRevision();
+      }
+
+      (function () {
+        const input = rvEl('propArchivos');
+        if (!input) return;
+        input.addEventListener('change', () => {
+          promesaRevisionFotos = promesaRevisionFotos.then(() => procesarFotosSeleccionadas(input));
+        });
+      })();
+
+      // ---------- Ventana "falta algo / casi listo" ----------
+      function mostrarModalRevision({ errores, avisos }) {
+        return new Promise((resolver) => {
+          const hayErrores = errores.length > 0;
+          const ov = document.createElement('div');
+          ov.className = 'rv-overlay';
+          const lista = (arr, icono) => arr.map(e => `<button type="button" class="rv-item" data-campo="${e.campo}">${icono} ${e.msg}</button>`).join('');
+          ov.innerHTML = `
+            <div class="rv-dialog">
+              <h4>${hayErrores ? '❌ Todavía no se puede publicar' : '⚠️ Casi listo'}</h4>
+              ${hayErrores ? `<div class="rv-sec">Falta completar</div>${lista(errores, '❌')}` : ''}
+              ${avisos.length ? `<div class="rv-sec">Sugerencias</div>${lista(avisos, '⚠️')}` : ''}
+              <div class="rv-botones">
+                <button type="button" class="rv-btn pri" data-accion="corregir">${hayErrores ? 'Corregir ahora' : 'Revisar'}</button>
+                ${hayErrores ? '' : '<button type="button" class="rv-btn sec" data-accion="seguir">Publicar de todos modos</button>'}
+              </div>
+            </div>`;
+          const cerrar = (seguir, campo) => { ov.remove(); resolver(seguir); if (campo) rvIrACampo(campo); };
+          ov.querySelectorAll('.rv-item').forEach(b => b.addEventListener('click', () => cerrar(false, b.dataset.campo)));
+          ov.querySelector('[data-accion="corregir"]').addEventListener('click', () => cerrar(false, (errores[0] || avisos[0] || {}).campo));
+          const seguir = ov.querySelector('[data-accion="seguir"]');
+          if (seguir) seguir.addEventListener('click', () => cerrar(true));
+          document.body.appendChild(ov);
+        });
+      }
+
+      // ---------- Se intercepta el guardado ----------
+      const guardarPropiedadOriginal = window.guardarPropiedad;
+      window.guardarPropiedad = async function (event) {
+        if (event && event.preventDefault) event.preventDefault();
+        await promesaRevisionFotos; // espera a que termine la revisión de fotos, si está en curso
+        const resultado = revisarPublicacion();
+        actualizarPanelRevision();
+        if (resultado.errores.length) { await mostrarModalRevision(resultado); return; }
+        if (resultado.avisos.length) {
+          const seguir = await mostrarModalRevision(resultado);
+          if (!seguir) return;
+        }
+        return guardarPropiedadOriginal(event);
+      };
 
       /* ===== Estado de Paginación (Cuadrícula 4x2 = 8 por página) ===== */
       const ITEMS_POR_PAGINA_GESTION = 8;
