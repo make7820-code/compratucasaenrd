@@ -1602,7 +1602,9 @@
         const fotoGuardada = usuarioActualData.fotoPerfil || localStorage.getItem(`${username}_perfil_foto`);
         const avatarSrc = fotoGuardada ? fotoGuardada : `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`;
 
-        if (authContainer) {
+        // Con sesión iniciada, la campanita y el menú los dibuja notifications.js (igual que en las demás páginas)
+        const notifActivas = !!(window.firebase && firebase.auth && firebase.auth().currentUser);
+        if (authContainer && !notifActivas) {
           authContainer.innerHTML = `
             <a href="perfil.html" style="display: flex; align-items: center; gap: 12px; text-decoration: none; padding: 4px 8px 4px 4px; border-radius: 999px;">
               <img src="${avatarSrc}" alt="Avatar" style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 2px solid #ef4444;" onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=${username}'">
@@ -1898,6 +1900,9 @@
         });
       })();
     </script>
+
+    <!-- Campanita de notificaciones y menú de usuario (igual que en las demás páginas) -->
+    <script type="module" src="notifications.js"></script>
 
     <!-- Menú hamburguesa (móvil) -->
     <script>
