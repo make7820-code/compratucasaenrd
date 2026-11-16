@@ -627,6 +627,34 @@
       .switch-push:disabled { opacity: 0.6; cursor: wait; }
       body.light-mode .switch-push:not(.on) { background: #d4d4d8; border-color: rgba(0,0,0,0.12); }
       .push-msg { font-size: 12px; color: #9ca3af; margin-top: 6px; line-height: 1.4; }
+
+      /* ===== Notificaciones por zona ===== */
+      .nz-modos { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
+      .nz-modo { flex:1; min-width:150px; padding:12px 14px; border-radius:12px; cursor:pointer; text-align:left;
+        background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); color:inherit; font:inherit; }
+      .nz-modo b { display:block; font-size:14px; margin-bottom:2px; }
+      .nz-modo span { font-size:12px; color:#9ca3af; }
+      .nz-modo.activo { border-color:#ef4444; background:rgba(239,68,68,0.1); }
+      .nz-selects { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:10px; }
+      .nz-selects select { width:100%; padding:10px; border-radius:10px; font:inherit; font-size:13px;
+        background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.12); color:inherit; }
+      .nz-selects select option { color:#111; }
+      .nz-selects select:disabled { opacity:0.5; }
+      .nz-btn { padding:10px 16px; border-radius:10px; border:none; cursor:pointer; font:inherit; font-weight:700; font-size:13px; }
+      .nz-btn.add { background:#ef4444; color:#fff; }
+      .nz-btn.add:disabled { opacity:0.5; cursor:not-allowed; }
+      .nz-chips { display:flex; flex-wrap:wrap; gap:8px; margin:14px 0 4px; min-height:34px; }
+      .nz-chip { display:inline-flex; align-items:center; gap:8px; padding:7px 8px 7px 12px; border-radius:999px; font-size:13px;
+        background:rgba(59,130,246,0.14); border:1px solid rgba(59,130,246,0.4); }
+      .nz-chip button { background:none; border:none; color:inherit; cursor:pointer; font-size:15px; line-height:1; padding:0 4px; opacity:0.8; }
+      .nz-vacio { font-size:13px; color:#9ca3af; padding:6px 0; }
+      .nz-msg { font-size:12px; margin-top:8px; min-height:16px; }
+      .nz-guardar { margin-top:10px; background:#22c55e; color:#fff; }
+      body.light-mode .nz-modo { background:#fafafa; border-color:rgba(0,0,0,0.12); }
+      body.light-mode .nz-modo.activo { background:rgba(239,68,68,0.08); }
+      body.light-mode .nz-selects select { background:#fff; border-color:rgba(0,0,0,0.15); }
+      body.light-mode .nz-chip { background:rgba(59,130,246,0.1); }
+      @media (max-width:640px) { .nz-selects { grid-template-columns:1fr; } }
     </style>
 </head>
 <body>
@@ -857,6 +885,36 @@
 
           </div>
 
+          <!-- Notificaciones por zona -->
+          <div class="profile-section-card" id="cardNotifZonas">
+            <h3 class="profile-section-title">
+              <span>📍</span> Notificaciones por zona
+            </h3>
+            <p style="font-size:13px; color:#9ca3af; margin:0 0 14px; line-height:1.5;">Elige de qué zonas quieres recibir aviso cuando se publique una propiedad nueva en la campanita.</p>
+
+            <div class="nz-modos">
+              <button type="button" class="nz-modo" id="nzModoTodas" data-modo="todas">
+                <b>🌎 Todas las zonas</b><span>Me llegan todas las propiedades nuevas</span>
+              </button>
+              <button type="button" class="nz-modo" id="nzModoElegidas" data-modo="elegidas">
+                <b>🎯 Solo mis zonas</b><span>Solo las zonas que yo agregue</span>
+              </button>
+            </div>
+
+            <div id="nzPanelZonas" style="display:none;">
+              <div class="nz-selects">
+                <select id="nzProvincia"><option value="">Provincia</option></select>
+                <select id="nzMunicipio" disabled><option value="">Municipio</option></select>
+                <select id="nzSector" disabled><option value="">Sector (todos)</option></select>
+              </div>
+              <button type="button" class="nz-btn add" id="nzBtnAgregar" disabled>➕ Agregar zona</button>
+              <div class="nz-chips" id="nzChips"></div>
+            </div>
+
+            <button type="button" class="nz-btn nz-guardar" id="nzBtnGuardar">💾 Guardar preferencias</button>
+            <div class="nz-msg" id="nzMsg"></div>
+          </div>
+
           <!-- Marca de agua del agente (solo agente / agentepro) -->
           <div class="profile-section-card" id="cardMarcaAgua" style="display:none;">
             <h3 class="profile-section-title">
@@ -1074,6 +1132,7 @@
     </footer>
 
     <!-- ================= SCRIPTS Y CONEXIÓN FIRESTORE / LOCAL ================= -->
+    <script src="geo-data.js"></script>
     <script>
       const firebaseConfig = {
         apiKey: "AIzaSyDJjporsjk6QnY5HaHAU-8QfeCJvDsayyc",
@@ -1727,6 +1786,115 @@
           if (quiere) { puente.activar(); } else { puente.desactivar(); }
           // Por si la app no responde, se vuelve a leer el estado real
           setTimeout(() => pintar(puente.estaActivado()), 20000);
+        });
+      })();
+    </script>
+
+    <!-- Notificaciones por zona: se guardan en usuarios/{uid}.notifZonas -->
+    <script>
+      (function () {
+        const GEO = window.GEO_DATA || {};
+        const $ = (id) => document.getElementById(id);
+        const selProv = $('nzProvincia'), selMun = $('nzMunicipio'), selSec = $('nzSector');
+        const btnAdd = $('nzBtnAgregar'), btnSave = $('nzBtnGuardar');
+        const chipsBox = $('nzChips'), panel = $('nzPanelZonas'), msg = $('nzMsg');
+        if (!selProv) return;
+
+        let modo = 'todas';
+        let zonas = []; // [{provincia, municipio, distrito}]  (municipio / distrito vacíos = toda la provincia / municipio)
+        let uid = null;
+
+        const ordenar = (arr) => arr.slice().sort((a, b) => a.localeCompare(b, 'es'));
+        const nombreZona = (z) => [z.distrito, z.municipio, z.provincia].filter(Boolean).join(', ') +
+          (!z.municipio ? ' (toda la provincia)' : (!z.distrito ? ' (todo el municipio)' : ''));
+        const llenar = (sel, lista, placeholder) => {
+          sel.innerHTML = '';
+          const o0 = document.createElement('option'); o0.value = ''; o0.textContent = placeholder; sel.appendChild(o0);
+          lista.forEach(v => { const o = document.createElement('option'); o.value = v; o.textContent = v; sel.appendChild(o); });
+        };
+        const mostrarMsg = (t, ok) => { msg.textContent = t || ''; msg.style.color = ok ? '#22c55e' : '#ef4444'; };
+
+        llenar(selProv, ordenar(Object.keys(GEO)), 'Provincia');
+
+        selProv.addEventListener('change', () => {
+          const p = selProv.value;
+          llenar(selMun, p ? ordenar(Object.keys(GEO[p] || {})) : [], 'Municipio (todos)');
+          selMun.disabled = !p;
+          llenar(selSec, [], 'Sector (todos)'); selSec.disabled = true;
+          btnAdd.disabled = !p;
+        });
+        selMun.addEventListener('change', () => {
+          const lista = (selProv.value && selMun.value && GEO[selProv.value][selMun.value]) || [];
+          llenar(selSec, lista, 'Sector (todos)');
+          selSec.disabled = !lista.length;
+        });
+
+        btnAdd.addEventListener('click', () => {
+          if (!selProv.value) return;
+          const z = { provincia: selProv.value, municipio: selMun.value || '', distrito: selSec.value || '' };
+          if (zonas.some(x => x.provincia === z.provincia && x.municipio === z.municipio && x.distrito === z.distrito)) {
+            mostrarMsg('Esa zona ya está en tu lista.', false); return;
+          }
+          zonas.push(z);
+          pintarChips(); mostrarMsg('', true);
+          selProv.value = ''; selProv.dispatchEvent(new Event('change'));
+        });
+
+        function pintarChips() {
+          chipsBox.innerHTML = '';
+          if (!zonas.length) {
+            chipsBox.innerHTML = '<div class="nz-vacio">Aún no has agregado zonas.</div>';
+            return;
+          }
+          zonas.forEach((z, i) => {
+            const chip = document.createElement('span'); chip.className = 'nz-chip';
+            const t = document.createElement('span'); t.textContent = '📍 ' + nombreZona(z);
+            const b = document.createElement('button'); b.type = 'button'; b.title = 'Quitar'; b.textContent = '✕';
+            b.addEventListener('click', () => { zonas.splice(i, 1); pintarChips(); });
+            chip.appendChild(t); chip.appendChild(b); chipsBox.appendChild(chip);
+          });
+        }
+
+        function pintarModo() {
+          $('nzModoTodas').classList.toggle('activo', modo === 'todas');
+          $('nzModoElegidas').classList.toggle('activo', modo === 'elegidas');
+          panel.style.display = modo === 'elegidas' ? 'block' : 'none';
+        }
+        document.querySelectorAll('.nz-modo').forEach(b => b.addEventListener('click', () => {
+          modo = b.dataset.modo; pintarModo(); mostrarMsg('', true);
+        }));
+
+        btnSave.addEventListener('click', async () => {
+          if (modo === 'elegidas' && !zonas.length) {
+            mostrarMsg('Agrega al menos una zona, o elige "Todas las zonas".', false); return;
+          }
+          if (!uid || typeof db === 'undefined' || !db) { mostrarMsg('Inicia sesión para guardar tus preferencias.', false); return; }
+          btnSave.disabled = true;
+          try {
+            await db.collection('usuarios').doc(uid).set({ notifZonas: { modo, zonas } }, { merge: true });
+            mostrarMsg('✅ Preferencias guardadas. La campanita ya usará estas zonas.', true);
+          } catch (e) {
+            console.error('Error al guardar zonas:', e);
+            mostrarMsg('No se pudo guardar. Intenta de nuevo.', false);
+          }
+          btnSave.disabled = false;
+        });
+
+        pintarModo(); pintarChips();
+
+        // Cargar lo guardado cuando haya sesión
+        firebase.auth().onAuthStateChanged(async (user) => {
+          if (!user) return;
+          uid = user.uid;
+          try {
+            const snap = await db.collection('usuarios').doc(uid).get();
+            const nz = snap.exists && snap.data().notifZonas;
+            if (nz) {
+              modo = nz.modo === 'elegidas' ? 'elegidas' : 'todas';
+              zonas = Array.isArray(nz.zonas) ? nz.zonas : [];
+              pintarModo(); pintarChips();
+            }
+          } catch (e) { console.error('Error al leer zonas:', e); }
         });
       })();
     </script>
