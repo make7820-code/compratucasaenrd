@@ -39,6 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let displayName = user.email.split('@')[0];
     let avatarSrc = 'assets/onlybladi-avatar.png';
+    let zonasPref = { modo: 'todas', zonas: [] };
 
     // Opcional: Cargar datos adicionales del perfil si existen
     try {
@@ -48,6 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const data = docSnap.data();
         if (data.nombres) displayName = data.nombres;
         if (data.fotoPerfil) avatarSrc = data.fotoPerfil;
+        if (data.notifZonas) zonasPref = data.notifZonas;
       }
     } catch (e) {
       console.error("Error al cargar perfil en navbar:", e);
@@ -56,7 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Estado combinado de la campanita: mensajes sin leer + propiedades nuevas
     let unreadConvs = [];
     let newProps = [];
-    const rerender = () => renderGlobalNavbar(authContainer, user.uid, displayName, avatarSrc, unreadConvs, newProps, savedTheme);
+    const rerender = () => renderGlobalNavbar(authContainer, user.uid, displayName, avatarSrc, unreadConvs, newProps.filter(p => coincideZona(p, zonasPref)), savedTheme);
 
     // Se notifican las propiedades publicadas en los últimos DIAS_VENTANA días
     // (las que el usuario ya abrió o marcó como leídas no vuelven a aparecer).
@@ -128,6 +130,19 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 });
+
+// ===== Filtro por zonas elegidas en el perfil (usuarios/{uid}.notifZonas) =====
+const normZona = (v) => String(v ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+
+function coincideZona(p, pref) {
+  if (!pref || pref.modo !== 'elegidas') return true;           // "Todas las zonas"
+  const zonas = Array.isArray(pref.zonas) ? pref.zonas : [];
+  if (!zonas.length) return true;                                // sin zonas elegidas = no se filtra nada
+  const prov = normZona(p.provincia), mun = normZona(p.municipio), dis = normZona(p.distrito), ub = normZona(p.ubicacion);
+  // Si la propiedad es antigua y no trae el campo, se busca el nombre dentro de su texto de ubicación
+  const ok = (zv, pv) => !zv || (pv ? pv === zv : ub.includes(zv));
+  return zonas.some(z => ok(normZona(z.provincia), prov) && ok(normZona(z.municipio), mun) && ok(normZona(z.distrito), dis));
+}
 
 let notifOpen = false; // la campana queda abierta/cerrada por clic, y se conserva aunque se actualice la lista
 let outsideClickBound = false;
