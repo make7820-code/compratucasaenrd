@@ -508,21 +508,47 @@
       }
 
       @media(max-width: 900px) {
+        .messaging-wrapper {
+          margin: 100px auto 24px auto;
+          padding: 0 10px;
+        }
+        /* En móvil/app el contenedor crece según su contenido. Se quita el
+           max-height:75vh del escritorio: en el WebView de la app el alto de
+           pantalla es menor y ese tope recortaba el chat, dejando los
+           mensajes sin espacio (invisibles). */
         .messaging-container {
           grid-template-columns: 1fr;
+          grid-template-rows: auto auto;
           height: auto;
+          max-height: none;
+          overflow: visible;
         }
         .conversations-sidebar {
-          max-height: 250px;
+          max-height: 240px;
         }
-        /* En móvil el contenedor pasa a height:auto, así que el área del
-           chat ya no puede depender de un "height:100%" del padre (queda
-           indefinido y en algunos WebView de apps colapsa a 0 de altura,
-           dejando los mensajes invisibles aunque estén ahí). Se le da una
-           altura fija con vh (compatible en cualquier motor). */
+        /* El área del chat ya no depende de un alto heredado: se ajusta a su
+           contenido y quien tiene el alto fijo es la caja de mensajes. */
         .chat-main-area {
-          height: 65vh;
+          height: auto;
+          min-height: 0;
+          overflow: visible;
         }
+        .chat-empty-state {
+          height: auto;
+          padding: 28px 20px;
+        }
+        .chat-messages-box {
+          flex: none;
+          height: 55vh;
+          height: 55dvh;
+          min-height: 280px;
+          max-height: 520px;
+          padding: 14px;
+          gap: 12px;
+        }
+        .chat-header { padding: 12px 14px; }
+        .chat-input-area { padding: 12px 14px; }
+        .message-bubble { max-width: 85%; }
       }
     </style>
 </head>
@@ -1070,6 +1096,11 @@
 
           if (esSolicitud) {
             cargarPerfilBusqueda(propertyId);
+          }
+
+          // En celular/app la lista de chats queda arriba: se baja hasta el chat abierto
+          if (window.innerWidth <= 900) {
+            setTimeout(() => chatMainArea.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
           }
 
           const messagesBox = document.getElementById('chatMessagesBox');
