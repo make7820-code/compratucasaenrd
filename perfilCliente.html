@@ -57,6 +57,7 @@
 
     const cont = document.getElementById('contenido');
     const ROLES_VEN_PERFILES = ['agente', 'agentepro', 'admin', 'superadmin'];
+    const ROLES_VEN_ID = ['admin', 'superadmin'];
 
     const etiquetas = {
       operacion: { compra: 'Comprar', alquiler: 'Alquilar', ambos: 'Comprar o alquilar' },
@@ -107,7 +108,7 @@
       );
     }
 
-    function renderPerfil(uid, u, esPropio) {
+    function renderPerfil(uid, u, esPropio, esAdmin) {
       const p = u.perfilBusqueda;
       const nombre = `${u.nombres || ''} ${u.apellidos || ''}`.trim() || 'Cliente';
       const nodos = [];
@@ -124,10 +125,11 @@
         el('h1', { text: nombre }),
         el('p', { class: 'sub', text: [p?.ocupacion, [u.sector, u.provincia].filter(Boolean).join(', ')].filter(Boolean).join(' · ') }),
         p ? el('div', { style: 'margin-top:12px' }, el('span', { class: `badge ${claseUrg}`, text: etiquetas.urgencia[p.urgencia] || p.urgencia })) : '',
-        // Botón de contacto solo para quien no es el propio dueño
-        (!esPropio && u.telefono) ? el('div', { class: 'actions' },
-          el('a', { class: 'btn wa', target: '_blank', rel: 'noopener',
-            href: `https://wa.me/${String(u.telefono).replace(/\D/g, '').replace(/^(\d{10})$/, '1$1')}`, text: 'Escribir por WhatsApp' })
+        // Botones de contacto solo para quien no es el propio dueño
+        !esPropio ? el('div', { class: 'actions' },
+          el('a', { class: 'btn', href: `mensajes.html?para=${encodeURIComponent(uid)}`, text: '✉️ Enviar mensaje' }),
+          u.telefono ? el('a', { class: 'btn wa', target: '_blank', rel: 'noopener',
+            href: `https://wa.me/${String(u.telefono).replace(/\D/g, '').replace(/^(\d{10})$/, '1$1')}`, text: 'Escribir por WhatsApp' }) : ''
         ) : ''
       ));
 
@@ -170,7 +172,8 @@
         }
       }
 
-      nodos.push(tarjetaId(uid, esPropio));
+      // El ID y el enlace solo los ve admin / superadmin
+      if (esAdmin) nodos.push(tarjetaId(uid, esPropio));
       cont.replaceChildren(...nodos);
     }
 
@@ -185,9 +188,10 @@
       const esPropio = uidObjetivo === user.uid;
 
       try {
+        const yo = await getDoc(doc(db, 'usuarios', user.uid));
+        const rolYo = yo.exists() ? yo.data().rol : null;
+        const esAdmin = ROLES_VEN_ID.includes(rolYo);
         if (!esPropio) {
-          const yo = await getDoc(doc(db, 'usuarios', user.uid));
-          const rolYo = yo.exists() ? yo.data().rol : null;
           if (!ROLES_VEN_PERFILES.includes(rolYo)) {
             mostrarMensaje('Solo los agentes pueden ver el perfil de otros usuarios.');
             return;
@@ -198,7 +202,7 @@
           mostrarMensaje('No se encontró ningún usuario con ese ID.');
           return;
         }
-        renderPerfil(uidObjetivo, snap.data(), esPropio);
+        renderPerfil(uidObjetivo, snap.data(), esPropio, esAdmin);
       } catch (err) {
         console.error(err);
         mostrarMensaje('No se pudo cargar el perfil. Verifica tus permisos e intenta de nuevo.');
