@@ -36,6 +36,12 @@
     .msg { text-align: center; color: #a1a1aa; padding: 50px 10px; }
     .notas { white-space: pre-wrap; line-height: 1.5; font-size: 14px; color: #e4e4e7; }
     .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+    .btn:disabled { opacity: .6; cursor: default; }
+    .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,.7); display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 100; }
+    .modal { background: #121214; border: 1px solid rgba(255,255,255,.12); border-radius: 20px; padding: 24px; width: 100%; max-width: 520px; }
+    .modal h2 { font-family: 'Poppins', sans-serif; font-size: 18px; margin: 0 0 4px; }
+    .modal textarea { width: 100%; margin-top: 14px; background: #18181b; border: 1px solid rgba(255,255,255,.1); border-radius: 12px; color: #fff; font: 14px/1.5 'Inter', sans-serif; padding: 12px 14px; resize: vertical; outline: none; }
+    .modal textarea:focus { border-color: #3b82f6; }
   </style>
 </head>
 <body>
@@ -54,6 +60,11 @@
   <script type="module">
     import { auth, db, doc, getDoc } from './firebase-config.js';
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    // Ruta del panel de mensajes del equipo (agentes / admin / superadmin).
+    // Ajústala si tu archivo mensajesempresa.html está en otra carpeta.
+    const PANEL_EMPRESA = 'empresa/mensajesempresa.html';
 
     const cont = document.getElementById('contenido');
     const ROLES_VEN_PERFILES = ['agente', 'agentepro', 'admin', 'superadmin'];
@@ -107,22 +118,89 @@
       );
     }
 
-    // Construye el enlace de WhatsApp con un mensaje según el rol de quien escribe
-    function enlaceWhatsApp(telefono, nombreCliente, emisor) {
-      const numero = String(telefono).replace(/\D/g, '').replace(/^(\d{10})$/, '1$1');
+    const esAdminRol = (rol) => rol === 'admin' || rol === 'superadmin';
+
+    // Texto de saludo según el rol de quien escribe (se usa en WhatsApp y en el chat interno)
+    function mensajeInicial(nombreCliente, emisor) {
       const primerNombre = (nombreCliente || '').split(' ')[0] || '';
       const saludo = primerNombre ? `Hola ${primerNombre}` : 'Hola';
-      let texto;
-      if (emisor.rol === 'admin' || emisor.rol === 'superadmin') {
-        // Admin / superadmin: escribe directamente desde su propia cuenta
+      if (esAdminRol(emisor.rol)) {
         const quien = emisor.nombre ? `soy ${emisor.nombre}, de la administración de` : 'te escribimos desde la administración de';
-        texto = `${saludo}, ${quien} Compra tu casa en RD. Vimos tu perfil de búsqueda y queremos ayudarte a encontrar la propiedad ideal. ¿Tienes un momento para conversar?`;
-      } else {
-        // Agente / agentepro: escribe como agente
-        const quien = emisor.nombre ? `soy ${emisor.nombre}, agente de` : 'soy agente de';
-        texto = `${saludo}, ${quien} Compra tu casa en RD. Revisé tu perfil de búsqueda y tengo opciones que pueden interesarte. ¿Cuándo podemos hablar?`;
+        return `${saludo}, ${quien} Compra tu casa en RD. Vimos tu perfil de búsqueda y queremos ayudarte a encontrar la propiedad ideal. ¿Tienes un momento para conversar?`;
       }
-      return `https://wa.me/${numero}?text=${encodeURIComponent(texto)}`;
+      const quien = emisor.nombre ? `soy ${emisor.nombre}, agente de` : 'soy agente de';
+      return `${saludo}, ${quien} Compra tu casa en RD. Revisé tu perfil de búsqueda y tengo opciones que pueden interesarte. ¿Cuándo podemos hablar?`;
+    }
+
+    function enlaceWhatsApp(telefono, nombreCliente, emisor) {
+      const numero = String(telefono).replace(/\D/g, '').replace(/^(\d{10})$/, '1$1');
+      return `https://wa.me/${numero}?text=${encodeURIComponent(mensajeInicial(nombreCliente, emisor))}`;
+    }
+
+    // Cuadro para escribir y enviar un mensaje interno (chat de la plataforma) al cliente.
+    // La conversación queda en la colección "mensajes" con id "perfil-agente-<uid del emisor>":
+    // el cliente la ve en mensajes.html y el emisor en el panel del equipo.
+    // Cada agente solo ve sus propias conversaciones; admin y superadmin ven todas.
+    function abrirModalMensaje(uidCliente, nombreCliente, emisor) {
+      const area = el('textarea', { rows: '5' });
+      area.value = mensajeInicial(nombreCliente, emisor);
+      const err = el('p', { class: 'sub', style: 'color:#fca5a5; min-height:16px; margin:8px 0 0' });
+      const btnEnviar = el('button', { class: 'btn', text: 'Enviar mensaje' });
+      const btnCancelar = el('button', { class: 'btn sec', text: 'Cancelar' });
+      const etiquetaRol = esAdminRol(emisor.rol) ? 'Administración' : 'Agente';
+      const fondo = el('div', { class: 'modal-bg' },
+        el('div', { class: 'modal' },
+          el('h2', { text: `Mensaje para ${nombreCliente}` }),
+          el('p', { class: 'sub', text: `Se enviará al chat de la plataforma como ${etiquetaRol}${emisor.nombre ? ' (' + emisor.nombre + ')' : ''}.` }),
+          area, err,
+          el('div', { class: 'actions' }, btnEnviar, btnCancelar)
+        ));
+
+      const cerrar = () => fondo.remove();
+      btnCancelar.onclick = cerrar;
+      fondo.addEventListener('click', (e) => { if (e.target === fondo) cerrar(); });
+
+      btnEnviar.onclick = async () => {
+        const texto = area.value.trim();
+        if (!texto) { err.textContent = 'Escribe un mensaje.'; return; }
+        err.textContent = '';
+        btnEnviar.disabled = true;
+        btnEnviar.textContent = 'Enviando...';
+        const propertyId = `perfil-agente-${emisor.uid}`;
+        try {
+          const conv = await getDoc(doc(db, 'conversaciones', `${uidCliente}_${propertyId}`));
+          if (conv.exists() && conv.data().estado === 'finalizada') {
+            err.textContent = 'Tu conversación con este cliente fue finalizada. Elimínala en Mensajes para iniciar una nueva.';
+            btnEnviar.disabled = false;
+            btnEnviar.textContent = 'Enviar mensaje';
+            return;
+          }
+          await addDoc(collection(db, 'mensajes'), {
+            userId: uidCliente,
+            propertyId,
+            propertyTitle: `Mensaje de ${emisor.nombre || etiquetaRol} · ${etiquetaRol}`,
+            propertyImage: emisor.foto || 'assets/mi-mensaje.png',
+            propertyPrice: '',
+            mensaje: texto,
+            sender: 'agent',
+            senderId: emisor.uid,
+            senderName: emisor.nombre || etiquetaRol,
+            senderRol: emisor.rol,
+            senderAvatar: emisor.foto || null,
+            leidoPorUsuario: false,
+            timestamp: serverTimestamp()
+          });
+          location.href = `${PANEL_EMPRESA}?cliente=${encodeURIComponent(uidCliente)}&propiedad=${encodeURIComponent(propertyId)}`;
+        } catch (e) {
+          console.error(e);
+          err.textContent = 'No se pudo enviar el mensaje: ' + (e.message || 'inténtalo de nuevo.');
+          btnEnviar.disabled = false;
+          btnEnviar.textContent = 'Enviar mensaje';
+        }
+      };
+
+      document.body.append(fondo);
+      area.focus();
     }
 
     function renderPerfil(uid, u, esPropio, emisor = {}) {
@@ -142,10 +220,15 @@
         el('h1', { text: nombre }),
         el('p', { class: 'sub', text: [p?.ocupacion, [u.sector, u.provincia].filter(Boolean).join(', ')].filter(Boolean).join(' · ') }),
         p ? el('div', { style: 'margin-top:12px' }, el('span', { class: `badge ${claseUrg}`, text: etiquetas.urgencia[p.urgencia] || p.urgencia })) : '',
-        // Botón de contacto solo para quien no es el propio dueño
-        (!esPropio && u.telefono) ? el('div', { class: 'actions' },
-          el('a', { class: 'btn wa', target: '_blank', rel: 'noopener',
-            href: enlaceWhatsApp(u.telefono, u.nombres, emisor), text: 'Escribir por WhatsApp' })
+        // Botones de contacto solo para quien no es el propio dueño
+        !esPropio ? el('div', { class: 'actions' },
+          (() => {
+            const b = el('button', { class: 'btn', text: '💬 Enviar mensaje' });
+            b.onclick = () => abrirModalMensaje(uid, nombre, emisor);
+            return b;
+          })(),
+          u.telefono ? el('a', { class: 'btn wa', target: '_blank', rel: 'noopener',
+            href: enlaceWhatsApp(u.telefono, u.nombres, emisor), text: 'Escribir por WhatsApp' }) : ''
         ) : ''
       ));
 
@@ -212,7 +295,7 @@
             mostrarMensaje('Solo los agentes pueden ver el perfil de otros usuarios.');
             return;
           }
-          emisor = { rol: rolYo, nombre: `${datosYo.nombres || ''} ${datosYo.apellidos || ''}`.trim() };
+          emisor = { uid: user.uid, rol: rolYo, nombre: `${datosYo.nombres || ''} ${datosYo.apellidos || ''}`.trim(), foto: datosYo.fotoPerfil || null };
         }
         const snap = await getDoc(doc(db, 'usuarios', uidObjetivo));
         if (!snap.exists()) {
