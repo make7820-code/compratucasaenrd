@@ -149,8 +149,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Usar la primera imagen real de la publicación (no la imagen por defecto)
       await Promise.all(convs.map(async c => {
-        const img = await primeraImagenPropiedad(c.propertyId);
-        if (img) c.propertyImage = img;
+        c.propertyImages = await imagenesPropiedad(c.propertyId);
+        if (c.propertyImages[0]) c.propertyImage = c.propertyImages[0];
         else if (esPaginaHtml(c.propertyImage)) c.propertyImage = R('assets/puerto-marina.png');
       }));
       if (miSecuenciaCliente !== secuenciaCliente) return; // llegó un cambio más nuevo
@@ -223,8 +223,8 @@ document.addEventListener('DOMContentLoaded', () => {
         await Promise.all(lista.map(async c => {
           c.clientName = await nombreUsuario(c.clientId);
           // Primera imagen real de la publicación (no la imagen por defecto)
-          const img = await primeraImagenPropiedad(c.propertyId);
-          if (img) c.propertyImage = img;
+          c.propertyImages = await imagenesPropiedad(c.propertyId);
+          if (c.propertyImages[0]) c.propertyImage = c.propertyImages[0];
           else if (esPaginaHtml(c.propertyImage)) c.propertyImage = R('assets/puerto-marina.png');
         }));
 
@@ -274,26 +274,27 @@ async function nombreUsuario(uid) {
   return nombre;
 }
 
-// Primera imagen de la publicación (propiedades/{id}.imagenes[0]). Se guarda en caché para no repetir lecturas.
+// Imágenes de la publicación (propiedades/{id}.imagenes). Se guardan en caché para no repetir lecturas.
 const cacheImagenesProp = {};
 // Un enlace a una página (detalle.html, etc.) no es una imagen
 const esPaginaHtml = (u) => /\.html?(\?|#|$)/i.test(String(u || ''));
-async function primeraImagenPropiedad(propId) {
-  if (!propId || propId === 'general' || propId.startsWith('solicitud_') || propId.startsWith('perfil-agente-')) return null;
+const MAX_FOTOS_CARRUSEL = 6;
+function listaDeImagenes(d) {
+  const arr = Array.isArray(d.imagenes) ? d.imagenes : [];
+  const urls = arr.map(x => typeof x === 'string' ? x : (x && (x.url || x.src))).filter(Boolean);
+  if (!urls.length) [d.image, d.imagen, d.imagenPrincipal].forEach(x => { if (typeof x === 'string' && x) urls.push(x); });
+  return [...new Set(urls)].filter(u => !esPaginaHtml(u)).slice(0, MAX_FOTOS_CARRUSEL);
+}
+async function imagenesPropiedad(propId) {
+  if (!propId || propId === 'general' || propId.startsWith('solicitud_') || propId.startsWith('perfil-agente-')) return [];
   if (propId in cacheImagenesProp) return cacheImagenesProp[propId];
-  let img = null;
+  let lista = [];
   try {
     const s = await getDoc(doc(db, "propiedades", propId));
-    if (s.exists()) {
-      const d = s.data();
-      const lista = Array.isArray(d.imagenes) ? d.imagenes : [];
-      const primera = lista[0];
-      img = (typeof primera === 'string' ? primera : (primera && (primera.url || primera.src))) ||
-            d.image || d.imagen || d.imagenPrincipal || null;
-    }
+    if (s.exists()) lista = listaDeImagenes(s.data());
   } catch (e) { /* ignorar */ }
-  cacheImagenesProp[propId] = img;
-  return img;
+  cacheImagenesProp[propId] = lista;
+  return lista;
 }
 
 const cacheCreadores = {};
@@ -326,6 +327,35 @@ function coincideZona(p, pref) {
   // Si la propiedad es antigua y no trae el campo, se busca el nombre dentro de su texto de ubicación
   const ok = (zv, pv) => !zv || (pv ? pv === zv : ub.includes(zv));
   return zonas.some(z => ok(normZona(z.provincia), prov) && ok(normZona(z.municipio), mun) && ok(normZona(z.distrito), dis));
+}
+
+// ===== Carrusel de fotos en las miniaturas de la campanita =====
+function thumbCarrusel(lista, principal, fallback, size, radius) {
+  const fotos = (Array.isArray(lista) && lista.length ? lista : [principal]).filter(Boolean);
+  const src = fotos[0] || fallback;
+  const data = fotos.length > 1 ? ` data-imgs="${esc(JSON.stringify(fotos))}" data-i="0"` : '';
+  return `<img class="notif-thumb" src="${esc(src)}"${data} style="width: ${size}px; height: ${size}px; border-radius: ${radius}px; object-fit: cover; flex-shrink: 0; transition: opacity 0.3s;" onerror="this.src='${esc(fallback)}'">`;
+}
+
+let notifCarruselTimer = null;
+function iniciarCarrusel() {
+  if (notifCarruselTimer) return;
+  notifCarruselTimer = setInterval(() => {
+    if (!notifOpen) return; // solo gira con la campanita abierta
+    document.querySelectorAll('img.notif-thumb[data-imgs]').forEach(im => {
+      let fotos;
+      try { fotos = JSON.parse(im.dataset.imgs || '[]'); } catch (e) { return; }
+      if (fotos.length < 2) return;
+      const n = ((parseInt(im.dataset.i || '0', 10)) + 1) % fotos.length;
+      const pre = new Image();
+      pre.onload = () => {
+        im.style.opacity = '0';
+        setTimeout(() => { im.src = fotos[n]; im.dataset.i = String(n); im.style.opacity = '1'; }, 300);
+      };
+      pre.onerror = () => { fotos.splice(n, 1); im.dataset.imgs = JSON.stringify(fotos); };
+      pre.src = fotos[n];
+    });
+  }, 2800);
 }
 
 let notifOpen = false; // la campana queda abierta/cerrada por clic, y se conserva aunque se actualice la lista
@@ -371,6 +401,8 @@ function renderGlobalNavbar(container, bellContainer, userId, displayName, avata
   const tituloBase = document.title.replace(/^\(\d+\)\s*/, '');
   document.title = hasUnread ? `(${totalUnread}) ${tituloBase}` : tituloBase;
 
+  iniciarCarrusel();
+
   const itemStyle = 'display: flex; align-items: center; gap: 10px; padding: 10px 16px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.04);';
   const imgFallback = R('assets/puerto-marina.png');
 
@@ -391,7 +423,7 @@ function renderGlobalNavbar(container, bellContainer, userId, displayName, avata
             ? '<div style="padding: 20px; text-align: center; color: #71717a; font-size: 12px;">No hay notificaciones nuevas' + (lastPropsError ? `<div style="margin-top:8px; color:#ef4444;">⚠️ No se pudieron leer las propiedades: ${esc(lastPropsError)}</div>` : '') + '</div>'
             : visibleStaff.map(c => `
                 <div class="notification-item" data-staff-cliente="${esc(c.clientId)}" data-staff-prop="${esc(c.propertyId)}" style="${itemStyle}">
-                  <img src="${esc(c.propertyImage)}" style="width: 36px; height: 36px; border-radius: 8px; object-fit: cover; flex-shrink: 0;" onerror="this.src='${esc(imgFallback)}'">
+                  ${thumbCarrusel(c.propertyImages, c.propertyImage, imgFallback, 36, 8)}
                   <div style="overflow: hidden;">
                     <div style="font-size: 10px; font-weight: 700; color: #ef4444; text-transform: uppercase; letter-spacing: 0.4px;">💬 Mensaje de cliente</div>
                     <div style="font-size: 13px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${esc(c.clientName)} · ${esc(c.propertyTitle)}</div>
@@ -413,7 +445,7 @@ function renderGlobalNavbar(container, bellContainer, userId, displayName, avata
                 const meta = [p.operacion, price].filter(Boolean).join(' · ');
                 return `
                 <div class="notification-item" data-newprop="${esc(p.id)}" style="${itemStyle}">
-                  <img src="${esc(img)}" style="width: 44px; height: 44px; border-radius: 8px; object-fit: cover; flex-shrink: 0;" onerror="this.src='${esc(imgFallback)}'">
+                  ${thumbCarrusel(listaDeImagenes(p), img, imgFallback, 44, 8)}
                   <div style="overflow: hidden;">
                     <div style="font-size: 10px; font-weight: 700; color: #ef4444; text-transform: uppercase; letter-spacing: 0.4px;">🏠 Nueva propiedad</div>
                     <div style="font-size: 13px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${esc(p.titulo)}</div>
@@ -424,7 +456,7 @@ function renderGlobalNavbar(container, bellContainer, userId, displayName, avata
               }).join('')
               + visibleUnread.map(c => `
                 <div class="notification-item" data-prop="${esc(c.propertyId)}" style="${itemStyle}">
-                  <img src="${esc(c.propertyImage)}" style="width: 32px; height: 32px; border-radius: 6px; object-fit: cover;" onerror="this.src='${esc(imgFallback)}'">
+                  ${thumbCarrusel(c.propertyImages, c.propertyImage, imgFallback, 36, 6)}
                   <div style="overflow: hidden;">
                     <div style="font-size: 13px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">💬 ${esc(c.propertyTitle)}</div>
                     <div style="font-size: 11px; color: #a1a1aa; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${esc(c.lastMessage)}</div>
