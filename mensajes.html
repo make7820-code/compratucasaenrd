@@ -914,7 +914,9 @@
               <img src="${conv.displayAvatar}" alt="Remitente" class="conv-thumb" onerror="this.src='assets/mi-mensaje.png'">
               <div class="conv-info">
                 <div class="conv-client-name">${conv.displayName}</div>
-                <a href="detalle.html?id=${conv.propertyId}" class="conv-property-title" onclick="event.stopPropagation();">${conv.propertyTitle}</a>
+                ${(conv.propertyId.startsWith('solicitud_') || conv.propertyId.startsWith('perfil-agente-'))
+                  ? `<span class="conv-property-title" style="cursor:default;">${conv.propertyTitle}</span>`
+                  : `<a href="detalle.html?id=${conv.propertyId}" class="conv-property-title" onclick="event.stopPropagation();">${conv.propertyTitle}</a>`}
                 <div class="conv-last-msg">${conv.lastMessage}</div>
               </div>
               ${conv.hasUnread ? '<div class="unread-dot" title="Nuevo mensaje"></div>' : ''}
@@ -1080,7 +1082,8 @@
           // (comunidad.html) usan un id "solicitud_..." que no corresponde a
           // ninguna propiedad real, así que no debe enlazar a detalle.html.
           const esSolicitud = (propertyId || '').startsWith('solicitud_');
-          const tituloHtml = esSolicitud
+          const esChatDirecto = esSolicitud || (propertyId || '').startsWith('perfil-agente-');
+          const tituloHtml = esChatDirecto
             ? `<span class="chat-prop-name" style="cursor:default;">${propertyTitle}</span>`
             : `<a href="detalle.html?id=${propertyId}" class="chat-prop-name">${propertyTitle}</a>`;
 
