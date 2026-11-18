@@ -151,6 +151,7 @@ document.addEventListener('DOMContentLoaded', () => {
       await Promise.all(convs.map(async c => {
         const img = await primeraImagenPropiedad(c.propertyId);
         if (img) c.propertyImage = img;
+        else if (esPaginaHtml(c.propertyImage)) c.propertyImage = R('assets/puerto-marina.png');
       }));
       if (miSecuenciaCliente !== secuenciaCliente) return; // llegó un cambio más nuevo
       // No leídos: el último mensaje NO es del usuario ('user') Y no se marcó como leído en mensajes.html
@@ -224,6 +225,7 @@ document.addEventListener('DOMContentLoaded', () => {
           // Primera imagen real de la publicación (no la imagen por defecto)
           const img = await primeraImagenPropiedad(c.propertyId);
           if (img) c.propertyImage = img;
+          else if (esPaginaHtml(c.propertyImage)) c.propertyImage = R('assets/puerto-marina.png');
         }));
 
         if (miSecuencia !== secuencia) return; // llegó un cambio más nuevo mientras consultaba
@@ -274,6 +276,8 @@ async function nombreUsuario(uid) {
 
 // Primera imagen de la publicación (propiedades/{id}.imagenes[0]). Se guarda en caché para no repetir lecturas.
 const cacheImagenesProp = {};
+// Un enlace a una página (detalle.html, etc.) no es una imagen
+const esPaginaHtml = (u) => /\.html?(\?|#|$)/i.test(String(u || ''));
 async function primeraImagenPropiedad(propId) {
   if (!propId || propId === 'general' || propId.startsWith('solicitud_') || propId.startsWith('perfil-agente-')) return null;
   if (propId in cacheImagenesProp) return cacheImagenesProp[propId];
@@ -282,7 +286,10 @@ async function primeraImagenPropiedad(propId) {
     const s = await getDoc(doc(db, "propiedades", propId));
     if (s.exists()) {
       const d = s.data();
-      img = (Array.isArray(d.imagenes) && d.imagenes[0]) || d.imagen || d.imagenPrincipal || null;
+      const lista = Array.isArray(d.imagenes) ? d.imagenes : [];
+      const primera = lista[0];
+      img = (typeof primera === 'string' ? primera : (primera && (primera.url || primera.src))) ||
+            d.image || d.imagen || d.imagenPrincipal || null;
     }
   } catch (e) { /* ignorar */ }
   cacheImagenesProp[propId] = img;
