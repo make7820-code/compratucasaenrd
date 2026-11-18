@@ -57,7 +57,6 @@
 
     const cont = document.getElementById('contenido');
     const ROLES_VEN_PERFILES = ['agente', 'agentepro', 'admin', 'superadmin'];
-    const ROLES_VEN_ID = ['admin', 'superadmin'];
 
     const etiquetas = {
       operacion: { compra: 'Comprar', alquiler: 'Alquilar', ambos: 'Comprar o alquilar' },
@@ -108,7 +107,25 @@
       );
     }
 
-    function renderPerfil(uid, u, esPropio, esAdmin) {
+    // Construye el enlace de WhatsApp con un mensaje según el rol de quien escribe
+    function enlaceWhatsApp(telefono, nombreCliente, emisor) {
+      const numero = String(telefono).replace(/\D/g, '').replace(/^(\d{10})$/, '1$1');
+      const primerNombre = (nombreCliente || '').split(' ')[0] || '';
+      const saludo = primerNombre ? `Hola ${primerNombre}` : 'Hola';
+      let texto;
+      if (emisor.rol === 'admin' || emisor.rol === 'superadmin') {
+        // Admin / superadmin: escribe directamente desde su propia cuenta
+        const quien = emisor.nombre ? `soy ${emisor.nombre}, de la administración de` : 'te escribimos desde la administración de';
+        texto = `${saludo}, ${quien} Compra tu casa en RD. Vimos tu perfil de búsqueda y queremos ayudarte a encontrar la propiedad ideal. ¿Tienes un momento para conversar?`;
+      } else {
+        // Agente / agentepro: escribe como agente
+        const quien = emisor.nombre ? `soy ${emisor.nombre}, agente de` : 'soy agente de';
+        texto = `${saludo}, ${quien} Compra tu casa en RD. Revisé tu perfil de búsqueda y tengo opciones que pueden interesarte. ¿Cuándo podemos hablar?`;
+      }
+      return `https://wa.me/${numero}?text=${encodeURIComponent(texto)}`;
+    }
+
+    function renderPerfil(uid, u, esPropio, emisor = {}) {
       const p = u.perfilBusqueda;
       const nombre = `${u.nombres || ''} ${u.apellidos || ''}`.trim() || 'Cliente';
       const nodos = [];
@@ -125,11 +142,10 @@
         el('h1', { text: nombre }),
         el('p', { class: 'sub', text: [p?.ocupacion, [u.sector, u.provincia].filter(Boolean).join(', ')].filter(Boolean).join(' · ') }),
         p ? el('div', { style: 'margin-top:12px' }, el('span', { class: `badge ${claseUrg}`, text: etiquetas.urgencia[p.urgencia] || p.urgencia })) : '',
-        // Botones de contacto solo para quien no es el propio dueño
-        !esPropio ? el('div', { class: 'actions' },
-          el('a', { class: 'btn', href: `mensajes.html?para=${encodeURIComponent(uid)}`, text: '✉️ Enviar mensaje' }),
-          u.telefono ? el('a', { class: 'btn wa', target: '_blank', rel: 'noopener',
-            href: `https://wa.me/${String(u.telefono).replace(/\D/g, '').replace(/^(\d{10})$/, '1$1')}`, text: 'Escribir por WhatsApp' }) : ''
+        // Botón de contacto solo para quien no es el propio dueño
+        (!esPropio && u.telefono) ? el('div', { class: 'actions' },
+          el('a', { class: 'btn wa', target: '_blank', rel: 'noopener',
+            href: enlaceWhatsApp(u.telefono, u.nombres, emisor), text: 'Escribir por WhatsApp' })
         ) : ''
       ));
 
@@ -172,8 +188,7 @@
         }
       }
 
-      // El ID y el enlace solo los ve admin / superadmin
-      if (esAdmin) nodos.push(tarjetaId(uid, esPropio));
+      nodos.push(tarjetaId(uid, esPropio));
       cont.replaceChildren(...nodos);
     }
 
@@ -188,21 +203,23 @@
       const esPropio = uidObjetivo === user.uid;
 
       try {
-        const yo = await getDoc(doc(db, 'usuarios', user.uid));
-        const rolYo = yo.exists() ? yo.data().rol : null;
-        const esAdmin = ROLES_VEN_ID.includes(rolYo);
+        let emisor = {};
         if (!esPropio) {
+          const yo = await getDoc(doc(db, 'usuarios', user.uid));
+          const datosYo = yo.exists() ? yo.data() : {};
+          const rolYo = datosYo.rol || null;
           if (!ROLES_VEN_PERFILES.includes(rolYo)) {
             mostrarMensaje('Solo los agentes pueden ver el perfil de otros usuarios.');
             return;
           }
+          emisor = { rol: rolYo, nombre: `${datosYo.nombres || ''} ${datosYo.apellidos || ''}`.trim() };
         }
         const snap = await getDoc(doc(db, 'usuarios', uidObjetivo));
         if (!snap.exists()) {
           mostrarMensaje('No se encontró ningún usuario con ese ID.');
           return;
         }
-        renderPerfil(uidObjetivo, snap.data(), esPropio, esAdmin);
+        renderPerfil(uidObjetivo, snap.data(), esPropio, emisor);
       } catch (err) {
         console.error(err);
         mostrarMensaje('No se pudo cargar el perfil. Verifica tus permisos e intenta de nuevo.');
