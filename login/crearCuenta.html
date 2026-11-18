@@ -163,6 +163,75 @@
         transform: translateY(-2px);
       }
 
+      .foto-perfil-wrap { display: flex; align-items: center; gap: 16px; }
+      .foto-preview {
+        width: 84px; height: 84px; border-radius: 50%;
+        object-fit: cover; flex-shrink: 0;
+        background: #18181b; border: 2px dashed rgba(255,255,255,0.25);
+      }
+      .foto-preview.lista { border: 2px solid #3b82f6; }
+      .foto-hint { font-size: 12px; color: #a1a1aa; margin: 6px 0 0 0; }
+
+      .btn-submit:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+        box-shadow: none;
+        transform: none;
+      }
+      .btn-submit:disabled:hover { background: #3b82f6; transform: none; }
+
+      .indicador {
+        margin-top: 16px;
+        padding: 14px 16px;
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      .indicador.completo {
+        background: rgba(34, 197, 94, 0.1);
+        border-color: rgba(34, 197, 94, 0.4);
+      }
+      .indicador-top {
+        display: flex;
+        justify-content: space-between;
+        font-size: 13px;
+        font-weight: 600;
+        color: #e4e4e7;
+        margin-bottom: 8px;
+      }
+      .indicador-barra {
+        height: 6px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.1);
+        overflow: hidden;
+      }
+      #indicadorBarraRelleno {
+        height: 100%;
+        width: 0%;
+        background: #3b82f6;
+        border-radius: 999px;
+        transition: width 0.3s ease, background 0.3s ease;
+      }
+      .indicador.completo #indicadorBarraRelleno { background: #22c55e; }
+      #listaFaltantes {
+        list-style: none;
+        margin: 12px 0 0 0;
+        padding: 0;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      #listaFaltantes li {
+        font-size: 12px;
+        padding: 5px 10px;
+        border-radius: 999px;
+        background: rgba(239, 68, 68, 0.15);
+        border: 1px solid rgba(239, 68, 68, 0.4);
+        color: #fca5a5;
+        cursor: pointer;
+      }
+      #listaFaltantes li:hover { background: rgba(239, 68, 68, 0.28); }
+
       #bloquePerfilCliente { display: block; }
       #bloquePerfilCliente.oculto { display: none; }
 
@@ -240,7 +309,20 @@
       <div class="registro-card">
         <form id="formCrearCuenta">
           
-          <div class="section-title" style="margin-top: 0;">2. Información Personal</div>
+          <div class="section-title" style="margin-top: 0;">1. Foto de Perfil</div>
+          <div class="form-group">
+            <div class="foto-perfil-wrap">
+              <img id="fotoPreview" class="foto-preview" alt="Vista previa de tu foto"
+                   src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='84' height='84'><rect width='84' height='84' fill='%2318181b'/><text x='42' y='52' font-size='32' text-anchor='middle'>📷</text></svg>">
+              <div style="flex: 1;">
+                <label for="fotoPerfil">Sube tu foto *</label>
+                <input type="file" id="fotoPerfil" class="form-control" accept="image/png,image/jpeg,image/webp" required>
+                <p class="foto-hint">Obligatoria. Formatos JPG, PNG o WEBP, máximo 5 MB. Los agentes verán esta foto en tu perfil.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="section-title">2. Información Personal</div>
           <div class="form-row">
             <div class="form-group">
               <label for="nombres">Nombres *</label>
@@ -401,7 +483,17 @@
             <input type="password" id="password" class="form-control" placeholder="Mínimo 6 caracteres" required>
           </div>
 
-          <button type="submit" class="btn-submit" id="btnRegistrar">Registrarse y Acceder ➔</button>
+          <button type="submit" class="btn-submit" id="btnRegistrar" disabled>Registrarse y Acceder ➔</button>
+
+          <!-- Indicador de lo que falta por completar -->
+          <div class="indicador" id="indicadorFaltantes" aria-live="polite">
+            <div class="indicador-top">
+              <span id="indicadorTexto">Completa el formulario para crear tu cuenta</span>
+              <span id="indicadorPct">0%</span>
+            </div>
+            <div class="indicador-barra"><div id="indicadorBarraRelleno"></div></div>
+            <ul id="listaFaltantes"></ul>
+          </div>
 
           <p style="text-align: center; font-size: 13px; color: #a1a1aa; margin-top: 15px;">
             ¿Ya tienes una cuenta? <a href="https://www.compratucasard.com/login.html" style="color: #3b82f6; text-decoration: none;">Inicia sesión aquí</a>
@@ -419,11 +511,29 @@
     </footer>
 
     <script type="module">
-      import { auth, db } from '../firebase-config.js';
+      import { auth, db, storage, ref, uploadBytes, getDownloadURL } from '../firebase-config.js';
       import { createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
       import { doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
       const form = document.getElementById('formCrearCuenta');
+      const inputFoto = document.getElementById('fotoPerfil');
+      const fotoPreview = document.getElementById('fotoPreview');
+      const FOTO_TIPOS = ['image/jpeg', 'image/png', 'image/webp'];
+      const FOTO_MAX_BYTES = 5 * 1024 * 1024;
+
+      // Vista previa de la foto elegida
+      inputFoto.addEventListener('change', () => {
+        const archivo = inputFoto.files[0];
+        if (!archivo) return;
+        if (!FOTO_TIPOS.includes(archivo.type) || archivo.size > FOTO_MAX_BYTES) {
+          alert('La foto debe ser JPG, PNG o WEBP y pesar máximo 5 MB.');
+          inputFoto.value = '';
+          return;
+        }
+        fotoPreview.src = URL.createObjectURL(archivo);
+        fotoPreview.classList.add('lista');
+      });
+
       const selectRol = document.getElementById('tipoRol');
       const bloquePerfil = document.getElementById('bloquePerfilCliente');
       const camposObligatoriosPerfil = ['ocupacion', 'nacionalidad', 'sectoresInteres', 'presupuestoMax'];
@@ -438,6 +548,73 @@
       }
       selectRol.addEventListener('change', actualizarBloquePerfil);
       actualizarBloquePerfil();
+
+      // ===== Validación del formulario + indicador de lo que falta =====
+      let enviando = false;
+      const regexEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      const valorDe = (id) => document.getElementById(id).value.trim();
+
+      // Devuelve cada requisito con su estado (ok / falta) y el campo al que corresponde
+      function calcularChecks() {
+        const checks = [
+          { label: 'Foto de perfil', ok: !!inputFoto.files[0], target: 'fotoPerfil' },
+          { label: 'Nombres', ok: valorDe('nombres') !== '', target: 'nombres' },
+          { label: 'Apellidos', ok: valorDe('apellidos') !== '', target: 'apellidos' },
+          { label: 'Teléfono (10 dígitos)', ok: valorDe('telefono').replace(/\D/g, '').length >= 10, target: 'telefono' },
+          { label: 'Provincia / Ciudad', ok: valorDe('provincia') !== '', target: 'provincia' },
+          { label: 'Sector', ok: valorDe('sector') !== '', target: 'sector' }
+        ];
+
+        if (selectRol.value === 'cliente') {
+          checks.push(
+            { label: 'Ocupación', ok: valorDe('ocupacion') !== '', target: 'ocupacion' },
+            { label: 'Nacionalidad', ok: valorDe('nacionalidad') !== '', target: 'nacionalidad' },
+            { label: 'Sectores donde buscas', ok: valorDe('sectoresInteres') !== '', target: 'sectoresInteres' },
+            { label: 'Presupuesto máximo', ok: valorDe('presupuestoMax') !== '' && Number(valorDe('presupuestoMax')) > 0, target: 'presupuestoMax' }
+          );
+        }
+
+        checks.push(
+          { label: 'Correo electrónico válido', ok: regexEmail.test(valorDe('email')), target: 'email' },
+          { label: 'Contraseña (mínimo 6 caracteres)', ok: document.getElementById('password').value.length >= 6, target: 'password' }
+        );
+        return checks;
+      }
+
+      function actualizarEstadoFormulario() {
+        const checks = calcularChecks();
+        const faltan = checks.filter(c => !c.ok);
+        const completados = checks.length - faltan.length;
+        const pct = Math.round((completados / checks.length) * 100);
+
+        const caja = document.getElementById('indicadorFaltantes');
+        const lista = document.getElementById('listaFaltantes');
+        caja.classList.toggle('completo', faltan.length === 0);
+        document.getElementById('indicadorPct').textContent = pct + '%';
+        document.getElementById('indicadorBarraRelleno').style.width = pct + '%';
+        document.getElementById('indicadorTexto').textContent = faltan.length === 0
+          ? '✔ Todo listo, ya puedes crear tu cuenta'
+          : `Te falta completar ${faltan.length} ${faltan.length === 1 ? 'campo' : 'campos'}:`;
+
+        lista.replaceChildren();
+        faltan.forEach(c => {
+          const li = document.createElement('li');
+          li.textContent = c.label;
+          li.title = 'Ir a este campo';
+          li.addEventListener('click', () => {
+            const campo = document.getElementById(c.target);
+            campo.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            campo.focus({ preventScroll: true });
+          });
+          lista.appendChild(li);
+        });
+
+        if (!enviando) document.getElementById('btnRegistrar').disabled = faltan.length > 0;
+      }
+
+      form.addEventListener('input', actualizarEstadoFormulario);
+      form.addEventListener('change', actualizarEstadoFormulario);
+      actualizarEstadoFormulario();
 
       const valorNum = (id) => {
         const v = document.getElementById(id).value;
@@ -478,9 +655,44 @@
         }
 
         try {
+          // Seguridad: no continuar si falta algo por rellenar
+          if (calcularChecks().some(c => !c.ok)) {
+            actualizarEstadoFormulario();
+            return;
+          }
+
+          // 0. La foto de perfil es obligatoria
+          const fotoFile = inputFoto.files[0];
+          if (!fotoFile) {
+            alert('Debes subir una foto de perfil para crear tu cuenta.');
+            return;
+          }
+          if (!FOTO_TIPOS.includes(fotoFile.type) || fotoFile.size > FOTO_MAX_BYTES) {
+            alert('La foto debe ser JPG, PNG o WEBP y pesar máximo 5 MB.');
+            return;
+          }
+          const btnRegistrar = document.getElementById('btnRegistrar');
+          enviando = true;
+          btnRegistrar.disabled = true;
+          btnRegistrar.textContent = 'Creando cuenta...';
+
           // 1. Crear cuenta en Firebase Auth
           const userCredential = await createUserWithEmailAndPassword(auth, email, password);
           const user = userCredential.user;
+
+          // 1.1 Subir la foto de perfil a Firebase Storage
+          let fotoPerfil = '';
+          try {
+            const ext = fotoFile.type === 'image/png' ? 'png' : fotoFile.type === 'image/webp' ? 'webp' : 'jpg';
+            const fotoRef = ref(storage, `fotosPerfil/${user.uid}/perfil.${ext}`);
+            await uploadBytes(fotoRef, fotoFile, { contentType: fotoFile.type });
+            fotoPerfil = await getDownloadURL(fotoRef);
+          } catch (errFoto) {
+            console.error('Error subiendo la foto:', errFoto);
+            // Si la foto falla, se elimina la cuenta recién creada para no dejarla incompleta
+            await user.delete().catch(() => {});
+            throw new Error('No se pudo subir la foto de perfil. Revisa tu conexión e inténtalo de nuevo.');
+          }
 
           // 2. Guardar documento en Firestore cumpliendo las reglas de seguridad
           await setDoc(doc(db, "usuarios", user.uid), {
@@ -493,6 +705,7 @@
             rol: 'cliente',
             pagado: false,
             rolDeseado: rolSeleccionado,
+            fotoPerfil,
             perfilBusqueda,
             fechaCreacion: new Date().toISOString()
           });
@@ -508,6 +721,10 @@
           }
 
         } catch (error) {
+          const btnRegistrarErr = document.getElementById('btnRegistrar');
+          enviando = false;
+          actualizarEstadoFormulario();
+          btnRegistrarErr.textContent = 'Registrarse y Acceder ➔';
           alert("Error al crear cuenta: " + error.message);
         }
       });
