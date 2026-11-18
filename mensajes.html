@@ -704,7 +704,10 @@
         const urlParams = new URLSearchParams(window.location.search);
         const paramPropId = urlParams.get('propiedadId') || urlParams.get('id');
         const paramTitulo = urlParams.get('titulo');
-        const paramUrlImg = urlParams.get('url') || urlParams.get('imagen');
+        // detalle.html manda en "url" el enlace de la página (no una imagen), así que solo se usa
+        // como imagen si no apunta a un .html; la foto real se busca en la propiedad al crear el chat.
+        const _urlParam = urlParams.get('url');
+        const paramUrlImg = urlParams.get('imagen') || ((_urlParam && !/\.html?(\?|#|$)/i.test(_urlParam)) ? _urlParam : null);
         const paramPrecio = urlParams.get('precio') || '';
         const paramMensajeInicial = urlParams.get('mensajeInicial');
 
@@ -749,6 +752,17 @@
             const snapshot = await getDocs(q);
 
             if (snapshot.empty) {
+              // Primera imagen real de la publicación (en vez de la imagen por defecto)
+              if (!image && !propertyId.startsWith('solicitud_') && !propertyId.startsWith('perfil-agente-')) {
+                try {
+                  const pSnap = await getDoc(doc(db, "propiedades", propertyId));
+                  if (pSnap.exists()) {
+                    const pd = pSnap.data();
+                    const primera = Array.isArray(pd.imagenes) ? pd.imagenes[0] : null;
+                    image = (typeof primera === 'string' ? primera : (primera && (primera.url || primera.src))) || pd.image || pd.imagen || null;
+                  }
+                } catch (e) { console.error("No se pudo leer la imagen de la propiedad:", e); }
+              }
               await addDoc(collection(db, "mensajes"), {
                 userId: userId,
                 propertyId: propertyId,
