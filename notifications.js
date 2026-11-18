@@ -9,7 +9,7 @@ const R = (ruta) => BASE + ruta;
 
 // ⚠️ AJUSTA ESTA RUTA: carpeta + nombre del panel de mensajes de empresa, relativa a la raíz del sitio.
 // Ejemplo: 'empresa/mensajesempresa.html'
-const RUTA_PANEL_EMPRESA = 'REEMPLAZA_CARPETA/mensajesempresa.html';
+const RUTA_PANEL_EMPRESA = 'mensajes/mensajesempresa.html';
 
 const ROLES_STAFF = ['agente', 'agentepro', 'admin', 'superadmin'];
 
