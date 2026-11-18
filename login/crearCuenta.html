@@ -163,6 +163,38 @@
         transform: translateY(-2px);
       }
 
+      #bloquePerfilCliente { display: block; }
+      #bloquePerfilCliente.oculto { display: none; }
+
+      textarea.form-control { resize: vertical; min-height: 70px; font-family: inherit; }
+
+      .check-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 8px;
+      }
+      .check-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        padding: 8px 10px;
+        font-size: 13px;
+        color: #e4e4e7;
+        cursor: pointer;
+        text-transform: none !important;
+        letter-spacing: 0 !important;
+        font-weight: 500 !important;
+        margin-bottom: 0 !important;
+      }
+      .check-item input { accent-color: #3b82f6; }
+
+      @media (max-width: 560px) {
+        .form-row { flex-direction: column; gap: 0; }
+      }
+
       .site-footer {
         background: #0b0b0e;
         border-top: 1px solid rgba(255, 255, 255, 0.08);
@@ -252,6 +284,113 @@
             </select>
           </div>
 
+          <!-- PERFIL DE BÚSQUEDA (solo clientes) -->
+          <div id="bloquePerfilCliente">
+            <div class="section-title">5. Perfil de Búsqueda</div>
+            <p style="font-size: 12px; color: #a1a1aa; margin: 0 0 14px 0;">
+              Esta información la verán los agentes cuando te escriban, para ayudarte a encontrar lo que buscas más rápido.
+            </p>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="ocupacion">Ocupación *</label>
+                <input type="text" id="ocupacion" class="form-control" placeholder="Ej. Ingeniero, Médico, Comerciante">
+              </div>
+              <div class="form-group">
+                <label for="nacionalidad">Nacionalidad *</label>
+                <input type="text" id="nacionalidad" class="form-control" placeholder="Ej. Dominicana">
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="operacion">¿Qué buscas? *</label>
+                <select id="operacion" class="form-control">
+                  <option value="compra">Comprar</option>
+                  <option value="alquiler">Alquilar</option>
+                  <option value="ambos">Comprar o alquilar</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="urgencia">¿Qué tan pronto? *</label>
+                <select id="urgencia" class="form-control">
+                  <option value="inmediato">De inmediato</option>
+                  <option value="1-3meses">En 1 a 3 meses</option>
+                  <option value="con_calma">Con calma, sin prisa</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="sectoresInteres">Sectores donde buscas *</label>
+              <input type="text" id="sectoresInteres" class="form-control" placeholder="Separados por coma. Ej. Piantini, Naco, Bella Vista">
+            </div>
+
+            <div class="form-group">
+              <label for="tipoInmueble">Tipo de propiedad *</label>
+              <select id="tipoInmueble" class="form-control">
+                <option value="apartamento">Apartamento</option>
+                <option value="casa">Casa</option>
+                <option value="terreno">Terreno</option>
+                <option value="local">Local comercial</option>
+                <option value="bnb">BNB</option>
+                <option value="cualquiera">Cualquiera</option>
+              </select>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="presupuestoMin">Presupuesto mínimo</label>
+                <input type="number" id="presupuestoMin" class="form-control" placeholder="0" min="0">
+              </div>
+              <div class="form-group">
+                <label for="presupuestoMax">Presupuesto máximo *</label>
+                <input type="number" id="presupuestoMax" class="form-control" placeholder="Ej. 150000" min="0">
+              </div>
+              <div class="form-group" style="max-width: 110px;">
+                <label for="moneda">Moneda</label>
+                <select id="moneda" class="form-control">
+                  <option value="USD">USD</option>
+                  <option value="DOP">DOP</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="habitaciones">Habitaciones (mín.)</label>
+                <input type="number" id="habitaciones" class="form-control" placeholder="Ej. 2" min="0">
+              </div>
+              <div class="form-group">
+                <label for="banos">Baños (mín.)</label>
+                <input type="number" id="banos" class="form-control" placeholder="Ej. 2" min="0">
+              </div>
+              <div class="form-group">
+                <label for="parqueos">Parqueos (mín.)</label>
+                <input type="number" id="parqueos" class="form-control" placeholder="Ej. 1" min="0">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Características que te interesan</label>
+              <div class="check-grid">
+                <label class="check-item"><input type="checkbox" name="extras" value="Amueblado"> Amueblado</label>
+                <label class="check-item"><input type="checkbox" name="extras" value="Ascensor"> Ascensor</label>
+                <label class="check-item"><input type="checkbox" name="extras" value="Piscina"> Piscina</label>
+                <label class="check-item"><input type="checkbox" name="extras" value="Gimnasio"> Gimnasio</label>
+                <label class="check-item"><input type="checkbox" name="extras" value="Seguridad 24h"> Seguridad 24h</label>
+                <label class="check-item"><input type="checkbox" name="extras" value="Planta eléctrica"> Planta eléctrica</label>
+                <label class="check-item"><input type="checkbox" name="extras" value="Acepta mascotas"> Acepta mascotas</label>
+                <label class="check-item"><input type="checkbox" name="extras" value="Área social"> Área social</label>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="notasBusqueda">Algo más que el agente deba saber</label>
+              <textarea id="notasBusqueda" class="form-control" maxlength="400" placeholder="Ej. Busco cerca de colegios, tengo 2 hijos, pago de contado..."></textarea>
+            </div>
+          </div>
+
           <div class="form-group" style="margin-top: 15px;">
             <label for="email">Correo electrónico *</label>
             <input type="email" id="email" class="form-control" placeholder="correo@domain.com" required>
@@ -285,6 +424,25 @@
       import { doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
       const form = document.getElementById('formCrearCuenta');
+      const selectRol = document.getElementById('tipoRol');
+      const bloquePerfil = document.getElementById('bloquePerfilCliente');
+      const camposObligatoriosPerfil = ['ocupacion', 'nacionalidad', 'sectoresInteres', 'presupuestoMax'];
+
+      // Mostrar el perfil de búsqueda solo si el rol elegido es cliente
+      function actualizarBloquePerfil() {
+        const esCliente = selectRol.value === 'cliente';
+        bloquePerfil.classList.toggle('oculto', !esCliente);
+        camposObligatoriosPerfil.forEach(id => {
+          document.getElementById(id).required = esCliente;
+        });
+      }
+      selectRol.addEventListener('change', actualizarBloquePerfil);
+      actualizarBloquePerfil();
+
+      const valorNum = (id) => {
+        const v = document.getElementById(id).value;
+        return v === '' ? null : Number(v);
+      };
 
       form.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -296,6 +454,28 @@
         const telefono = document.getElementById('telefono').value;
         const provincia = document.getElementById('provincia').value;
         const sector = document.getElementById('sector').value;
+
+        // Perfil de búsqueda (solo si se registra como cliente)
+        let perfilBusqueda = null;
+        if (rolSeleccionado === 'cliente') {
+          perfilBusqueda = {
+            ocupacion: document.getElementById('ocupacion').value.trim(),
+            nacionalidad: document.getElementById('nacionalidad').value.trim(),
+            operacion: document.getElementById('operacion').value,
+            urgencia: document.getElementById('urgencia').value,
+            sectores: document.getElementById('sectoresInteres').value
+              .split(',').map(s => s.trim()).filter(Boolean),
+            tipoInmueble: document.getElementById('tipoInmueble').value,
+            presupuestoMin: valorNum('presupuestoMin'),
+            presupuestoMax: valorNum('presupuestoMax'),
+            moneda: document.getElementById('moneda').value,
+            habitaciones: valorNum('habitaciones'),
+            banos: valorNum('banos'),
+            parqueos: valorNum('parqueos'),
+            extras: Array.from(document.querySelectorAll('input[name="extras"]:checked')).map(c => c.value),
+            notas: document.getElementById('notasBusqueda').value.trim()
+          };
+        }
 
         try {
           // 1. Crear cuenta en Firebase Auth
@@ -313,6 +493,7 @@
             rol: 'cliente',
             pagado: false,
             rolDeseado: rolSeleccionado,
+            perfilBusqueda,
             fechaCreacion: new Date().toISOString()
           });
 
