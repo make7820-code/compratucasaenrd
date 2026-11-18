@@ -1247,7 +1247,7 @@
                 ${(!finalizada && conv.noLeido) ? '<span class="conv-unread-dot"></span>' : ''}
               </div>
               <div class="conv-info">
-                <div class="conv-client-name">${conv.clientName}</div>
+                <div class="conv-client-name" style="cursor:pointer;" title="Ver perfil de ${conv.clientName}" onclick="event.stopPropagation(); window.location.href='../perfilCliente.html?id=${conv.clientId}'">${conv.clientName}</div>
                 <a href="${conv.propertyLink}" target="_blank" class="conv-property-title" onclick="event.stopPropagation();">${conv.propertyTitle}</a>
                 <div class="conv-last-msg">${finalizada ? '✅ Conversación finalizada' : 'Chat activo'}</div>
               </div>
@@ -1393,7 +1393,7 @@
               <div class="chat-property-meta">
                 <img src="${clientPhoto}" alt="Cliente" class="chat-prop-img" onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=${clientId}'">
                 <div>
-                  <div class="chat-prop-name">${clientName}</div>
+                  <div class="chat-prop-name" style="cursor:pointer;" title="Ver perfil de ${clientName}" onclick="window.location.href='../perfilCliente.html?id=${clientId}'">${clientName}</div>
                   <div class="chat-prop-price">${propertyTitle}</div>
                 </div>
               </div>
