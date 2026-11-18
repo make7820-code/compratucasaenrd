@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Perfil de Cliente | Compra tu casa en RD</title>
+  <link rel="icon" type="image/x-icon" href="assets/icono.ico?v=2">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #0b0b0e; color: #fff; font-family: 'Inter', sans-serif; min-height: 100vh; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-bottom: 1px solid rgba(255,255,255,.08); background: rgba(11,11,14,.95); position: sticky; top: 0; z-index: 10; }
+    .topbar img { height: 36px; }
+    .topbar a { color: #fff; text-decoration: none; font-size: 14px; }
+    .wrap { max-width: 760px; margin: 0 auto; padding: 28px 16px 60px; }
+    .card { background: rgba(18,18,20,.92); border: 1px solid rgba(255,255,255,.1); border-radius: 20px; padding: 24px; margin-bottom: 18px; }
+    h1 { font-family: 'Poppins', sans-serif; font-size: 24px; margin: 0 0 4px; }
+    .sub { color: #a1a1aa; font-size: 13px; margin: 0; }
+    .section-title { font-size: 12px; color: #3b82f6; text-transform: uppercase; font-weight: 700; letter-spacing: 1px; margin: 0 0 14px; border-bottom: 1px solid rgba(255,255,255,.1); padding-bottom: 6px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; }
+    .dato label { display: block; font-size: 10.5px; text-transform: uppercase; letter-spacing: .5px; color: #a1a1aa; font-weight: 700; margin-bottom: 4px; }
+    .dato span { font-size: 15px; font-weight: 500; word-break: break-word; }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chip { background: rgba(59,130,246,.15); border: 1px solid rgba(59,130,246,.4); color: #bfdbfe; padding: 5px 12px; border-radius: 999px; font-size: 13px; }
+    .badge { display: inline-block; padding: 4px 12px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+    .badge.inmediato { background: rgba(239,68,68,.18); color: #fca5a5; border: 1px solid rgba(239,68,68,.5); }
+    .badge.pronto { background: rgba(245,158,11,.18); color: #fcd34d; border: 1px solid rgba(245,158,11,.5); }
+    .badge.calma { background: rgba(34,197,94,.18); color: #86efac; border: 1px solid rgba(34,197,94,.5); }
+    .idbox { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .idbox code { background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12); padding: 10px 14px; border-radius: 12px; font-size: 13px; word-break: break-all; flex: 1; min-width: 200px; }
+    .btn { border: none; border-radius: 12px; padding: 10px 16px; font-size: 13px; font-weight: 600; cursor: pointer; color: #fff; background: #3b82f6; text-decoration: none; display: inline-block; }
+    .btn.sec { background: rgba(255,255,255,.1); }
+    .btn.wa { background: #22c55e; }
+    .btn:hover { filter: brightness(1.1); }
+    .msg { text-align: center; color: #a1a1aa; padding: 50px 10px; }
+    .notas { white-space: pre-wrap; line-height: 1.5; font-size: 14px; color: #e4e4e7; }
+    .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <a href="index.html"><img src="assets/mi-logo.png" alt="Compra tu casa en RD"></a>
+    <a href="propiedades.html">🏢 Propiedades</a>
+  </div>
+
+  <div class="wrap" id="contenido">
+    <div class="msg">Cargando perfil...</div>
+  </div>
+
+  <script type="module">
+    import { auth, db, doc, getDoc } from './firebase-config.js';
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+    const cont = document.getElementById('contenido');
+    const ROLES_VEN_PERFILES = ['agente', 'agentepro', 'admin', 'superadmin'];
+
+    const etiquetas = {
+      operacion: { compra: 'Comprar', alquiler: 'Alquilar', ambos: 'Comprar o alquilar' },
+      urgencia: { 'inmediato': 'Busca de inmediato', '1-3meses': 'En 1 a 3 meses', 'con_calma': 'Con calma, sin prisa' },
+      tipo: { apartamento: 'Apartamento', casa: 'Casa', terreno: 'Terreno', local: 'Local comercial', bnb: 'BNB', cualquiera: 'Cualquiera' }
+    };
+
+    function el(tag, props = {}, ...hijos) {
+      const e = document.createElement(tag);
+      Object.entries(props).forEach(([k, v]) => {
+        if (k === 'class') e.className = v;
+        else if (k === 'text') e.textContent = v;
+        else if (k === 'href') e.href = v;
+        else if (k === 'onclick') e.onclick = v;
+        else e.setAttribute(k, v);
+      });
+      hijos.forEach(h => e.append(h));
+      return e;
+    }
+
+    const dato = (label, valor) =>
+      el('div', { class: 'dato' }, el('label', { text: label }), el('span', { text: (valor ?? '') === '' || valor === null ? '—' : valor }));
+
+    const fmt = (n, moneda) => n == null ? null : `${moneda === 'DOP' ? 'RD$' : 'US$'} ${Number(n).toLocaleString('es-DO')}`;
+
+    function mostrarMensaje(texto) {
+      cont.replaceChildren(el('div', { class: 'msg', text: texto }));
+    }
+
+    function copiar(texto, boton) {
+      navigator.clipboard.writeText(texto).then(() => {
+        const original = boton.textContent;
+        boton.textContent = '✔ Copiado';
+        setTimeout(() => boton.textContent = original, 1500);
+      });
+    }
+
+    function tarjetaId(uid, esPropio) {
+      const link = `${location.origin}${location.pathname}?id=${uid}`;
+      const btnId = el('button', { class: 'btn', text: 'Copiar ID' });
+      btnId.onclick = () => copiar(uid, btnId);
+      const btnLink = el('button', { class: 'btn sec', text: 'Copiar enlace al perfil' });
+      btnLink.onclick = () => copiar(link, btnLink);
+      return el('div', { class: 'card' },
+        el('div', { class: 'section-title', text: esPropio ? 'Mi ID de usuario' : 'ID de usuario' }),
+        el('div', { class: 'idbox' }, el('code', { text: uid }), btnId, btnLink),
+        esPropio ? el('p', { class: 'sub', style: 'margin-top:10px', text: 'Comparte tu ID o enlace con un agente para que vea tu perfil de búsqueda.' }) : ''
+      );
+    }
+
+    function renderPerfil(uid, u, esPropio) {
+      const p = u.perfilBusqueda;
+      const nombre = `${u.nombres || ''} ${u.apellidos || ''}`.trim() || 'Cliente';
+      const nodos = [];
+
+      // Encabezado
+      const claseUrg = p?.urgencia === 'inmediato' ? 'inmediato' : p?.urgencia === '1-3meses' ? 'pronto' : 'calma';
+      nodos.push(el('div', { class: 'card' },
+        el('h1', { text: nombre }),
+        el('p', { class: 'sub', text: [p?.ocupacion, [u.sector, u.provincia].filter(Boolean).join(', ')].filter(Boolean).join(' · ') }),
+        p ? el('div', { style: 'margin-top:12px' }, el('span', { class: `badge ${claseUrg}`, text: etiquetas.urgencia[p.urgencia] || p.urgencia })) : '',
+        // Botón de contacto solo para quien no es el propio dueño
+        (!esPropio && u.telefono) ? el('div', { class: 'actions' },
+          el('a', { class: 'btn wa', target: '_blank', rel: 'noopener',
+            href: `https://wa.me/${String(u.telefono).replace(/\D/g, '').replace(/^(\d{10})$/, '1$1')}`, text: 'Escribir por WhatsApp' })
+        ) : ''
+      ));
+
+      if (!p) {
+        nodos.push(el('div', { class: 'card' },
+          el('p', { class: 'sub', text: esPropio
+            ? 'Aún no tienes un perfil de búsqueda. Regístrate como cliente o completa tus datos para que los agentes puedan ayudarte mejor.'
+            : 'Este usuario aún no completó su perfil de búsqueda.' })));
+      } else {
+        nodos.push(el('div', { class: 'card' },
+          el('div', { class: 'section-title', text: 'Datos personales' }),
+          el('div', { class: 'grid' },
+            dato('Ocupación', p.ocupacion),
+            dato('Nacionalidad', p.nacionalidad),
+            dato('Teléfono', u.telefono),
+            dato('Correo', u.email)
+          )));
+
+        const rango = [fmt(p.presupuestoMin, p.moneda), fmt(p.presupuestoMax, p.moneda)].filter(Boolean);
+        nodos.push(el('div', { class: 'card' },
+          el('div', { class: 'section-title', text: 'Qué busca' }),
+          el('div', { class: 'grid' },
+            dato('Operación', etiquetas.operacion[p.operacion] || p.operacion),
+            dato('Tipo de propiedad', etiquetas.tipo[p.tipoInmueble] || p.tipoInmueble),
+            dato('Presupuesto', p.presupuestoMin != null && p.presupuestoMax != null ? `${rango[0]} – ${rango[1]}` : (p.presupuestoMax != null ? `Hasta ${rango[rango.length - 1]}` : null)),
+            dato('Habitaciones (mín.)', p.habitaciones),
+            dato('Baños (mín.)', p.banos),
+            dato('Parqueos (mín.)', p.parqueos)
+          ),
+          el('div', { class: 'section-title', style: 'margin-top:20px', text: 'Sectores de interés' }),
+          el('div', { class: 'chips' }, ...(p.sectores?.length ? p.sectores.map(s => el('span', { class: 'chip', text: s })) : [el('span', { class: 'sub', text: '—' })])),
+          el('div', { class: 'section-title', style: 'margin-top:20px', text: 'Características deseadas' }),
+          el('div', { class: 'chips' }, ...(p.extras?.length ? p.extras.map(s => el('span', { class: 'chip', text: s })) : [el('span', { class: 'sub', text: 'Sin preferencias marcadas' })]))
+        ));
+
+        if (p.notas) {
+          nodos.push(el('div', { class: 'card' },
+            el('div', { class: 'section-title', text: 'Notas del cliente' }),
+            el('div', { class: 'notas', text: p.notas })));
+        }
+      }
+
+      nodos.push(tarjetaId(uid, esPropio));
+      cont.replaceChildren(...nodos);
+    }
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        mostrarMensaje('Debes iniciar sesión para ver este perfil.');
+        setTimeout(() => location.href = 'https://www.compratucasard.com/login.html', 1500);
+        return;
+      }
+      const idParam = new URLSearchParams(location.search).get('id');
+      const uidObjetivo = idParam || user.uid;
+      const esPropio = uidObjetivo === user.uid;
+
+      try {
+        if (!esPropio) {
+          const yo = await getDoc(doc(db, 'usuarios', user.uid));
+          const rolYo = yo.exists() ? yo.data().rol : null;
+          if (!ROLES_VEN_PERFILES.includes(rolYo)) {
+            mostrarMensaje('Solo los agentes pueden ver el perfil de otros usuarios.');
+            return;
+          }
+        }
+        const snap = await getDoc(doc(db, 'usuarios', uidObjetivo));
+        if (!snap.exists()) {
+          mostrarMensaje('No se encontró ningún usuario con ese ID.');
+          return;
+        }
+        renderPerfil(uidObjetivo, snap.data(), esPropio);
+      } catch (err) {
+        console.error(err);
+        mostrarMensaje('No se pudo cargar el perfil. Verifica tus permisos e intenta de nuevo.');
+      }
+    });
+  </script>
+</body>
+</html>
