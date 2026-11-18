@@ -114,7 +114,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Escuchar mensajes en tiempo real para las notificaciones globales (como cliente)
     const q = query(collection(db, "mensajes"), where("userId", "==", user.uid));
 
-    onSnapshot(q, (snapshot) => {
+    let secuenciaCliente = 0;
+    onSnapshot(q, async (snapshot) => {
+      const miSecuenciaCliente = ++secuenciaCliente;
       const conversationsMap = new Map();
 
       snapshot.forEach(docSnap => {
@@ -144,6 +146,13 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       const convs = Array.from(conversationsMap.values());
+
+      // Usar la primera imagen real de la publicación (no la imagen por defecto)
+      await Promise.all(convs.map(async c => {
+        const img = await primeraImagenPropiedad(c.propertyId);
+        if (img) c.propertyImage = img;
+      }));
+      if (miSecuenciaCliente !== secuenciaCliente) return; // llegó un cambio más nuevo
       // No leídos: el último mensaje NO es del usuario ('user') Y no se marcó como leído en mensajes.html
       unreadConvs = convs.filter(c => c.sender && c.sender !== 'user' && !c.leido);
 
@@ -210,7 +219,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }));
         lista = lista.filter((c, i) => estados[i] !== 'finalizada');
 
-        await Promise.all(lista.map(async c => { c.clientName = await nombreUsuario(c.clientId); }));
+        await Promise.all(lista.map(async c => {
+          c.clientName = await nombreUsuario(c.clientId);
+          // Primera imagen real de la publicación (no la imagen por defecto)
+          const img = await primeraImagenPropiedad(c.propertyId);
+          if (img) c.propertyImage = img;
+        }));
 
         if (miSecuencia !== secuencia) return; // llegó un cambio más nuevo mientras consultaba
         staffUnread = lista.sort((a, b) => b.timestamp - a.timestamp);
@@ -256,6 +270,23 @@ async function nombreUsuario(uid) {
   } catch (e) { /* ignorar */ }
   cacheNombres[uid] = nombre;
   return nombre;
+}
+
+// Primera imagen de la publicación (propiedades/{id}.imagenes[0]). Se guarda en caché para no repetir lecturas.
+const cacheImagenesProp = {};
+async function primeraImagenPropiedad(propId) {
+  if (!propId || propId === 'general' || propId.startsWith('solicitud_') || propId.startsWith('perfil-agente-')) return null;
+  if (propId in cacheImagenesProp) return cacheImagenesProp[propId];
+  let img = null;
+  try {
+    const s = await getDoc(doc(db, "propiedades", propId));
+    if (s.exists()) {
+      const d = s.data();
+      img = (Array.isArray(d.imagenes) && d.imagenes[0]) || d.imagen || d.imagenPrincipal || null;
+    }
+  } catch (e) { /* ignorar */ }
+  cacheImagenesProp[propId] = img;
+  return img;
 }
 
 const cacheCreadores = {};
