@@ -374,6 +374,44 @@
         color: #fff;
       }
 
+      /* ===== Bloque de condominio ===== */
+      .condo-section { margin-bottom: 30px; }
+      .condo-section h3 { font-size: 20px; font-weight: 700; margin-bottom: 14px; color: #fff; }
+      .condo-totales { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 14px; }
+      .condo-total-card {
+        background: rgba(245, 158, 11, 0.08);
+        border: 1px solid rgba(245, 158, 11, 0.5);
+        border-radius: 12px;
+        padding: 12px;
+        text-align: center;
+      }
+      .condo-total-card span { display: block; font-size: 13px; color: #a1a1aa; margin-bottom: 4px; }
+      .condo-total-card strong { font-size: 18px; color: #fff; }
+      .condo-nivel-card {
+        background: rgba(24, 24, 27, 0.8);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 12px;
+        padding: 14px 16px;
+        margin-bottom: 10px;
+      }
+      .condo-nivel-titulo { font-weight: 800; font-size: 15px; color: #f59e0b; margin-bottom: 8px; }
+      .condo-fila {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 6px 14px;
+        padding: 6px 0;
+        border-top: 1px dashed rgba(255, 255, 255, 0.1);
+        font-size: 14px;
+        color: #e4e4e7;
+      }
+      .condo-fila:first-of-type { border-top: none; }
+      .condo-fila b { color: #fff; }
+      .condo-fila .condo-det { color: #a1a1aa; }
+      @media (max-width: 520px) {
+        .condo-totales { grid-template-columns: 1fr; }
+      }
+
       .property-description-section h3,
       .property-sidebar-box h3 {
         font-size: 20px;
@@ -1060,15 +1098,47 @@
           // Distribución (Normal, Dúplex, Tríplex, Bi-nivel, Multifamiliar; en Terreno: Normal o Mejora)
           const distribucionPropiedad = (selectedProperty.distribucion || '').toString().trim();
           const esTerrenoDetalle = tipoPropiedad.toLowerCase() === 'terreno';
-          const distribucionBadgeHtml = (distribucionPropiedad && distribucionPropiedad.toLowerCase() !== 'normal')
+          const distribucionBadgeHtml = (distribucionPropiedad && distribucionPropiedad.toLowerCase() !== 'normal' && tipoPropiedad !== 'Condominio')
             ? `<span class="property-tag-badge" style="background:#0ea5e9;">${distribucionPropiedad}</span>`
             : '';
-          const distribucionHtml = distribucionPropiedad
+          const distribucionHtml = (distribucionPropiedad && tipoPropiedad !== 'Condominio')
             ? `<div class="spec-card">
                  <span>${esTerrenoDetalle ? 'Tipo de terreno' : 'Distribución'}</span>
                  <strong>${distribucionPropiedad}</strong>
                </div>`
             : '';
+
+          // Condominio: se muestra el desglose por niveles en lugar de Habitaciones / Baños / Distribución / Nivel
+          const esCondominio = tipoPropiedad === 'Condominio';
+          let condoSectionHtml = '';
+          if (esCondominio && selectedProperty.condominio && Array.isArray(selectedProperty.condominio.niveles) && selectedProperty.condominio.niveles.length) {
+            const niveles = selectedProperty.condominio.niveles;
+            const escC = (t) => String(t == null ? '' : t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+            const pl = (n, uno, varios) => `${n} ${n === 1 ? uno : varios}`;
+            const totApts = niveles.reduce((t, n) => t + ((n.apartamentos || []).length), 0);
+            const totLocs = niveles.reduce((t, n) => t + (n.tieneLocales ? (parseInt(n.locales, 10) || 0) : 0), 0);
+            const totalesHtml = `
+              <div class="condo-totales">
+                <div class="condo-total-card"><span>Niveles</span><strong>🏢 ${niveles.length}</strong></div>
+                <div class="condo-total-card"><span>Apartamentos</span><strong>🏠 ${totApts}</strong></div>
+                <div class="condo-total-card"><span>Locales</span><strong>🏪 ${totLocs}</strong></div>
+              </div>`;
+            const nivelesHtml = niveles.map((n, i) => {
+              const nom = (n.nombre || '').toString().trim() || `Nivel ${i + 1}`;
+              const filas = [];
+              const locN = n.tieneLocales ? (parseInt(n.locales, 10) || 0) : 0;
+              if (locN) filas.push(`<div class="condo-fila">🏪 <b>${pl(locN, 'local comercial', 'locales comerciales')}</b></div>`);
+              const apts = n.apartamentos || [];
+              apts.forEach((a, ai) => {
+                const h = (a.habitaciones === '' || a.habitaciones == null) ? '?' : a.habitaciones;
+                const b = (a.banos === '' || a.banos == null) ? '?' : a.banos;
+                filas.push(`<div class="condo-fila">🏠 <b>Apartamento ${ai + 1}</b><span class="condo-det">🛏️ ${escC(h)} hab · 🛁 ${escC(b)} baños</span></div>`);
+              });
+              if (!filas.length) filas.push('<div class="condo-fila"><span class="condo-det">Sin unidades registradas</span></div>');
+              return `<div class="condo-nivel-card"><div class="condo-nivel-titulo">${escC(nom)}</div>${filas.join('')}</div>`;
+            }).join('');
+            condoSectionHtml = `<div class="condo-section"><h3>🏢 Distribución del condominio</h3>${totalesHtml}${nivelesHtml}</div>`;
+          }
 
           const title = selectedProperty.titulo || selectedProperty.title || selectedProperty.nombre || 'Sin título';
           const location = selectedProperty.ubicacion || selectedProperty.location || selectedProperty.direccion || 'República Dominicana';
@@ -1134,14 +1204,14 @@
           const aceptaExtranjero = rawExtranjero === true || rawExtranjero === "true" || rawExtranjero === "si" || rawExtranjero === "sí" || rawExtranjero === 1 || rawExtranjero === "on";
 
           // Tarjetas de specs: se ocultan si el valor es 0 / N/D (no aportan información)
-          const habsHtml = (habs && habs.toString() !== '0' && habs.toString().toUpperCase() !== 'N/D')
+          const habsHtml = (!esCondominio && habs && habs.toString() !== '0' && habs.toString().toUpperCase() !== 'N/D')
             ? `<div class="spec-card">
                  <span>Habitaciones</span>
                  <strong>🛏️ ${habs} Hab</strong>
                </div>`
             : '';
 
-          const banosHtml = (banos && banos.toString() !== '0' && banos.toString().toUpperCase() !== 'N/D')
+          const banosHtml = (!esCondominio && banos && banos.toString() !== '0' && banos.toString().toUpperCase() !== 'N/D')
             ? `<div class="spec-card">
                  <span>Baños</span>
                  <strong>🛁 ${banos} Baños</strong>
@@ -1155,7 +1225,7 @@
                </div>`
             : '';
 
-          const nivelHtml = (nivel && nivel.toString() !== '0' && nivel.toString().toUpperCase() !== 'N/D')
+          const nivelHtml = (!esCondominio && nivel && nivel.toString() !== '0' && nivel.toString().toUpperCase() !== 'N/D')
             ? `<div class="spec-card">
                  <span>Nivel / Altura</span>
                  <strong>🏢 ${nivel}</strong>
@@ -1261,6 +1331,7 @@
             lobby: '🛋️ Lobby',
             portonElectrico: '🚧 Portón Eléctrico',
             controlAcceso: '🔐 Control de Acceso',
+            garitaSeguridad: '🛡️ Garita de Seguridad',
             cercaMetro: '🚇 Cerca del Metro',
             patio: '🌳 Patio',
             galeria: '🖼️ Galería'
@@ -1448,6 +1519,8 @@
                 ${distribucionHtml}
                 ${unidadesHtml}
               </div>
+
+              ${condoSectionHtml}
 
               <div class="property-description-section">
                 <h3>Acerca de esta propiedad</h3>
