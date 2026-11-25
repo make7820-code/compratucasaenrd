@@ -631,6 +631,51 @@
         color: var(--text-muted);
       }
 
+      /* ===== Bloque de condominio en la tarjeta ===== */
+      .condo-box {
+        margin-top: 12px;
+        border: 1px solid rgba(245, 158, 11, 0.55);
+        background: rgba(245, 158, 11, 0.07);
+        border-radius: 12px;
+        padding: 10px 12px;
+        font-size: 12px;
+        color: var(--text-main);
+      }
+      .condo-head {
+        font-weight: 800;
+        color: #f59e0b;
+        margin-bottom: 8px;
+        font-size: 12px;
+        letter-spacing: 0.3px;
+      }
+      .condo-totales {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-bottom: 8px;
+      }
+      .condo-chip {
+        background: rgba(245, 158, 11, 0.16);
+        color: var(--text-main);
+        font-weight: 700;
+        padding: 3px 8px;
+        border-radius: 999px;
+        font-size: 11px;
+        white-space: nowrap;
+      }
+      .condo-nivel {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 2px 10px;
+        padding: 6px 0;
+        border-top: 1px dashed var(--border-color);
+      }
+      .condo-nivel-nombre { font-weight: 800; color: #f59e0b; white-space: nowrap; }
+      .condo-nivel-items { display: flex; flex-direction: column; gap: 2px; color: var(--text-main); }
+      .condo-nivel-items span { color: var(--text-muted); }
+      .condo-nivel-items b { color: var(--text-main); }
+      .condo-mas { margin-top: 4px; color: var(--text-muted); font-size: 11px; }
+
       .property-extranjeros-pill {
         margin-top: 12px;
         display: inline-flex;
@@ -1774,16 +1819,40 @@
             };
             condoHabsTxt = rango('habitaciones');
             condoBanosTxt = rango('banos');
-            const partes = [`${nivelesCondo.length} nivel${nivelesCondo.length !== 1 ? 'es' : ''}`];
-            if (aptsCondo) partes.push(`${aptsCondo} apartamento${aptsCondo !== 1 ? 's' : ''}`);
-            if (localesCondo) partes.push(`${localesCondo} local${localesCondo !== 1 ? 'es' : ''}`);
-            const detalleCondo = nivelesCondo.map((n, i) => {
+            const escCondo = (t) => String(t == null ? '' : t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+            const plural = (n, uno, varios) => `${n} ${n === 1 ? uno : varios}`;
+            const chips = [`<span class="condo-chip">🏢 ${plural(nivelesCondo.length, 'nivel', 'niveles')}</span>`];
+            if (aptsCondo) chips.push(`<span class="condo-chip">🏠 ${plural(aptsCondo, 'apartamento', 'apartamentos')}</span>`);
+            if (localesCondo) chips.push(`<span class="condo-chip">🏪 ${plural(localesCondo, 'local', 'locales')}</span>`);
+
+            const MAX_NIVELES_VISIBLES = 6;
+            const filasNiveles = nivelesCondo.slice(0, MAX_NIVELES_VISIBLES).map((n, i) => {
               const nom = (n.nombre || '').toString().trim() || `Nivel ${i + 1}`;
-              const aptsN = (n.apartamentos || []).map(a => `${a.habitaciones === '' || a.habitaciones == null ? '?' : a.habitaciones}H/${a.banos === '' || a.banos == null ? '?' : a.banos}B`).join(', ');
-              const locN = n.tieneLocales ? `${parseInt(n.locales, 10) || 0} local(es)` : '';
-              return `${nom}: ${[aptsN ? `${(n.apartamentos || []).length} apto(s) (${aptsN})` : '', locN].filter(Boolean).join(' + ') || 'sin unidades'}`;
-            }).join(' | ').replace(/"/g, '&quot;');
-            condoPillHtml = `<div class="property-extranjeros-pill" style="background: rgba(245, 158, 11, 0.12); border-color: #f59e0b; color: #f59e0b;" title="${detalleCondo}">🏢 Condominio: ${partes.join(' · ')}</div>`;
+              const items = [];
+              const locN = n.tieneLocales ? (parseInt(n.locales, 10) || 0) : 0;
+              if (locN) items.push(`<div>🏪 <b>${plural(locN, 'local', 'locales')}</b></div>`);
+              // Se agrupan los apartamentos iguales: "2× 3 hab · 2 baños"
+              const grupos = {};
+              (n.apartamentos || []).forEach(a => {
+                const h = (a.habitaciones === '' || a.habitaciones == null) ? '?' : a.habitaciones;
+                const b = (a.banos === '' || a.banos == null) ? '?' : a.banos;
+                const k = `${h}|${b}`;
+                grupos[k] = (grupos[k] || 0) + 1;
+              });
+              const totalAptsN = (n.apartamentos || []).length;
+              if (totalAptsN) {
+                items.push(`<div>🏠 <b>${plural(totalAptsN, 'apartamento', 'apartamentos')}</b></div>`);
+                Object.keys(grupos).forEach(k => {
+                  const [h, b] = k.split('|');
+                  items.push(`<div><span>${grupos[k]}× &nbsp;🛏️ ${escCondo(h)} hab · 🛁 ${escCondo(b)} baños</span></div>`);
+                });
+              }
+              if (!items.length) items.push('<div><span>Sin unidades</span></div>');
+              return `<div class="condo-nivel"><div class="condo-nivel-nombre">${escCondo(nom)}</div><div class="condo-nivel-items">${items.join('')}</div></div>`;
+            }).join('');
+            const masNiveles = nivelesCondo.length > MAX_NIVELES_VISIBLES
+              ? `<div class="condo-mas">+ ${nivelesCondo.length - MAX_NIVELES_VISIBLES} nivel(es) más. Ver detalle completo en la propiedad.</div>` : '';
+            condoPillHtml = `<div class="condo-box"><div class="condo-head">🏢 DISTRIBUCIÓN DEL CONDOMINIO</div><div class="condo-totales">${chips.join('')}</div>${filasNiveles}${masNiveles}</div>`;
           }
           const numParqueos = parseInt(propParqueos, 10) || 0;
 
