@@ -1457,6 +1457,7 @@
               <option value="Solar">Solar</option>
               <option value="Local">Local</option>
               <option value="Villa">Villa</option>
+              <option value="Condominio">Condominio</option>
               <option value="Penthouse">Penthouse</option>
               <option value="Estudio">Estudio</option>
               <option value="Finca">Finca</option>
@@ -1752,6 +1753,38 @@
              numérico es 1 o más; si es 0 o no está definida, se oculta */
           const numHabs = parseInt(propHabs, 10) || 0;
           const numBanos = parseInt(propBanos, 10) || 0;
+
+          // Condominio: resumen por niveles y rango de habitaciones/baños de sus apartamentos
+          let condoPillHtml = '';
+          let condoHabsTxt = '';
+          let condoBanosTxt = '';
+          if (propType === 'Condominio' && prop.condominio && Array.isArray(prop.condominio.niveles) && prop.condominio.niveles.length) {
+            const nivelesCondo = prop.condominio.niveles;
+            const aptsCondo = nivelesCondo.reduce((t, n) => t + ((n.apartamentos || []).length), 0);
+            const localesCondo = nivelesCondo.reduce((t, n) => t + (n.tieneLocales ? (parseInt(n.locales, 10) || 0) : 0), 0);
+            const rango = (campo) => {
+              const v = [];
+              nivelesCondo.forEach(n => (n.apartamentos || []).forEach(a => {
+                const x = parseFloat(a[campo]);
+                if (Number.isFinite(x)) v.push(x);
+              }));
+              if (!v.length) return '';
+              const mn = Math.min(...v), mx = Math.max(...v);
+              return mn === mx ? String(mx) : `${mn}-${mx}`;
+            };
+            condoHabsTxt = rango('habitaciones');
+            condoBanosTxt = rango('banos');
+            const partes = [`${nivelesCondo.length} nivel${nivelesCondo.length !== 1 ? 'es' : ''}`];
+            if (aptsCondo) partes.push(`${aptsCondo} apartamento${aptsCondo !== 1 ? 's' : ''}`);
+            if (localesCondo) partes.push(`${localesCondo} local${localesCondo !== 1 ? 'es' : ''}`);
+            const detalleCondo = nivelesCondo.map((n, i) => {
+              const nom = (n.nombre || '').toString().trim() || `Nivel ${i + 1}`;
+              const aptsN = (n.apartamentos || []).map(a => `${a.habitaciones === '' || a.habitaciones == null ? '?' : a.habitaciones}H/${a.banos === '' || a.banos == null ? '?' : a.banos}B`).join(', ');
+              const locN = n.tieneLocales ? `${parseInt(n.locales, 10) || 0} local(es)` : '';
+              return `${nom}: ${[aptsN ? `${(n.apartamentos || []).length} apto(s) (${aptsN})` : '', locN].filter(Boolean).join(' + ') || 'sin unidades'}`;
+            }).join(' | ').replace(/"/g, '&quot;');
+            condoPillHtml = `<div class="property-extranjeros-pill" style="background: rgba(245, 158, 11, 0.12); border-color: #f59e0b; color: #f59e0b;" title="${detalleCondo}">🏢 Condominio: ${partes.join(' · ')}</div>`;
+          }
           const numParqueos = parseInt(propParqueos, 10) || 0;
 
           const rawExtranjero = prop.extranjeros !== undefined ? prop.extranjeros
@@ -1956,11 +1989,12 @@
                 </div>
                 ${propDescripcion ? `<p class="property-desc-preview">${propDescripcion}</p>` : ''}
                 <div class="footer-info property-footer-info">
-                  ${numHabs >= 1 ? `<span>🛏️ ${numHabs} Hab</span>` : ''}
-                  ${numBanos >= 1 ? `<span>🛁 ${numBanos} Baños</span>` : ''}
+                  ${condoHabsTxt ? `<span>🛏️ ${condoHabsTxt} Hab</span>` : (numHabs >= 1 ? `<span>🛏️ ${numHabs} Hab</span>` : '')}
+                  ${condoBanosTxt ? `<span>🛁 ${condoBanosTxt} Baños</span>` : (numBanos >= 1 ? `<span>🛁 ${numBanos} Baños</span>` : '')}
                   ${numParqueos >= 1 ? `<span>🅿️ ${numParqueos} Parq</span>` : ''}
                   ${propNivel ? `<span>🏢 ${propNivel}</span>` : ''}
                 </div>
+                ${condoPillHtml}
                 ${aceptaExtranjero ? `<div class="property-extranjeros-pill">🌍 Acepta extranjeros</div>` : ''}
                 ${esAmueblado ? `<div class="property-amueblado-pill">🛋️ Amueblado</div>` : ''}
                 ${esNegociable ? `<div class="property-negociable-pill">🤝 Precio Negociable</div>` : ''}
