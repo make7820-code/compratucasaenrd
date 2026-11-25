@@ -2058,8 +2058,8 @@
                 </div>
                 ${propDescripcion ? `<p class="property-desc-preview">${propDescripcion}</p>` : ''}
                 <div class="footer-info property-footer-info">
-                  ${condoHabsTxt ? `<span>🛏️ ${condoHabsTxt} Hab</span>` : (numHabs >= 1 ? `<span>🛏️ ${numHabs} Hab</span>` : '')}
-                  ${condoBanosTxt ? `<span>🛁 ${condoBanosTxt} Baños</span>` : (numBanos >= 1 ? `<span>🛁 ${numBanos} Baños</span>` : '')}
+                  ${(propType !== 'Condominio' && numHabs >= 1) ? `<span>🛏️ ${numHabs} Hab</span>` : ''}
+                  ${(propType !== 'Condominio' && numBanos >= 1) ? `<span>🛁 ${numBanos} Baños</span>` : ''}
                   ${numParqueos >= 1 ? `<span>🅿️ ${numParqueos} Parq</span>` : ''}
                   ${propNivel ? `<span>🏢 ${propNivel}</span>` : ''}
                 </div>
