@@ -1553,7 +1553,18 @@
           </div>
 
           <div class="form-section-heading" style="margin-top: 20px;"><span>🏠</span> Detalles, Redes y Multimedia</div>
-          <div class="form-grid-2">
+          <!-- ESTRUCTURA DEL CONDOMINIO (solo visible si el tipo es Condominio) -->
+          <div id="seccionCondominio" style="display:none; margin-bottom: 16px; padding: 14px; border: 1px solid rgba(245,158,11,0.45); border-radius: 12px;">
+            <div style="font-weight:800; margin-bottom:10px;">🏢 Estructura del Condominio</div>
+            <div class="publish-form-group">
+              <label>¿Cuántos niveles tiene el condominio?</label>
+              <input type="number" id="propCondoNiveles" class="publish-control" placeholder="Ej. 4" min="1" max="60" step="1">
+            </div>
+            <div id="condoContenedor"></div>
+            <div id="condoResumen" style="font-size:13px; opacity:0.85; margin-top:8px;"></div>
+          </div>
+
+          <div class="form-grid-2" id="gridHabBanos">
             <div class="publish-form-group">
               <label>Habitaciones</label>
               <input type="number" id="propHabitaciones" class="publish-control" placeholder="Ej. 3" min="0">
@@ -1565,7 +1576,7 @@
           </div>
 
           <div class="form-grid-2">
-            <div class="publish-form-group">
+            <div class="publish-form-group" id="grupoNivelApto">
               <label>Nivel del Apartamento / Piso</label>
               <input type="text" id="propNivel" class="publish-control" placeholder="Ej. 3er Piso, PH...">
             </div>
@@ -1968,6 +1979,7 @@
         { id: 'lobby', label: '🛋️ Lobby' },
         { id: 'portonElectrico', label: '🚧 Portón Eléctrico' },
         { id: 'controlAcceso', label: '🔐 Control de Acceso' },
+        { id: 'garitaSeguridad', label: '🛡️ Garita de Seguridad' },
         { id: 'cercaMetro', label: '🚇 Cerca del Metro' },
         { id: 'patio', label: '🌳 Patio' },
         { id: 'galeria', label: '🖼️ Galería' }
@@ -2234,8 +2246,138 @@
       ========================================================= */
       let previewImgUrl = '';
 
+      /* =========================================================
+         CONDOMINIO: niveles -> apartamentos (habitaciones y baños) y locales
+         Estado en condoNiveles:
+         [{ nombre, tieneLocales, locales, apartamentos: [{habitaciones, banos}] }]
+         Los campos Habitaciones/Baños generales se rellenan solos con el
+         máximo encontrado, para que filtros y tarjetas sigan funcionando.
+      ========================================================= */
+      let condoNiveles = [];
+      let condoEstabaActivo = false;
+      const condoEsc = (t) => String(t == null ? '' : t).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+      const condoEntero = (v, max) => Math.max(0, Math.min(max, parseInt(v, 10) || 0));
+
+      function condoEsActivo() {
+        const t = document.getElementById('propTipoPropiedad');
+        return !!t && t.value === 'Condominio';
+      }
+
+      function condoSincronizarGenerales() {
+        let maxH = 0, maxB = 0, hay = false;
+        condoNiveles.forEach(n => n.apartamentos.forEach(a => {
+          const h = parseFloat(a.habitaciones), b = parseFloat(a.banos);
+          if (Number.isFinite(h)) { hay = true; maxH = Math.max(maxH, h); }
+          if (Number.isFinite(b)) { hay = true; maxB = Math.max(maxB, b); }
+        }));
+        const eh = document.getElementById('propHabitaciones'), eb = document.getElementById('propBanos');
+        if (eh) eh.value = hay ? String(maxH) : '';
+        if (eb) eb.value = hay ? String(maxB) : '';
+      }
+
+      function condoRenderResumen() {
+        const el = document.getElementById('condoResumen');
+        if (!el) return;
+        const apts = condoNiveles.reduce((t, n) => t + n.apartamentos.length, 0);
+        const locs = condoNiveles.reduce((t, n) => t + (n.tieneLocales ? n.locales : 0), 0);
+        el.textContent = condoNiveles.length ? `Total: ${condoNiveles.length} nivel(es), ${apts} apartamento(s) y ${locs} local(es).` : '';
+      }
+
+      function condoRender() {
+        const cont = document.getElementById('condoContenedor');
+        const inpN = document.getElementById('propCondoNiveles');
+        if (!cont) return;
+        if (inpN) inpN.value = condoNiveles.length || '';
+        cont.innerHTML = condoNiveles.map((n, ni) => `
+          <div style="margin-top:12px; padding:12px; border:1px solid rgba(128,128,128,0.35); border-radius:10px;">
+            <div class="publish-form-group">
+              <label>Nombre del nivel</label>
+              <input type="text" class="publish-control" data-ni="${ni}" data-f="nombre" value="${condoEsc(n.nombre)}" placeholder="Ej. Nivel ${ni + 1}">
+            </div>
+            <div class="form-grid-2">
+              <div class="publish-form-group">
+                <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                  <input type="checkbox" data-ni="${ni}" data-f="tieneLocales" ${n.tieneLocales ? 'checked' : ''}> Tiene locales comerciales
+                </label>
+                ${n.tieneLocales ? `<input type="number" class="publish-control" style="margin-top:6px;" data-ni="${ni}" data-f="locales" min="1" max="50" value="${n.locales || ''}" placeholder="¿Cuántos locales?">` : ''}
+              </div>
+              <div class="publish-form-group">
+                <label>Apartamentos en este nivel</label>
+                <input type="number" class="publish-control" data-ni="${ni}" data-f="cantApts" min="0" max="40" value="${n.apartamentos.length}">
+              </div>
+            </div>
+            ${n.apartamentos.map((a, ai) => `
+              <div class="form-grid-2" style="margin-top:6px; align-items:end;">
+                <div class="publish-form-group">
+                  <label>Apto ${ai + 1} · Habitaciones</label>
+                  <input type="number" class="publish-control" data-ni="${ni}" data-ai="${ai}" data-f="habitaciones" min="0" value="${condoEsc(a.habitaciones)}" placeholder="Ej. 3">
+                </div>
+                <div class="publish-form-group">
+                  <label>Apto ${ai + 1} · Baños</label>
+                  <input type="number" class="publish-control" data-ni="${ni}" data-ai="${ai}" data-f="banos" min="0" step="0.5" value="${condoEsc(a.banos)}" placeholder="Ej. 2">
+                </div>
+              </div>`).join('')}
+          </div>`).join('');
+        condoRenderResumen();
+        condoSincronizarGenerales();
+      }
+
+      function condoActualizarVisibilidad() {
+        const activo = condoEsActivo();
+        const sec = document.getElementById('seccionCondominio');
+        const grid = document.getElementById('gridHabBanos');
+        const grupoNivel = document.getElementById('grupoNivelApto');
+        if (sec) sec.style.display = activo ? 'block' : 'none';
+        if (grid) grid.style.display = activo ? 'none' : '';
+        if (grupoNivel) grupoNivel.style.display = activo ? 'none' : '';
+        if (activo && !condoEstabaActivo) condoRender();
+        if (!activo && condoEstabaActivo) {
+          const eh = document.getElementById('propHabitaciones'), eb = document.getElementById('propBanos');
+          if (eh) eh.value = '';
+          if (eb) eb.value = '';
+        }
+        condoEstabaActivo = activo;
+      }
+
+      (function iniciarCondominio() {
+        const inpN = document.getElementById('propCondoNiveles');
+        const cont = document.getElementById('condoContenedor');
+        if (!inpN || !cont) return;
+        inpN.addEventListener('change', () => {
+          const total = condoEntero(inpN.value, 60);
+          while (condoNiveles.length < total) condoNiveles.push({ nombre: `Nivel ${condoNiveles.length + 1}`, tieneLocales: false, locales: 0, apartamentos: [] });
+          if (condoNiveles.length > total) condoNiveles.length = total;
+          condoRender();
+          actualizarVistaPrevia();
+        });
+        cont.addEventListener('input', (e) => {
+          const t = e.target, f = t.dataset.f;
+          if (!f || f === 'tieneLocales' || f === 'cantApts') return;
+          const n = condoNiveles[+t.dataset.ni];
+          if (!n) return;
+          if (f === 'nombre') n.nombre = t.value;
+          else if (f === 'locales') { n.locales = condoEntero(t.value, 50); condoRenderResumen(); }
+          else { const a = n.apartamentos[+t.dataset.ai]; if (a) a[f] = t.value; condoSincronizarGenerales(); }
+        });
+        cont.addEventListener('change', (e) => {
+          const t = e.target, f = t.dataset.f;
+          const n = condoNiveles[+t.dataset.ni];
+          if (!f || !n) return;
+          if (f === 'tieneLocales') { n.tieneLocales = t.checked; if (!t.checked) n.locales = 0; condoRender(); }
+          else if (f === 'cantApts') {
+            const total = condoEntero(t.value, 40);
+            while (n.apartamentos.length < total) n.apartamentos.push({ habitaciones: '', banos: '' });
+            if (n.apartamentos.length > total) n.apartamentos.length = total;
+            condoRender();
+          }
+          else if (f === 'locales') { n.locales = condoEntero(t.value, 50); }
+          actualizarVistaPrevia();
+        });
+      })();
+
       function actualizarVistaPrevia() {
         actualizarOpcionesDistribucion();
+        condoActualizarVisibilidad();
         const titulo = (document.getElementById('propTitulo').value || 'Título de la propiedad').trim();
         const tipoPropiedad = document.getElementById('propTipoPropiedad').value || 'Casa';
         const distribucionSel = document.getElementById('propDistribucion') ? document.getElementById('propDistribucion').value : 'Normal';
@@ -3043,6 +3185,7 @@
         renderizarMiniaturasEdicion();
 
         document.querySelectorAll('.extra-checkbox').forEach(chk => { chk.checked = false; });
+        condoNiveles = []; condoEstabaActivo = false; condoRender();
 
         // Publicación nueva: precargamos nombre y WhatsApp del agente con los datos de su perfil,
         // y reseteamos el selector "Publicar como" a "Empresa" por defecto.
@@ -3157,6 +3300,16 @@
           document.getElementById('propHabitaciones').value = editarObj.habitaciones || '';
           document.getElementById('propBanos').value = editarObj.banos || '';
           document.getElementById('propNivel').value = editarObj.nivel || '';
+          if (editarObj.condominio && Array.isArray(editarObj.condominio.niveles)) {
+            condoNiveles = editarObj.condominio.niveles.map((n, i) => ({
+              nombre: n.nombre || `Nivel ${i + 1}`,
+              tieneLocales: !!n.tieneLocales,
+              locales: n.tieneLocales ? (parseInt(n.locales, 10) || 0) : 0,
+              apartamentos: (n.apartamentos || []).map(a => ({ habitaciones: a.habitaciones == null ? '' : String(a.habitaciones), banos: a.banos == null ? '' : String(a.banos) }))
+            }));
+            condoEstabaActivo = false;
+            condoRender();
+          }
           document.getElementById('propParqueos').value = editarObj.parqueos || '';
           document.getElementById('propMetros').value = editarObj.metros || '';
           document.getElementById('propLinkUbicacion').value = editarObj.linkUbicacion || '';
@@ -3457,6 +3610,16 @@
             premium: document.getElementById('propPremium').checked,
             negociable: document.getElementById('propNegociable').checked,
             extras: Array.from(document.querySelectorAll('.extra-checkbox:checked')).map(chk => chk.value),
+            condominio: (document.getElementById('propTipoPropiedad').value === 'Condominio') ? {
+              niveles: condoNiveles.map(n => ({
+                nombre: (n.nombre || '').trim(),
+                tieneLocales: !!n.tieneLocales,
+                locales: n.tieneLocales ? n.locales : 0,
+                apartamentos: n.apartamentos.map(a => ({ habitaciones: a.habitaciones === '' ? '' : Number(a.habitaciones), banos: a.banos === '' ? '' : Number(a.banos) }))
+              })),
+              totalApartamentos: condoNiveles.reduce((t, n) => t + n.apartamentos.length, 0),
+              totalLocales: condoNiveles.reduce((t, n) => t + (n.tieneLocales ? n.locales : 0), 0)
+            } : null,
             ubicacion: ubicacionCompleta,
             provincia, 
             municipio, 
@@ -3592,6 +3755,17 @@
 
         if (!rvVal('propProvincia')) add(errores, 'Selecciona la provincia.', 'propProvincia');
         if (!rvVal('propMunicipio')) add(errores, 'Selecciona el municipio.', 'propMunicipio');
+
+        if (rvVal('propTipoPropiedad') === 'Condominio') {
+          if (!condoNiveles.length) add(errores, 'Indica cuántos niveles tiene el condominio.', 'propCondoNiveles');
+          else condoNiveles.forEach((n, i) => {
+            const nom = (n.nombre || '').trim() || `Nivel ${i + 1}`;
+            const hayLocales = n.tieneLocales && n.locales > 0;
+            if (!n.apartamentos.length && !hayLocales) add(avisos, `${nom}: no tiene apartamentos ni locales.`, 'condoContenedor');
+            else if (n.apartamentos.some(a => a.habitaciones === '' || a.banos === '')) add(avisos, `${nom}: faltan habitaciones o baños en algún apartamento.`, 'condoContenedor');
+            if (n.tieneLocales && !(n.locales > 0)) add(avisos, `${nom}: marcaste locales pero no dijiste cuántos.`, 'condoContenedor');
+          });
+        }
 
         const nuevas = (rvEl('propArchivos') && rvEl('propArchivos').files) ? rvEl('propArchivos').files.length : 0;
         const totalFotos = imagenesEditandoActuales.length + nuevas;
