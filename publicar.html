@@ -3594,7 +3594,14 @@
 
         const nuevas = (rvEl('propArchivos') && rvEl('propArchivos').files) ? rvEl('propArchivos').files.length : 0;
         const totalFotos = imagenesEditandoActuales.length + nuevas;
-        if (totalFotos < 1) add(errores, 'Agrega al menos 1 foto de la propiedad.', 'zonaSubidaFotos');
+        // Si no hay fotos pero sí un video propio (nuevo o ya subido y no borrado), el video hace de principal.
+        const videoNuevo = !!(rvEl('propArchivoVideo') && rvEl('propArchivoVideo').files && rvEl('propArchivoVideo').files.length > 0);
+        const videoActual = !!videoArchivoActualUrl && !videoArchivoEliminado;
+        const hayVideoPropio = videoNuevo || videoActual;
+        const hayLinkVideo = !!rvVal('propLinkVideo');
+        if (totalFotos < 1 && hayVideoPropio) add(avisos, 'No tienes fotos: se usará el video como principal. Se recomienda agregar fotos para que se venda más rápido.', 'zonaSubidaFotos');
+        else if (totalFotos < 1 && hayLinkVideo) add(avisos, 'Solo tienes el link del video y ninguna foto; la tarjeta no tendrá imagen. Sube el video o una foto de portada.', 'zonaSubidaFotos');
+        else if (totalFotos < 1) add(errores, 'Agrega al menos 1 foto o un video de la propiedad.', 'zonaSubidaFotos');
         else if (totalFotos < FOTOS_RECOMENDADAS) add(avisos, `Tienes ${totalFotos} foto(s). Se recomiendan ${FOTOS_RECOMENDADAS} o más para que se venda más rápido.`, 'zonaSubidaFotos');
         if (nuevas > 0 && fotosSinVerificar) add(avisos, 'No se pudo revisar automáticamente el contenido de las fotos nuevas (sin conexión a la revisión). Asegúrate de que sean apropiadas.', 'zonaSubidaFotos');
 
