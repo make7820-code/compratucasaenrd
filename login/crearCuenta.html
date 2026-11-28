@@ -684,14 +684,14 @@
           let fotoPerfil = '';
           try {
             const ext = fotoFile.type === 'image/png' ? 'png' : fotoFile.type === 'image/webp' ? 'webp' : 'jpg';
-            const fotoRef = ref(storage, `fotosPerfil/${user.uid}/perfil.${ext}`);
+            const fotoRef = ref(storage, `fotosperfil/${user.uid}/perfil.${ext}`);
             await uploadBytes(fotoRef, fotoFile, { contentType: fotoFile.type });
             fotoPerfil = await getDownloadURL(fotoRef);
           } catch (errFoto) {
             console.error('Error subiendo la foto:', errFoto);
             // Si la foto falla, se elimina la cuenta recién creada para no dejarla incompleta
             await user.delete().catch(() => {});
-            throw new Error('No se pudo subir la foto de perfil. Revisa tu conexión e inténtalo de nuevo.');
+            throw new Error('No se pudo subir la foto de perfil (' + (errFoto.code || errFoto.message) + '). Inténtalo de nuevo.');
           }
 
           // 2. Guardar documento en Firestore cumpliendo las reglas de seguridad
